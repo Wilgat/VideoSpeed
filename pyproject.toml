@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "VideoSpeed"
+version = "1.0.0"
+description = "A logging example application with sudo detection and log rotation"
+readme = "README.md"
+requires-python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+license = {text = "MIT"}
+authors = [
+    {name = "Wilgat Wong", email = "wilgat.wong@gmail.com"}
+]
+keywords = ["logging", "sudo", "chronicle", "example"]
+
+dependencies = [
+    "ChronicleLogger>=1.0.0",
+]
+
+# Official project links (this is what shows on PyPI!)
+[project.urls]
+Homepage = "https://github.com/Wilgat/VideoSpeed"
+Repository = "https://github.com/Wilgat/VideoSpeed"
+Issues = "https://github.com/Wilgat/VideoSpeed/issues"
+
+# This makes `logged-example` command available after pip install
+[project.scripts]
+logged-example = "VideoSpeed.cli:main"
