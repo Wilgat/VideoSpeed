@@ -14,17 +14,17 @@ A command-line video editing tool built in Python for cutting, speeding up, and 
 To install the VideoSpeed package, use the provided distributions:
 
 1. Download the wheel or tar.gz file from the `dist` directory:
-   - `VideoSpeed-1.0.0-py3-none-any.whl`
-   - `VideoSpeed-1.0.0.tar.gz`
+   - `VideoSpeed-1.0.3-py3-none-any.whl`
+   - `VideoSpeed-1.0.3.tar.gz`
 
 2. Install via pip:
    ```bash
-   pip install dist/VideoSpeed-1.0.0-py3-none-any.whl
+   pip install dist/VideoSpeed-1.0.3-py3-none-any.whl
    ```
 
    Or
    ```bash
-   pip install dist/VideoSpeed-1.0.0.tar.gz
+   pip install dist/VideoSpeed-1.0.3.tar.gz
    ```
 
 ## Usage

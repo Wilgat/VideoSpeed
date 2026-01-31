@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),  
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.3/),  
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.0] - 2025-12-03
 
 ### Added
-- Initial public release of `logged-example`
+- Initial public release of `video-speed`
 - Full-featured logging system via `ChronicleLogger` with:
   - Daily log rotation (YYYYMMDD-based filenames)
   - Automatic archiving of logs older than 7 days (`.tar.gz`)
@@ -17,8 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `/var/log/<appname>` when running as root
     - `~/.app/<appname>/log` for regular users
 - `Sudoer` utility class with safe sudo detection and user warning
-- Console script entrypoint: `logged-example`
-  - Run `logged-example info` to display basic application info
+- Console script entrypoint: `video-speed`
+  - Run `video-speed info` to display basic application info
 - Comprehensive cross-Python compatibility:
   - Python 2.7 and Python 3.5–3.14 supported
   - Tested on Linux and macOS
