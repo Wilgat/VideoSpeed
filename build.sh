@@ -7,7 +7,6 @@ set -eu
 # =============================================
 
 PROJECT="VideoSpeed"
-KG_NAME="video_clio"
 
 # Get version from package (fallback to unknown)
 VERSION=$(python3 - <<'PY'
@@ -52,6 +51,10 @@ Example:
   ./build.sh release
   ./build.sh test -v
 EOF
+}
+
+do_version() {
+    echo "VideoSpeed build tool (v$VERSION)"
 }
 
 do_setup() {
@@ -130,6 +133,7 @@ case "${1:-}" in
     build)     do_build     ;;
     upload)    do_upload    ;;
     git)       do_git       ;;
+    version)   do_version   ;;
     tag)       do_tag       ;;
     test)      shift; do_test "$@" ;;           # <-- new command
     release|all)

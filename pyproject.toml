@@ -4,18 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "VideoSpeed"
-version = "1.0.3"
-description = "A logging example application with sudo detection and log rotation"
+version = "1.0.4"
+description = "A command-line video editing tool built in Python for cutting, speeding up, and applying a boomerang effect to MP4 videos."
 readme = "README.md"
 requires-python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 license = {text = "MIT"}
 authors = [
     {name = "Wilgat Wong", email = "wilgat.wong@gmail.com"}
 ]
-keywords = ["logging", "sudo", "chronicle", "example"]
+keywords = ["Video Editing", "Multimeida"]
 
 dependencies = [
-    "ChronicleLogger>=1.0.3",
+    "ChronicleLogger>=1.2.3",
     "opencv-python"
 ]
 
