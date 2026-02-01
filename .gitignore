@@ -1,5 +1,5 @@
 ._*
-statelogic.egg-info
+*.egg-info
 build
 dist
 .pytest_cache
