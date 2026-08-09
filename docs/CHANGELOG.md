@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.4/),  
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-08-09
+
+### Fixed
+- Cross-filesystem / USB publish: stage temps next to the output path and publish with `shutil.move` (no bare `os.replace` from system temp onto removable media).
+- Package import no longer requires OpenCV at import time (`__init__.py` version-only).
+- FFmpeg missing on PATH fails closed before encode; invalid cut range and length % outside 20–200% re-prompt without encoding.
+- Boomerang intermediate cleanup on failure paths; chained `atempo` for extreme rates.
+
+### Added
+- CLI `--help` and `--version` (bare invoke remains interactive Type N session).
+- Product requirements under `docs/requirements/` and public `reviews/` test plan / lessons surface.
+
+### Changed
+- Specialized interactive CLI from bootstrap archive (`cli.bootstrap-old.py`); ship SSOT remains `src/VideoSpeed/cli.py`.
+
 ## [0.1.0] - 2025-12-03
 
 ### Added
