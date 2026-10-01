@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-video-ffmpeg-pipeline.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.1)  
 **Area**: video  
 **Key**: `requirement-video-ffmpeg-pipeline`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,7 +8,30 @@
 
 This requirement is the **operational Single Source of Truth** for VideoSpeed media processing: segment cut, speed/length change, optional boomerang (reverse + concat), temporary file lifecycle, and FFmpeg invocation rules.
 
-Domain feature catalog and user workflow labels live in **`requirement-domain-videospeed`**. Interactive prompts live in **`requirement-python-cli-interface`**.
+Domain feature catalog and user workflow labels live in **`requirement-domain-videospeed`**. The menu walk versus one job lives in **`requirement-python-interactive-vs-noninteractive`**. Entry stays on **`requirement-python-cli-interface`**.
+
+### 1.1 Human-facing
+
+**In one sentence:** This file says how a job is encoded: cut the segment, change its length, optionally reverse-and-append, write temps next to the output, never overwrite the source MP4.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Person who wants a new clip | Final file appears beside the source |
+| The other role | Domain / CLI | Which times and percent you asked for |
+| Not this file | Help text | Domain file |
+
+| Includes | Excludes |
+|----------|----------|
+| Cut → speed → optional boomerang; temps; `shutil.move` publish | Prompt wording; pip metadata |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `src/VideoSpeed/cli.py` | `process_job` / `cut_clip` | live encode |
+| `video-speed --file clip.mp4 --start 1 --end 5` | command | one job |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Run a job | FFmpeg must not write over the original file. | `video-speed --file clip.mp4 --start 1 --end 5` |
 
 ---
 
@@ -137,7 +160,8 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | Key | Relationship |
 |-----|--------------|
 | `requirement-domain-videospeed` | Domain surface |
-| `requirement-python-cli-interface` | User inputs |
+| `requirement-python-interactive-vs-noninteractive` | Menu walk versus one job |
+| `requirement-python-cli-interface` | Entry |
 | `requirement-python-error-handling` | Fail messaging |
 | `requirement-python-coding-style` | General file move / temp coding rules |
 | `requirement-runtime-prerequisites` | `ffmpeg` present |
@@ -147,18 +171,21 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
-| TP-FFMPEG-01..05 | `reviews/test-plan.md` | todo | Encode pipeline; map in RTM |
-| TP-FS-01..04 | `reviews/test-plan.md` | todo | Staging + `shutil.move` |
-| TP-ERR-01..03 | `reviews/test-plan.md` | todo | Range / ffmpeg fail |
+| TP-FFMPEG-01..05 | — | skip | Need ffmpeg + fixture MP4 |
+| TP-FS-01 | `tests/test_fs.py` | have | `shutil.move` |
+| TP-FS-02 | `tests/test_fs.py` | have | staging |
+| TP-ERR-01 | `tests/test_errors.py` | have | Invalid range |
 
 ## 7. Status history
 
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Initial FFmpeg pipeline ops law |
+| 2026-08-19 | Active 1.1.0 | §1.1; FS/ERR TP have |
+| 2026-10-01 | Active 1.1.1 | Walk versus job points at the mode requirement |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

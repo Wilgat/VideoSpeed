@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-coding-style.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.0)  
 **Area**: python  
 **Key**: `requirement-python-coding-style`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -9,6 +9,29 @@
 Define **Python coding style and defensive file I/O conventions** for VideoSpeed: how agents and maintainers write Python so path/temp/publish behavior stays multi-mount safe (including USB), without duplicating domain or FFmpeg pipeline tables.
 
 Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-pipeline`**.
+
+### 1.1 Human-facing
+
+**In one sentence:** When VideoSpeed writes a temp file and then publishes the result, it must put temps next to the output (so USB disks work) and move the file with `shutil.move`, not a bare rename.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Maintainer editing `cli.py` | `promote_file` uses `shutil.move` |
+| The other role | Pipeline peer | When temps are created during encode |
+| Not this file | Prompt text | CLI interface |
+
+| Includes | Excludes |
+|----------|----------|
+| Same-FS staging; `shutil.move` publish; lazy OpenCV import | Filter graphs; argparse flags |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `src/VideoSpeed/cli.py` | `promote_file` / `staging_dir_for` | live I/O |
+| `./tests/run.sh` | suite | TP-FS-01 / TP-FS-02 |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Save onto a USB stick | Temps must not live only under `/tmp` if the output is on the stick. | Keep `promote_file` → `shutil.move` |
 
 ---
 
@@ -55,6 +78,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | **Publish helper** | `promote_file` → `shutil.move` |
 | **Ops apply** | `requirement-video-ffmpeg-pipeline` |
 | **Architecture shape today** | Interactive procedural CLI (bootstrap specialized); not full StateLogic yet |
+| **System-status lines** | `requirement-python-cli-logging` — do not add a second logger here |
 | **Version** | `1.0.5` |
 
 ### 2.6 Why This Requirement Exists (CIAO)
@@ -116,8 +140,9 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
-| TP-FS-01..02 | `reviews/test-plan.md` | todo | `shutil.move` + staging |
-| TP-PKG-01 | `reviews/test-plan.md` | todo | import without cv2 |
+| TP-FS-01 | `tests/test_fs.py` | have | `shutil.move` + two dirs |
+| TP-FS-02 | `tests/test_fs.py` | have | staging parent |
+| TP-PKG-01 | `tests/test_package.py` | have | import without cv2 |
 | Code review | `reviews/reports/*` | pass (2026-08-09) | bare replace not sole publish |
 
 ## 7. Status history
@@ -125,9 +150,10 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Coding style + shutil.move / multi-mount file I/O |
+| 2026-08-19 | Active 1.1.0 | §1.1; TP-FS have |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-08-19  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

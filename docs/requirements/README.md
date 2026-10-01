@@ -2,14 +2,21 @@
 
 Authoritative specialized product law for **VideoSpeed** lives here.
 
-**Current state (2026-08-09):** Specialized **software-development** product. Left genesis. Registry is populated — see `index.md`.
+**Current state (2026-10-01):** Specialized **software-development** product. Left genesis. Registry is populated (17 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
 | Product / package | `VideoSpeed` |
-| Version SSOT | `1.0.5` (`pyproject.toml` + `src/VideoSpeed/__init__.py`) |
+| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 6 → `1.0.6` |
+| Text menu | `src/VideoSpeed/menu.py` (default TUI style; Python `>=3.11`) |
+| About page | `requirement-python-about` — identity, host check, star box |
+| Pip floors | `requirement-python-dependency-management` — `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
+| System status log | `requirement-python-cli-logging` — one ChronicleLogger, `log_message` level and component |
+| Modes | `requirement-python-interactive-vs-noninteractive` — menu walk, or one job, or fail closed |
+| Maintainer build | `requirement-python-build-script` — `./build.sh` verbs |
+| JSON output | `requirement-python-json-output` — `--json` is one object; no text menu |
 | Ship surface | Python package; console script `video-speed` |
 | Install mode | **pip / local package** |
 | Domain surface | `requirement-domain-videospeed` — four pillars |

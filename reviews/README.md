@@ -12,10 +12,10 @@ Public product review surface (peer of `tests/` when present).
 | `reports/` | Dated review run reports |
 
 **Product:** VideoSpeed (Python interactive CLI)  
-**Package / version SSOT:** `1.0.5` (`pyproject.toml` + `src/VideoSpeed/__init__.py`)  
+**Package / version SSOT:** `1.0.6` (`pyproject.toml` + `src/VideoSpeed/__init__.py`)  
 **Ship surface:** `src/VideoSpeed/cli.py` · console script `video-speed` · `python -m VideoSpeed`  
 **Install mode:** pip / local package (not shell Type 0 online install)  
 **Type 1 elevation:** intentionally absent  
 
 **Always load first:** `reviews/lessons.md`  
-**Last plan update:** 2026-08-09
+**Last plan update:** 2026-09-30

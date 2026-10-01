@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-runtime-prerequisites.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.5)  
 **Area**: runtime  
 **Key**: `requirement-runtime-prerequisites`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -7,6 +7,29 @@
 ## 1. Purpose
 
 Declare **host and Python runtime prerequisites** required to run VideoSpeed successfully. This product does **not** implement a privileged system `prerequisites` installer command; this file is the **documentation and validation SSOT** for what must already be present.
+
+### 1.1 Human-facing
+
+**In one sentence:** Before VideoSpeed can encode, your computer must already have Python 3.11 or newer, the pip wheels named by `requirement-python-dependency-management` (`opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1`), and an `ffmpeg` program on `PATH`. The text menu is in this package.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Operator installing tools | `ffmpeg -version` must work |
+| The other role | Packaging (pip deps) | version floors in `requirement-python-dependency-management` |
+| Not this file | How to cut | Pipeline file |
+
+| Includes | Excludes |
+|----------|----------|
+| CPython 3.11+, OpenCV, FFmpeg; no root installer | pip installing FFmpeg |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `ffmpeg` on `PATH` | system binary | encode |
+| `video-speed --version` | command | package import without FFmpeg |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Check FFmpeg | The product will not install it for you. | `ffmpeg -version` |
 
 ---
 
@@ -23,8 +46,8 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | Component | Kind | Required for | Install surface |
 |-----------|------|--------------|-----------------|
 | CPython | interpreter | package import + CLI | OS / pyenv / system Python |
-| `opencv-python` | pip package | duration probe | `pyproject.toml` / pip |
-| `ChronicleLogger` | pip package | logging dependency (declared) | `pyproject.toml` / pip |
+| `opencv-python-headless>=5.0.0.93` | pip package | duration probe | `requirement-python-dependency-management` |
+| `ChronicleLogger>=1.3.1` | pip package | system-status files (`requirement-python-cli-logging`) | `requirement-python-dependency-management` |
 | **FFmpeg** (`ffmpeg` on PATH) | system binary | cut / speed / boomerang | OS package manager / user install |
 
 ### 2.3 Validation expectations
@@ -43,11 +66,12 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | Item | Value |
 |------|--------|
 | **Python package install** | `pip install .` or wheel from `dist/` / PyPI when published |
-| **Declared pip deps** | `opencv-python`, `ChronicleLogger>=1.2.3` |
+| **Declared pip deps** | Owned by `requirement-python-dependency-management`: `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
+| **Text menu** | In this package (`requirement-python-tui`, `src/VideoSpeed/menu.py`). Not a pip package |
 | **System binary** | `ffmpeg` on `PATH` |
 | **Auto install command** | **none** (not implemented) |
-| **Platform notes** | Linux primary; other OS OK when FFmpeg + OpenCV available |
-| **Product version** | 1.0.5 |
+| **Platform notes** | Linux primary. Duration probing uses the headless OpenCV wheel, which does not need `libGL.so.1`. Other OS OK when FFmpeg + OpenCV are available |
+| **Product version** | 1.0.6 |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -84,7 +108,7 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | ID | Criterion |
 |----|-----------|
 | AC-1 | FFmpeg listed as system binary |
-| AC-2 | opencv-python listed as pip dep |
+| AC-2 | OpenCV pip dep is the headless wheel; floor is `requirement-python-dependency-management` |
 | AC-3 | No false auto root-install claim |
 | AC-4 | README aligns with this table |
 
@@ -94,26 +118,35 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 
 | Key | Relationship |
 |-----|--------------|
-| `requirement-python-packaging` | pip deps |
+| `requirement-python-packaging` | Manifest shape |
+| `requirement-python-dependency-management` | Pip names and version floors |
 | `requirement-video-ffmpeg-pipeline` | uses FFmpeg |
 | `requirement-python-error-handling` | missing tool messages |
+| `requirement-python-tui` | Text menu painter in this package |
+| `requirement-python-cli-logging` | How ChronicleLogger is used for status |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
 
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
-| TP-PRE-01 | `command -v ffmpeg` | todo | Host check |
-| TP-PRE-02 | import cv2 | todo | Python env |
+| TP-PRE-01 | `tests/test_prereq.py` | have | Missing ffmpeg message |
+| TP-PRE-02 | `tests/test_prereq.py` | have | Missing OpenCV duration |
 
 ## 7. Status history
 
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Initial runtime prerequisites law |
+| 2026-08-19 | Active 1.1.0 | Drop ChronicleLogger; §1.1 |
+| 2026-09-30 | Active 1.1.1 | `py-tui` peer is `requirement-python-tui` |
+| 2026-09-30 | Active 1.1.2 | Duration dep is `opencv-python-headless` (no `libGL.so.1`) |
+| 2026-09-30 | Active 1.1.3 | Pip floors owned by `requirement-python-dependency-management` |
+| 2026-10-01 | Active 1.1.4 | ChronicleLogger is a pip floor again, owned by the dependency requirement |
+| 2026-10-01 | Active 1.1.5 | Text menu is in this package; no menu pip row |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

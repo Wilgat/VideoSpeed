@@ -1,12 +1,35 @@
 **file**: docs/requirements/requirement-python-error-handling.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.2.2)  
 **Area**: python  
 **Key**: `requirement-python-error-handling`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define how VideoSpeed **detects, reports, and recovers from errors** during interactive sessions and FFmpeg processing without destroying the user’s source media.
+Define how VideoSpeed **detects, reports, and recovers from errors** during interactive sessions, non-interactive jobs, and FFmpeg processing without destroying the user’s source media.
+
+### 1.1 Human-facing
+
+**In one sentence:** When something is wrong (no file, bad time range, missing FFmpeg), VideoSpeed must say so on the console and leave your original MP4 untouched.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Person whose clip must not be deleted | Invalid `--start`/`--end` prints an error and does not encode |
+| The other role | CLI + pipeline | Who prompts vs who runs FFmpeg |
+| Not this file | Feature catalog | Domain file |
+
+| Includes | Excludes |
+|----------|----------|
+| Fail-closed categories; source-safe cleanup; console errors | Silent `pass`; deleting the source |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `src/VideoSpeed/cli.py` | ship unit | live messages |
+| `video-speed --file missing.mp4 --start 0 --end 1` | command | “File not found” + Next |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Give a bad range | The program must not start FFmpeg. | `video-speed --file clip.mp4 --start 9 --end 1` |
 
 ---
 
@@ -39,8 +62,8 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 
 ### 2.4 Logging
 
-8. **SHOULD** use ChronicleLogger for durable diagnostics when configured.  
-9. **MUST** still print user-visible failure reason on the console for interactive sessions.  
+8. **MUST** print a user-visible failure reason on the console (interactive and batch).  
+9. Durable system-status copies of those facts **MUST** follow `requirement-python-cli-logging` (`log_message` at `ERROR` or `FATAL`). This file still owns the console sentence.  
 10. **MUST NOT** log secrets (none expected in this product).
 
 ### 2.5 Implementation Notes (this project)
@@ -48,11 +71,12 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 | Item | Value |
 |------|--------|
 | **FFmpeg runner** | `run_ffmpeg` uses `subprocess.run(..., check=True)` |
-| **Invalid range** | re-prompt loop in `main` |
-| **No MP4** | print and return |
+| **Invalid range** | Re-ask on the walk; non-zero on the job. Mode file owns which |
+| **No MP4** | Menu return on the walk; non-zero on `--folder` |
 | **Temp cleanup** | `finally` unlinks cut/speed temps |
-| **ChronicleLogger** | imported; full structured error routing is **aspirational gap** — console messages remain mandatory |
-| **Non-interactive** | not fully specified; prompt-only UI may hang or fail if stdin closed — future improvement |
+| **Logging** | Console sentence stays here. Durable status file is `requirement-python-cli-logging` |
+| **Non-interactive** | `requirement-python-interactive-vs-noninteractive` |
+| **JSON** | The same failure sentence is `error` in `requirement-python-json-output`. It is not a second stdout line |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -104,24 +128,29 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 | `requirement-video-ffmpeg-pipeline` | Encode failures |
 | `requirement-python-cli-interface` | Prompt re-entry |
 | `requirement-runtime-prerequisites` | Missing FFmpeg |
+| `requirement-python-cli-logging` | Durable status copy of a failure |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
 
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
-| TP-ERR-01 | manual | todo | Invalid range |
-| TP-ERR-02 | manual | todo | Missing ffmpeg message |
-| TP-ERR-03 | manual | todo | Source intact after fail |
+| TP-ERR-01 | `tests/test_errors.py` | have | Invalid range helper |
+| TP-ERR-02 | `tests/test_errors.py` | have | Percent bounds |
+| TP-ERR-03 | — | todo | Source intact after ffmpeg fail (needs encode fixture) |
 
 ## 7. Status history
 
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Initial error-handling law |
+| 2026-08-19 | Active 1.1.0 | Console-only errors; drop ChronicleLogger; §1.1 |
+| 2026-10-01 | Active 1.2.0 | Console sentence stays; durable copy points at `requirement-python-cli-logging` |
+| 2026-10-01 | Active 1.2.1 | Walk versus job exits point at the mode requirement |
+| 2026-10-01 | Active 1.2.2 | `--json` repeats the failure sentence inside the one object |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

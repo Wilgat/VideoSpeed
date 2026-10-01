@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.0.0 – VideoSpeed software-development class law + residual stack)  
+**Status**: Active (Version 1.0.10 – VideoSpeed software-development class law + residual stack)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -9,6 +9,29 @@
 Declare this workspace as a **software-development** project class and hold the **residual collection** of software-engineering stack facts **not already owned** by more specific Active peer requirements: primary language, toolchain policy, package/build tooling, and runtime OS family.
 
 This file is **class law + residual SSOT**, not a second copy of domain video features, FFmpeg pipeline ops, CLI surface, packaging tables, or error-handling tables (those stay on peer requirements).
+
+### 1.1 Human-facing
+
+**In one sentence:** This file says VideoSpeed is a shippable Python program (not a blank template and not a server-admin project) and records leftover stack facts that no other requirement owns.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Maintainer writing or reviewing product law | Open this file when asking “what class is this repo?” |
+| The other role | Peer requirements that own cut, CLI, packaging | Domain and pipeline files, not this residual dump |
+| Not this file | Encode filters, prompt text, pip metadata tables | Those live on the matching peer requirement |
+
+| Includes | Excludes |
+|----------|----------|
+| Class membership; Python/CPython residual; dest approver/fences considered-none | FFmpeg filter graphs; interactive prompt copy |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `src/VideoSpeed/` | ship package | live behavior |
+| `video-speed --help` | command | listed flags |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Confirm class | You are maintaining a Python package, not wiping to a template. Dest approval is none. | Read this file’s Implementation Notes |
 
 ---
 
@@ -78,13 +101,13 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | **Cross-compile in scope?** | no |
 | **Primary project/package tool** | setuptools via PEP 517/621 **`pyproject.toml`** |
 | **Lockfile policy** | **not used** as product law (no committed lockfile requirement) |
-| **Test runner** | none as project law today (honest gap — may be added later under a dedicated test requirement) |
+| **Test runner** | `tests/run.sh` (`python3 -m unittest discover`) |
 | **Linter/formatter** | none as project law |
 | **Primary runtime / OS family** | multi-OS where Python + FFmpeg + OpenCV bindings run (documented focus: Linux; macOS/Windows when deps exist) |
 | **Architectures supported** | any arch with CPython + FFmpeg binary available |
 | **Git surface** | used — remote `git@github.com:Wilgat/VideoSpeed` |
 | **Ship surface** | installable Python package `VideoSpeed`; console script `video-speed`; module form `python -m VideoSpeed` |
-| **Product version SSOT** | `src/VideoSpeed/__init__.py` → `__version__` and `pyproject.toml` `[project].version` **MUST** stay equal when either is bumped |
+| **Product version SSOT** | `requirement-python-version`: `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` in `src/VideoSpeed/__init__.py`; `__version__` is built from them; `pyproject.toml` `[project].version` **MUST** stay equal |
 | **Install mode** | **pip / local package** — not a shell online-install Type 0 product |
 | **Type 1 elevation** | **intentionally absent** — no root/sudo product surface |
 | **Author contact (non-secret)** | Wilgat Wong · `wilgat.wong@gmail.com` (also in `pyproject.toml`) |
@@ -96,16 +119,38 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Project class membership | **this file** | Fixed |
 | Primary language + toolchain policy | **this file** | Python / CPython |
 | Package/build tool + lockfile | **this file** + `requirement-python-packaging` | packaging owns PEP 621 tables |
+| Maintainer `build.sh` verbs | `requirement-python-build-script` | Do not duplicate the verb table |
+| `--json` object | `requirement-python-json-output` | One object; do not duplicate the shape |
 | Project layout (`src/` package) | `requirement-python-project-structure` | Do not duplicate |
-| CLI entry / interactive surface | `requirement-python-cli-interface` | Do not duplicate |
+| CLI entry / `main` order | `requirement-python-cli-interface` | Do not duplicate |
+| Interactive walk vs one job | `requirement-python-interactive-vs-noninteractive` | Mode matrix; do not duplicate |
+| Text menu look (default TUI style) | `requirement-python-tui` | Writer is `src/VideoSpeed/menu.py`; do not duplicate the frame in `cli.py` |
+| About page (identity, host check, star box) | `requirement-python-about` | Do not duplicate the line list or the reads |
 | Domain surface (workflow, help framing) | `requirement-domain-videospeed` | Four pillars |
 | FFmpeg cut / speed / boomerang ops | `requirement-video-ffmpeg-pipeline` | Ops SSOT |
 | Error / fail-closed user messaging | `requirement-python-error-handling` | Do not duplicate |
 | Python coding style / file move+temps | `requirement-python-coding-style` | `shutil.move` publish |
-| Host runtime deps (FFmpeg, OpenCV) | `requirement-runtime-prerequisites` | External tools |
+| Host runtime deps (FFmpeg, OpenCV) | `requirement-runtime-prerequisites` | External tools; pip floors point at the dependency requirement |
+| Pip dependency version floors | `requirement-python-dependency-management` | `opencv-python-headless` and `ChronicleLogger` strings |
+| Durable system-status logs | `requirement-python-cli-logging` | One ChronicleLogger; do not duplicate |
+| Product version integers | `requirement-python-version` | `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`; do not duplicate |
 | Public product reviews / TP map | `reviews/` (git-tracked) | what-to-review · test-plan · lessons · reports |
 | Online install / self-update / Type O | **intentionally absent** | Not a shell channel product |
 | Type 1 sudoers / root elev | **intentionally absent** | No elevation law |
+| Dest actor / role / subject / approver | **this file** | **Considered — no dest approver** (see §2.8) |
+| Dest fence conditions | **this file** | **Considered — no dest fence conditions** (see §2.8) |
+
+### 2.8 Dest actor / approver / fence residuals (considered — none)
+
+VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval machine, **no** dest inbound queue, and **no** dest Fence rows. Inventing an approver or dest fence so the class set “looks complete” is forbidden.
+
+**Actor / role / subject / approver** (named law table; **None** is valid):
+
+| Actor | Role | Subject | Approver |
+|-------|------|---------|----------|
+| Human operator | Interactive CLI user | Local MP4 files chosen in-session | **None** — no dest approval machine |
+
+**Dest fence conditions:** **none**. There is no dest approve/reject/review inbound. Dest **MUST NOT** fence rows are not invented here.
 
 ---
 
@@ -156,6 +201,7 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | AC-4 | Residual ownership table points to peer REQs without duplicating full tables |
 | AC-5 | Online install and Type 1 elevation marked intentionally absent |
 | AC-6 | Registered in `docs/requirements/index.md` with Area `class` |
+| AC-7 | Dest approver and dest fence residuals are **considered — none** (no invented dest machine) |
 
 ---
 
@@ -166,10 +212,16 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | `requirement-python-packaging` | Manifest + entrypoint |
 | `requirement-python-project-structure` | Layout |
 | `requirement-python-cli-interface` | CLI surface |
+| `requirement-python-tui` | Text menu look |
 | `requirement-domain-videospeed` | Domain four pillars |
 | `requirement-video-ffmpeg-pipeline` | Processing ops |
 | `requirement-python-error-handling` | Errors / cleanup |
 | `requirement-runtime-prerequisites` | Host tools |
+| `requirement-python-cli-logging` | System-status logs |
+| `requirement-python-version` | Version integer SSOT |
+| `requirement-python-build-script` | Maintainer `./build.sh` verbs |
+| `requirement-python-json-output` | `--json` object |
+| `requirement-python-about` | About page body |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -183,9 +235,18 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Initial software-dev class law for VideoSpeed |
+| 2026-09-30 | Active 1.0.2 | Text menu look owned by `requirement-python-tui` |
+| 2026-09-30 | Active 1.0.3 | Pip version floors owned by `requirement-python-dependency-management` |
+| 2026-10-01 | Active 1.0.4 | Status logs owned by `requirement-python-cli-logging` |
+| 2026-10-01 | Active 1.0.5 | Version integers owned by `requirement-python-version` |
+| 2026-10-01 | Active 1.0.6 | Text menu painter is `src/VideoSpeed/menu.py` |
+| 2026-10-01 | Active 1.0.7 | Mode matrix owned by `requirement-python-interactive-vs-noninteractive` |
+| 2026-10-01 | Active 1.0.8 | `build.sh` verbs owned by `requirement-python-build-script` |
+| 2026-10-01 | Active 1.0.9 | `--json` object owned by `requirement-python-json-output` |
+| 2026-10-01 | Active 1.0.10 | About page owned by `requirement-python-about` |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

@@ -1,8 +1,100 @@
+# =============================================================================
+# .gitignore — VideoSpeed (Python package CLI)
+# Detected: Python (pyproject.toml, src/**/*.py)
+# Docs: track docs/requirements/** ; ignore harness/skills/terms/policies/templates
+# Artifacts: compiled, caches, temp, secrets, local H2 backups
+# =============================================================================
+
+# --- Secrets / local env ---
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+
+# --- OS ---
+.DS_Store
+.DS_Store?
+Thumbs.db
+Desktop.ini
+ehthumbs.db
 ._*
-*.egg-info
-build
-dist
-.pytest_cache
+
+# --- Editors / IDEs ---
+*.swp
+*.swo
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.code-workspace
+
+# --- Temp / scratch / logs ---
+tmp/
+temp/
+temps/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.log
+logs/
+*.pid
+
+# --- Generic build / package ---
+build/
+dist/
+out/
+*.o
+*.so
+*.dylib
+*.dll
+*.egg
+*.egg-info/
+*.whl
+*.py[cod]
+*$py.class
+
+# --- Python ---
+__pycache__/
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+.eggs/
+pip-wheel-metadata/
 statelogic.pxd
 
-__pycache__
+# --- Local H2 / agent backups (never commit) ---
+.h2-backup-*/
+.h1-backup-*/
+.harness-transfer-bak-*/
+.harness-sync-*-bak-*/
+.harness-*-bak-*/
+.harness-backup-*/
+
+# --- Agent harness (root) — local only ---
+AGENTS.md
+CLAUDE.md
+.claude/
+.cursor/
+.codex/
+
+# --- Docs layer — track requirements only ---
+docs/**
+!docs/.gitignore
+!docs/requirements/
+!docs/requirements/**

@@ -4,7 +4,7 @@
 **Class:** software-development · domain SSOT present · **pip/local package** install.  
 **Always load first:** `reviews/lessons.md`
 
-**Last plan update:** 2026-08-09
+**Last plan update:** 2026-09-30 (suite present: `tests/run.sh`)
 
 ---
 
@@ -18,7 +18,7 @@
 | P4 | Compile: `python3 -m py_compile src/VideoSpeed/cli.py` | Until full suite exists |
 | P5 | Confirm install mode still **pip/local** | No shell Type O / SCRIPT_URL product UX |
 | P6 | Confirm Type 1 elevation still **absent** | No sudoers product surface |
-| P7 | Run suite when present | `tests/run.sh` or project equivalent; record PASS/FAIL/SKIP |
+| P7 | Run suite | `./tests/run.sh` — Core must PASS |
 
 ---
 
@@ -29,9 +29,16 @@
 | Class | `requirement-class-software-dev.md` | Python residual; no online shell package |
 | Domain | `requirement-domain-videospeed.md` | Four pillars; cut/speed/boomerang catalog |
 | FFmpeg pipeline | `requirement-video-ffmpeg-pipeline.md` | Order, temps, **`shutil.move`** publish, USB |
-| CLI interface | `requirement-python-cli-interface.md` | Type N interactive; `--help`/`--version` |
+| CLI interface | `requirement-python-cli-interface.md` | Entry points; `main` order; `--help`/`--version` |
+| Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, one job, or fail closed. A selector or a lone modifier must not open the menu |
+| JSON output | `requirement-python-json-output.md` | `--json` is one object on stdout. No text menu. Prompts, if any, are on stderr |
+| Text menu | `requirement-python-tui.md` | Default TUI style; writer is `src/VideoSpeed/menu.py`; glyphs stay out of `cli.py` |
+| About page | `requirement-python-about.md` | Identity, host check, star box. Each line names its read. No curl line while the download URL is empty |
 | Coding style | `requirement-python-coding-style.md` | Temps + move APIs; no bare cross-mount rename |
 | Packaging | `requirement-python-packaging.md` | pyproject, entrypoint, version dual SSOT |
+| Maintainer build | `requirement-python-build-script.md` | `./build.sh` verbs. `test` is `tests/run.sh`. Empty argv does not upload |
+| Pip dependency floors | `requirement-python-dependency-management.md` | `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1`; no GUI `opencv-python`; no menu wheel |
+| System status log | `requirement-python-cli-logging.md` | One ChronicleLogger; `log_message` level and component; menu stays quiet |
 | Project structure | `requirement-python-project-structure.md` | `src/` layout; cli SSOT |
 | Error handling | `requirement-python-error-handling.md` | Fail closed; source safe |
 | Runtime prereqs | `requirement-runtime-prerequisites.md` | FFmpeg system; OpenCV pip |
@@ -53,6 +60,10 @@
 | Cut range validation in interactive loop | Encode after invalid range | L-RANGE-01 |
 | `cli.bootstrap-old.py` / root `cli-new.py` | Dual ship SSOT | L-DUAL-01 |
 | `__init__.py` | Heavy import chain | L-IMPORT-01 |
+| `open_text_menu` / `MENU_ROWS` | Frame glyphs copied into `cli.py`, or tests aimed at a sibling menu checkout | L-TUI-01 |
+| `main` mode gate | `--percent` or `--boomerang` alone, or any selector, falls through into the menu | mode requirement |
+| `build.sh` dispatcher | `test` calls a second runner, empty argv uploads, or `test-install` embeds the project name | build-script requirement |
+| `--json` | Menu opens, or progress shares stdout with the object | JSON requirement |
 
 ---
 
@@ -70,7 +81,7 @@
 
 | Check | Path |
 |-------|------|
-| Suite entry | `tests/` **not present yet** — see test-plan **todo** rows |
+| Suite entry | `tests/run.sh` |
 | TP map | `reviews/test-plan.md` |
 | RTM | `reviews/requirement-test-matrix.md` |
 
@@ -81,7 +92,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | `docs/CHANGELOG.md` vs `1.0.5` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.6` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---

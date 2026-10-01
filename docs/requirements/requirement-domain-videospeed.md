@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-videospeed.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.5)  
 **Area**: domain  
 **Key**: `requirement-domain-videospeed`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -9,9 +9,32 @@
 This requirement is the **domain surface Single Source of Truth** for VideoSpeed: which **user-facing video-editing workflow steps** exist, what **features** the product claims, and how **help / about / session messaging** must describe them.
 
 **Operational FFmpeg processing** (cut, speed change, boomerang encode steps, temp cleanup) is **not** fully owned here — it is owned by **`requirement-video-ffmpeg-pipeline`**.  
-**CLI entry and interactive session contract** are owned by **`requirement-python-cli-interface`**.
+**CLI entry** is owned by **`requirement-python-cli-interface`**. Which path runs — the menu walk, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
 
 This file remains the sole Active **`requirement-domain-*`** (four pillars).
+
+### 1.1 Human-facing
+
+**In one sentence:** This file lists the editing steps VideoSpeed offers: pick an MP4, cut a time range, change length percent, optionally reverse-and-append (boomerang), write the file next to the source.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Person cutting a clip | Interactive walk or `--file` job |
+| The other role | Pipeline requirement | How FFmpeg actually encodes |
+| Not this file | Install, packaging, root tools | Packaging / runtime files |
+
+| Includes | Excludes |
+|----------|----------|
+| Workflow steps, feature names, help rows, about fields, output name pattern, batch flag names | Filter graphs; pip metadata |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `src/VideoSpeed/cli.py` | ship unit | live behavior |
+| `video-speed --help` | command | listed verbs/flags |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Cut and speed one file | The domain surface is those four steps, not a multi-verb shell tool. | `video-speed --file clip.mp4 --start 1 --end 5 --percent 50` |
 
 ---
 
@@ -32,9 +55,13 @@ VideoSpeed is an **interactive domain CLI** (not a multi-verb Type 0 shell produ
 | D-07 | Write result | derived filename | Final MP4 beside source | `requirement-video-ffmpeg-pipeline` |
 | D-08 | Repeat | y/n | Loop D-04… or exit | CLI |
 
-**Routing:** Entry (`video-speed` / `python -m VideoSpeed` / `VideoSpeed.cli:main`) **MUST** reach this interactive domain session unless a future Active requirement adds non-interactive flags.
+**Routing:** Entry (`video-speed` / `python -m VideoSpeed` / `VideoSpeed.cli:main`) **MUST** reach this domain session by the mode matrix in `requirement-python-interactive-vs-noninteractive`: the text menu in `requirement-python-tui` when that matrix says interactive; one job when that matrix says non-interactive. The steps below are what edit and the job carry out.
 
-**Non-goals as domain commands (unless a future requirement adds them):** multi-file batch queue, GUI, non-MP4 containers as first-class inputs, cloud upload, timeline multi-track editor, automatic color grade, root/system install ensure.
+**Job flags (also named on `requirement-python-cli-interface`):** `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`.
+
+**Output switch (not a domain step):** `--json`, owned by `requirement-python-json-output`. It does not add a cut, a percent, or a boomerang.
+
+**Non-goals as domain commands (unless a future requirement adds them):** multi-file queue, GUI, non-MP4 containers as first-class inputs, cloud upload, timeline multi-track editor, automatic color grade, root/system install ensure.
 
 ### 2.2 Pillar B — Specialized features (surface map)
 
@@ -55,12 +82,13 @@ Because the product is **prompt-driven**, “help” **MUST** be available as:
 
 1. **Session banners / step labels** that name the four domain capabilities: cut, speed/length percent, optional boomerang, output path.  
 2. **Product README** domain rows that match this catalog.  
-3. When a future `--help` flag is implemented (CLI peer), it **MUST** list the same capabilities and non-goals.
+3. `--help` **MUST** list the same capabilities (cut, length percent, optional boomerang) and the job flags `--file`, `--start`, `--end`, `--percent`, `--boomerang`, `--folder`.
 
 Help / README domain rows **MUST** include:
 
 | Help row | Text intent |
 |----------|-------------|
+| Text menu | On a terminal, numbered rows edit / about / Exit above a three-row rounded input box and a status line (`requirement-python-tui`) |
 | Select folder | Folder containing MP4 files (default: current directory) |
 | Select video | Choose from numbered list |
 | Cut | Start and end time in seconds |
@@ -70,7 +98,7 @@ Help / README domain rows **MUST** include:
 
 ### 2.4 Pillar D — Specialized project about items
 
-Product identity / about **MUST** be able to report (via package metadata and/or future `about`/`--version` surface):
+Product identity / about **MUST** be able to report these domain lines. The page that prints them, the host check, the star box, and the read for each value are `requirement-python-about`. This pillar does not restate that procedure.
 
 | Field / line | Content |
 |--------------|---------|
@@ -79,6 +107,7 @@ Product identity / about **MUST** be able to report (via package metadata and/or
 | Domain summary | Cut → speed/length → optional boomerang for MP4 |
 | Runtime tools | FFmpeg (encode), OpenCV (duration probe) |
 | Entry points | `video-speed`, `python -m VideoSpeed` |
+| Text menu | Default TUI style on a terminal (`requirement-python-tui`, painter `src/VideoSpeed/menu.py`) |
 
 **About is not** a remote version-check and **must not** advertise a shell `curl|sh` install channel unless a future install requirement is Active.
 
@@ -89,13 +118,14 @@ Product identity / about **MUST** be able to report (via package metadata and/or
 | **Product / package name** | `VideoSpeed` |
 | **Console script** | `video-speed` |
 | **Domain implementation module** | `src/VideoSpeed/cli.py` |
-| **VERSION** | `1.0.5` (align `__init__.py` and `pyproject.toml`) |
+| **VERSION** | `1.0.6` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 6) |
 | **Input formats (current)** | MP4 only (`*.mp4`, `*.MP4`), recursive under selected folder |
 | **Output location** | Same directory as source video |
 | **Output name pattern** | `{stem}_cut{start:.1f}-{end:.1f}s_{int(ratio)}pct[_BOOMERANG].mp4` |
 | **Ops SSOT** | `requirement-video-ffmpeg-pipeline` |
-| **CLI SSOT** | `requirement-python-cli-interface` |
-| **Current interaction model** | Interactive prompts by default; `--help` / `--version` supported; length percent hard-bounded 20–200% |
+| **CLI SSOT** | `requirement-python-cli-interface` (entry); `requirement-python-interactive-vs-noninteractive` (which path runs) |
+| **Current interaction model** | Mode matrix in `requirement-python-interactive-vs-noninteractive`. Screen look in `requirement-python-tui`. Length percent 20–200% |
+| **Batch sample** | `video-speed --file clip.mp4 --start 1 --end 5 --percent 100` |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -122,7 +152,7 @@ Product identity / about **MUST** be able to report (via package metadata and/or
 2. Add online install, cloud upload, or root elevation as silent domain behavior without new requirements.  
 3. Create a second Active `requirement-domain-*` without superseding this one.  
 4. Drop cut / speed / boomerang from the claimed domain catalog while README still advertises them.  
-5. Claim batch or non-MP4 first-class support without updating this file and peers.
+5. Claim non-MP4 first-class support without updating this file and peers. Drop `--file`/`--start`/`--end` without updating this file and the CLI peer.
 
 **Violating this rule is a critical domain regression.**
 
@@ -146,7 +176,10 @@ Product identity / about **MUST** be able to report (via package metadata and/or
 | Key | Relationship |
 |-----|--------------|
 | `requirement-video-ffmpeg-pipeline` | **Operational encode SSOT** |
-| `requirement-python-cli-interface` | Entry + interactive session |
+| `requirement-python-cli-interface` | Entry and `main` order |
+| `requirement-python-interactive-vs-noninteractive` | Menu walk versus one job |
+| `requirement-python-tui` | Menu look; edit / about / Exit |
+| `requirement-python-about` | About page body and how each line is read |
 | `requirement-runtime-prerequisites` | FFmpeg / OpenCV presence |
 | `requirement-python-error-handling` | Invalid range / missing files |
 | `requirement-class-software-dev` | Class residual |
@@ -156,18 +189,24 @@ Product identity / about **MUST** be able to report (via package metadata and/or
 
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
-| TP-DOMAIN-01 | manual / future automated | todo | Interactive cut→speed path |
-| TP-DOMAIN-02 | manual / future automated | todo | Boomerang output naming |
-| TP-DOMAIN-03 | manual / future automated | todo | No MP4 → clear exit |
+| TP-DOMAIN-01 | — | todo | Full encode path needs ffmpeg + fixture |
+| TP-DOMAIN-02 | `tests/test_docs.py` | have | About/version identity |
+| TP-DOMAIN-03 | `tests/test_cli.py` | have | No MP4 → clear exit (via TP-CLI-04) |
 
 ## 7. Status history
 
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Domain SSOT for VideoSpeed interactive video editing |
+| 2026-08-19 | Active 1.1.0 | Batch flags dual-mention; §1.1 |
+| 2026-09-30 | Active 1.1.1 | Menu look points at `requirement-python-tui` |
+| 2026-10-01 | Active 1.1.2 | Painter is `src/VideoSpeed/menu.py` |
+| 2026-10-01 | Active 1.1.3 | Routing points at the mode matrix |
+| 2026-10-01 | Active 1.1.4 | `--json` is an output switch, not a domain step |
+| 2026-10-01 | Active 1.1.5 | About page body points at `requirement-python-about` |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

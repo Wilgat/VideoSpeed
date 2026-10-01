@@ -1,16 +1,24 @@
 # Requirement ↔ test matrix — VideoSpeed
 
-**Updated:** 2026-08-09  
-**Suite:** not present yet — map is the design SSOT until `tests/` lands
+**Updated:** 2026-10-01  
+**Suite:** `tests/run.sh` — Core have; TP-FFMPEG skip without ffmpeg/fixture
 
 | Requirement key | Area | TP families | Coverage notes |
 |-----------------|------|-------------|----------------|
 | requirement-class-software-dev | class | TP-PKG-04 · TP-STRUCT-01 | Python residual; stack honesty |
 | requirement-domain-videospeed | domain | TP-DOMAIN-* · TP-FFMPEG-01..05 · TP-CLI-03 | Four pillars; workflow |
 | requirement-video-ffmpeg-pipeline | video | TP-FFMPEG-* · TP-FS-* · TP-ERR-03 | Ops SSOT; **shutil.move**; temps |
-| requirement-python-cli-interface | python | TP-CLI-* | Type N interactive; help/version |
+| requirement-python-cli-interface | python | TP-CLI-* · TP-MAIN-01 | Entry and `main` order; mode matrix is the next row; `main` order **todo** |
+| requirement-python-interactive-vs-noninteractive | python | TP-MODE-01..04 · TP-CLI-03 · TP-CLI-06 | Menu walk, one job, or fail closed. `TP-CLI-03` full terminal walk **todo** |
+| requirement-python-version | python | TP-VER-01..03 | Triple SSOT `1.0.6`; debug line **todo** |
+| requirement-python-tui | python | TP-TUI-01..04 | Default TUI style painted by `src/VideoSpeed/menu.py` |
+| requirement-python-about | python | TP-ABOUT-01..08 | About page lines and the read for each line |
 | requirement-python-coding-style | python | TP-FS-01..02 · TP-PKG-01 | Move/temp coding rules |
 | requirement-python-packaging | python | TP-PKG-* | Manifest + version dual SSOT |
+| requirement-python-build-script | python | TP-BUILD-01..06 | `./build.sh` verbs. `test-install` reads the project name. Real wheel build (TP-BUILD-05) **todo** |
+| requirement-python-json-output | python | TP-JSON-01..05 | `--json` one object; menu stays closed |
+| requirement-python-dependency-management | python | TP-DEP-01..04 | Headless OpenCV `>=5.0.0.93`; ChronicleLogger `>=1.3.1` |
+| requirement-python-cli-logging | python | TP-LOG-01..04 | System status via ChronicleLogger; wiring **todo** |
 | requirement-python-project-structure | python | TP-STRUCT-01 | src layout; ship SSOT |
 | requirement-python-error-handling | python | TP-ERR-* · TP-CLI-04..05 | Fail closed; source safe |
 | requirement-runtime-prerequisites | runtime | TP-PRE-* | FFmpeg + OpenCV honesty |

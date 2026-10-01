@@ -1,12 +1,35 @@
 **file**: docs/requirements/requirement-python-project-structure.md  
-**Status**: Active (Version 1.0.0)  
+**Status**: Active (Version 1.1.3)  
 **Area**: python  
 **Key**: `requirement-python-project-structure`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define the **repository layout** and package structure for VideoSpeed as a Python package project: where source, packaging, and requirements law live.
+Define the **repository layout** and package structure for VideoSpeed as a Python package project: where source, packaging, requirements law, and tests live.
+
+### 1.1 Human-facing
+
+**In one sentence:** Installable code lives under `src/VideoSpeed/`; the real CLI is `cli.py`; automated checks live under `tests/`.
+
+| Box | Meaning | Example |
+|-----|---------|---------|
+| You / this login | Maintainer adding a file | Put product code in `src/VideoSpeed/`, not a second package |
+| The other role | Packaging | `pyproject.toml` at repo root |
+| Not this file | How to cut video | Domain / pipeline |
+
+| Includes | Excludes |
+|----------|----------|
+| `src/VideoSpeed/`, `tests/`, root product docs, `docs/requirements/` | Treating `cli.bootstrap-old.py` as ship SSOT |
+
+| Surface | What you open | What for |
+|---------|---------------|----------|
+| `src/VideoSpeed/cli.py` | ship unit | live behavior |
+| `tests/run.sh` | suite | Core TP cases |
+
+| You do… | What it means | What you type |
+|---------|---------------|---------------|
+| Find the program | The console script runs `VideoSpeed.cli:main`. | Open `src/VideoSpeed/cli.py` |
 
 ---
 
@@ -15,7 +38,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 ### 2.1 Source package layout
 
 1. **MUST** keep the installable package under **`src/VideoSpeed/`**.  
-2. **MUST** include `__init__.py` (version export), `__main__.py` (module entry), and `cli.py` (CLI + domain session).  
+2. **MUST** include `__init__.py` (version SSOT: `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`, `__version__`), `__main__.py` (module entry), `cli.py` (CLI + domain session), and `menu.py` (text-menu painter, `requirement-python-tui`).  
 3. **MUST NOT** scatter a second installable package name that contradicts packaging SSOT without an explicit rename plan.
 
 ### 2.2 Project root layout
@@ -23,7 +46,8 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 4. **MUST** keep `pyproject.toml` at repository root.  
 5. **MUST** keep product user docs at root **`README.md`**.  
 6. **MUST** keep specialized product law under **`docs/requirements/`** with `requirement-` prefix and registry `index.md`.  
-7. Product design notes **MAY** live under `docs/` (e.g. design specs, changelog) without becoming requirement law unless registered.
+7. Product design notes **MAY** live under `docs/` (e.g. design specs, changelog) without becoming requirement law unless registered.  
+7b. **MUST** keep executable tests under **`tests/`** (runner `tests/run.sh`) — never under `docs/`.
 
 ### 2.3 Generated / non-source
 
@@ -43,15 +67,19 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 |------|------|
 | `src/VideoSpeed/` | Installable package |
 | `src/VideoSpeed/cli.py` | Interactive CLI + FFmpeg helpers |
-| `src/VideoSpeed/__init__.py` | `__version__` |
+| `src/VideoSpeed/menu.py` | Text-menu painter (`requirement-python-tui`) |
+| `src/VideoSpeed/__init__.py` | Version SSOT (`requirement-python-version`) |
 | `src/VideoSpeed/__main__.py` | Module entry |
 | `pyproject.toml` | Packaging SSOT |
-| `build.sh` | Maintainer build helper |
+| `build.sh` | Maintainer verbs (`requirement-python-build-script`) |
+| `setup.sh` | Local `pyenv shell 3.14` pip install for testing |
 | `cy-master`, `cy-master.ini` | CyMaster tooling |
 | `docs/requirements/` | Product law |
-| `docs/CHANGELOG.md` | Product changelog |
+| `CHANGELOG.md` | Product changelog SSOT |
+| `docs/CHANGELOG.md` | Local copy / heritage notes |
 | `docs/VideoClip-spec.md` | Design notes (not substitute for requirements) |
-| `cli-new.py` | Untracked/extra draft — **not** layout SSOT |
+| `tests/` | Executable suite (`run.sh`) |
+| `cli-new.py` | Extra draft — **not** layout SSOT |
 | `README.md` | User documentation |
 
 ### 2.6 Why This Requirement Exists (CIAO)
@@ -101,6 +129,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | Key | Relationship |
 |-----|--------------|
 | `requirement-python-packaging` | Manifest |
+| `requirement-python-build-script` | `build.sh` verbs |
 | `requirement-python-cli-interface` | Entry modules |
 | `requirement-class-software-dev` | Class residual |
 | `docs/requirements/index.md` | Registry |
@@ -109,16 +138,20 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 
 | TP family / ID | Suite | Status | Note |
 |----------------|-------|--------|------|
-| TP-STRUCT-01 | tree review | pass (doc) | Layout matches Implementation Notes |
+| TP-STRUCT-01 | `tests/test_docs.py` | have | Ship SSOT is `cli.py` |
 
 ## 7. Status history
 
 | Date | Status | Note |
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Initial project structure law |
+| 2026-08-19 | Active 1.1.0 | tests/ layout; §1.1 |
+| 2026-09-30 | Active 1.1.1 | `setup.sh` targets `pyenv shell 3.14` |
+| 2026-10-01 | Active 1.1.2 | `menu.py` is the text-menu painter |
+| 2026-10-01 | Active 1.1.3 | `build.sh` points at `requirement-python-build-script` |
 
 ---
 
-**Last Updated**: 2026-08-09  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
