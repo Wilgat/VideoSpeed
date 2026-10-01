@@ -1,19 +1,19 @@
 # VideoSpeed - Cut, speed, and boomerang MP4 clips from the CLI
 
-![Version](https://img.shields.io/badge/Version-1.0.6-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.7-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 [![Stars](https://img.shields.io/github/stars/Wilgat/VideoSpeed?style=flat-square)](https://github.com/Wilgat/VideoSpeed)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/VideoSpeed?style=flat-square)](https://pypi.org/project/VideoSpeed/)
 
-VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent), and can append a reverse pass (boomerang). On a terminal, no arguments opens a text menu (edit, about, Exit). Choosing edit walks through the prompts. Scripts pass `--file` / `--start` / `--end`. Encoding uses **FFmpeg**; duration probing uses **OpenCV**. The menu screen uses the default text-menu style: aligned number, verb, and note, and a rounded box along the bottom.
+VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent), and can append a reverse pass (boomerang). On a terminal, no arguments opens a text menu (edit, hello, about, Exit). Choosing edit walks through the prompts. Scripts pass `--file` / `--start` / `--end`. Encoding uses **FFmpeg**; duration probing uses **OpenCV**. The menu screen uses the default text-menu style: aligned number, verb, and note, and a rounded box along the bottom.
 
 | You | The other role | Not this |
 |-----|----------------|----------|
 | Editor at a terminal or a script | FFmpeg on `PATH` (does the encode) | A website, installer, or root/sudo tool |
 
-Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.6**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
+Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.7**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
 
 ## Features
 
@@ -22,9 +22,10 @@ Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERS
 - **Length/speed** change (**20–200%**) with A/V tempo kept in sync
 - Optional **boomerang** (forward then reverse)
 - **USB-safe** intermediate files (staged next to the output) and final publish via `shutil.move`
-- **Text menu** on a terminal (`edit`, `about`, `Exit`): columns line up, and a three-row rounded input box sits on the bottom with a status line under it
-- **`--help`** / **`--version`**; no arguments in a terminal opens that menu, and **edit** starts the interactive editor
-- Non-interactive job: `--file`, `--start`, `--end`, optional `--percent` / `--boomerang`. Any of `--file`, `--start`, `--end`, or `--folder` skips the menu
+- **Text menu** on a terminal (`edit`, `hello`, `about`, `Exit`): columns line up, and a three-row rounded input box sits on the bottom with a status line under it
+- **Product verbs** `help`, `about`, `hello`, `edit`, and `list-mp4`. `help` prints the same usage as `--help`. `about` and `hello` print a page and do not ask for a folder or a file. `edit` on a terminal asks for the folder, then the file. `list-mp4` lists MP4 files and does not encode. `Exit` stays on the menu. `./build.sh` verbs such as `setup` are not `video-speed` verbs
+- **`--help`** / **`--version`**; no arguments in a terminal opens that menu
+- Non-interactive job: `--file`, `--start`, `--end`, optional `--percent` / `--boomerang`, with or without `edit`. Any of those selectors with no product verb skips the menu
 - Fail-closed when **FFmpeg** is missing from `PATH`, when prompts are needed without a terminal, or when `--percent` or `--boomerang` is passed without a job
 
 ## Quick Installation
@@ -75,9 +76,9 @@ The console script is installed on the pyenv 3.14 prefix. `./setup.sh` changes t
 
 ```bash
 # after: python -m build   (or ./build.sh build)
-pip install dist/VideoSpeed-1.0.6-py3-none-any.whl
+pip install dist/VideoSpeed-1.0.7-py3-none-any.whl
 # or
-pip install dist/VideoSpeed-1.0.6.tar.gz
+pip install dist/VideoSpeed-1.0.7.tar.gz
 ```
 
 ### Verify
@@ -98,7 +99,20 @@ video-speed
 python -m VideoSpeed
 ```
 
-The screen shows a numbered menu and a rounded input box along the bottom, as wide as the terminal, with one line to type on and a status line under the box. **edit** continues the prompts. **about** shows the product. **Exit** leaves.
+The screen shows a numbered menu and a rounded input box along the bottom, as wide as the terminal, with one line to type on and a status line under the box. **edit** continues the prompts. **hello** (7) shows `Hello.`. **about** shows the product. **Exit** leaves.
+
+The same actions are verbs. `edit` starts at the folder question. `list-mp4` asks for the folder when it is omitted, prints the numbered list, and stops.
+
+```bash
+video-speed help
+video-speed about
+video-speed hello
+video-speed edit
+video-speed edit --folder ./clips
+video-speed edit --file clip.mp4 --start 1 --end 5 --percent 100
+video-speed list-mp4
+video-speed list-mp4 --folder ./clips
+```
 
 1. Folder containing MP4s (Enter = current directory)
 2. Choose a video by number
@@ -169,4 +183,4 @@ MIT License — see [`LICENSE.md`](LICENSE.md).
 
 ## Last Update
 
-2026-10-01 — **1.0.6**: text menu (edit, about, Exit), `--json`, job flags, and `./build.sh` maintainer verbs.
+2026-10-01 — **1.0.7**: positional verbs `help`, `about`, `hello`, `edit`, and `list-mp4`. `Exit` and `./build.sh` tokens stay off this command.

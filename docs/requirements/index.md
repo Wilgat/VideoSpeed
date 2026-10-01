@@ -9,10 +9,10 @@
 | requirement-class-software-dev | Software-development class law + residual stack (Python, setuptools) | class | Active | `requirement-class-software-dev.md` | 2026-10-01 |
 | requirement-domain-videospeed | Domain surface SSOT (four pillars: workflow, features, help, about) | domain | Active | `requirement-domain-videospeed.md` | 2026-10-01 |
 | requirement-video-ffmpeg-pipeline | FFmpeg ops SSOT (cut → speed → optional boomerang; temps) | video | Active | `requirement-video-ffmpeg-pipeline.md` | 2026-10-01 |
-| requirement-python-cli-interface | CLI entry points and `main` order | python | Active | `requirement-python-cli-interface.md` | 2026-10-01 |
-| requirement-python-interactive-vs-noninteractive | Menu walk versus one non-interactive job | python | Active | `requirement-python-interactive-vs-noninteractive.md` | 2026-10-01 |
+| requirement-python-cli-interface | CLI entry points, product verbs (`help`, `about`, `hello`, `edit`, `list-mp4`), and `main` order | python | Active | `requirement-python-cli-interface.md` | 2026-10-01 |
+| requirement-python-interactive-vs-noninteractive | Menu walk, product verb (folder then file), or one non-interactive job | python | Active | `requirement-python-interactive-vs-noninteractive.md` | 2026-10-01 |
 | requirement-python-json-output | `--json` quiets stdout to one object and skips the text menu | python | Active | `requirement-python-json-output.md` | 2026-10-01 |
-| requirement-python-tui | Text menu: default TUI style painted by `src/VideoSpeed/menu.py` | python | Active | `requirement-python-tui.md` | 2026-10-01 |
+| requirement-python-tui | Text menu: default TUI style. A product verb enters that action without a front-board pick | python | Active | `requirement-python-tui.md` | 2026-10-01 |
 | requirement-python-about | About page: identity, host check, star box, and how each line is read | python | Active | `requirement-python-about.md` | 2026-10-01 |
 | requirement-python-packaging | `pyproject.toml` / version / console script packaging | python | Active | `requirement-python-packaging.md` | 2026-10-01 |
 | requirement-python-build-script | Maintainer `build.sh` verbs | python | Active | `requirement-python-build-script.md` | 2026-10-01 |
@@ -21,7 +21,8 @@
 | requirement-python-project-structure | Repository and `src/VideoSpeed` layout | python | Active | `requirement-python-project-structure.md` | 2026-10-01 |
 | requirement-python-error-handling | Fail-closed errors; source-safe cleanup | python | Active | `requirement-python-error-handling.md` | 2026-10-01 |
 | requirement-python-cli-logging | System status via ChronicleLogger (one logger, level, component) | python | Active | `requirement-python-cli-logging.md` | 2026-10-01 |
-| requirement-python-coding-style | Python style; temps; **shutil.move** publish; no bare cross-mount rename | python | Active | `requirement-python-coding-style.md` | 2026-08-19 |
+| requirement-python-coding-style | Python style; temps; **shutil.move**; no `os.rename` or `os.replace`; no import-time static `raise`; identity locals belong in `main()` | python | Active | `requirement-python-coding-style.md` | 2026-10-01 |
+| requirement-python-oop | Use a class when functions share one job; class `Tui` in `tui.py`; class `CheckSystem` in `check_system.py` | python | Active | `requirement-python-oop.md` | 2026-10-01 |
 | requirement-runtime-prerequisites | Host FFmpeg + pip deps; no root auto-install claim | runtime | Active | `requirement-runtime-prerequisites.md` | 2026-10-01 |
 
 ## Intentionally absent (by design)

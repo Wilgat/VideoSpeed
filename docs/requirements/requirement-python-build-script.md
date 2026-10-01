@@ -103,7 +103,7 @@ Samples:
 | **Package name** | `VideoSpeed` |
 | **Build command** | `python3 -m build --sdist --wheel --outdir dist/` |
 | **Upload command** | `python3 -m twine upload dist/*` |
-| **Tag name** | `v` plus `__version__` (today `v1.0.6`) |
+| **Tag name** | `v` plus `__version__` (today `v1.0.7`) |
 | **Suite** | `tests/run.sh` |
 | **test-install** | `tomllib` reads `[project].name` from `pyproject.toml` (today `VideoSpeed`). `python3 -m pip show`, then `python3 -m pip uninstall -y` when present, then `python3 -m pip install` of the checkout directory. `read_project_name` and `do_test_install` do not embed that name |
 | **Not a verb** | `setup.sh` (pyenv-selected local install). `test-install` does not call it |

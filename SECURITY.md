@@ -4,7 +4,7 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.0.6 (current) | Yes |
+| 1.0.7 (current) | Yes |
 | Older releases | Best-effort; prefer upgrading to current |
 
 ## Reporting a Vulnerability

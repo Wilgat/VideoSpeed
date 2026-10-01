@@ -103,6 +103,7 @@ class TestTui(unittest.TestCase):
             body,
             [
                 "1. edit : cut, speed, and optional boomerang",
+                "7. hello: show a hello message",
                 "8. about: version, FFmpeg, and OpenCV",
                 "9. Exit : leave",
             ],
@@ -278,6 +279,30 @@ class TestTui(unittest.TestCase):
         self.assertNotIn("╭", about)
         self.assertIn("Press a key to return to the main menu.", about)
 
+    def test_tp_tui_05_hello_shows_the_message(self):
+        """TP-TUI-05: menu 7 shows Hello. on the result page and omits the frame."""
+        MenuModel, _err, _session, _format_rows, paint = self._menu()
+        from VideoSpeed import cli
+
+        self.assertEqual(cli.framework_hello(), "Hello.")
+        code, screen, out, err = self._run_menu([ord("7"), 10])
+        self.assertEqual(code, 0, err + out)
+        flat = "".join(screen.drawn)
+        self.assertIn("7. hello: show a hello message", flat)
+        self.assertIn("Hello.", flat)
+        self.assertIn("Press a key to return to the main menu.", flat)
+        self.assertNotIn("Hello.", out)
+        self.assertNotIn("Choice:", flat)
+
+        model = MenuModel(boards={"front": cli.MENU_ROWS})
+        model.show_result(cli.framework_hello())
+        page = FakeScreen([])
+        paint(page, model, cli.APP_NAME, cli._PKG_VERSION)
+        hello = "\n".join(page.drawn)
+        self.assertIn("Hello.", hello)
+        self.assertNotIn("╭", hello)
+        self.assertIn("Press a key to return to the main menu.", hello)
+
     def test_about_result_scrolls_when_the_page_is_long(self):
         """TP-ABOUT-08: a long about page scrolls; a one-line result still closes."""
         import curses
@@ -343,6 +368,204 @@ class TestTui(unittest.TestCase):
             self.assertEqual(code, 0, err + out)
         finally:
             os.rmdir(folder)
+
+    def test_edit_shows_saved_name_after_full_length(self):
+        """Full length, 100%, no boomerang: the screen shows the saved name."""
+        import tempfile
+
+        from VideoSpeed import cli
+        from VideoSpeed.menu import MenuModel
+
+        folder = Path(tempfile.mkdtemp(prefix="vs_edit_"))
+        (folder / "clip.mp4").write_bytes(b"")
+        saved = {}
+
+        def fake_duration(_path):
+            return 1.0
+
+        def fake_job(video_path, start, end, ratio, boomerang):
+            saved["args"] = (start, end, ratio, boomerang)
+            out = video_path.parent / "clip_cut0.0-1.0s_100pct.mp4"
+            out.write_bytes(b"ok")
+            return out
+
+        keys = [ord(c) for c in str(folder)] + [10]
+        keys += [ord("1"), 10, 10, 10, 10, 10]
+        screen = FakeScreen(keys)
+        model = MenuModel(boards={"front": cli.MENU_ROWS})
+        original = (cli.ensure_ffmpeg, cli.get_duration_cv2, cli.process_job)
+        cli.ensure_ffmpeg = lambda: True
+        cli.get_duration_cv2 = fake_duration
+        cli.process_job = fake_job
+        try:
+            cli._edit_in_tui(screen, model)
+        finally:
+            cli.ensure_ffmpeg, cli.get_duration_cv2, cli.process_job = original
+            for path in folder.iterdir():
+                path.unlink()
+            folder.rmdir()
+        flat = "\n".join(screen.drawn)
+        self.assertEqual(saved["args"], (0.0, 1.0, 100.0, False))
+        self.assertIn(
+            "Saved clip_cut0.0-1.0s_100pct.mp4 — Again? (y/n):",
+            flat,
+        )
+
+    def _run_verb(self, argv, keys, cwd=None):
+        """Drive one product verb on a fake screen. input() means the TUI was left."""
+        import curses
+        import os
+
+        from VideoSpeed import cli
+
+        screen = FakeScreen(keys)
+        saved_wrapper = curses.wrapper
+        saved_out = cli.stdout_is_tty
+        saved_in = cli.stdin_is_tty
+        saved_ff = cli.ensure_ffmpeg
+        saved_job = cli.process_job
+        saved_input = builtins.input
+        jobs = []
+        ffmpeg_calls = []
+
+        def refuse_input(*_args, **_kwargs):
+            raise AssertionError("input() left the text screen")
+
+        def count_ffmpeg():
+            ffmpeg_calls.append(1)
+            return True
+
+        curses.wrapper = lambda fn: fn(screen)
+        cli.stdout_is_tty = lambda: True
+        cli.stdin_is_tty = lambda: True
+        cli.ensure_ffmpeg = count_ffmpeg
+        cli.process_job = lambda *args, **_kwargs: jobs.append(args) or None
+        builtins.input = refuse_input
+        previous = os.getcwd()
+        if cwd is not None:
+            os.chdir(cwd)
+        out = io.StringIO()
+        err = io.StringIO()
+        try:
+            with redirect_stdout(out), redirect_stderr(err):
+                code = cli.main(list(argv))
+        finally:
+            curses.wrapper = saved_wrapper
+            cli.stdout_is_tty = saved_out
+            cli.stdin_is_tty = saved_in
+            cli.ensure_ffmpeg = saved_ff
+            cli.process_job = saved_job
+            builtins.input = saved_input
+            os.chdir(previous)
+        return code, screen, out.getvalue(), err.getvalue(), jobs, ffmpeg_calls
+
+    def test_tp_mode_05_edit_starts_inside_the_frame(self):
+        """TP-MODE-05: edit on a terminal asks folder, then the video, inside the frame."""
+        import os
+        import tempfile
+
+        folder = tempfile.mkdtemp(prefix="videospeed_edit_")
+        clip = Path(folder) / "clip.mp4"
+        clip.write_bytes(b"")
+        try:
+            code, screen, out, err, jobs, _ff = self._run_verb(
+                ["edit"], [10], cwd=folder
+            )
+            flat = "".join(screen.drawn)
+            self.assertEqual(code, 0, err + out)
+            self.assertIn("Folder (Enter = current):", flat)
+            self.assertIn("Choose video (1–1):", flat)
+            self.assertLess(
+                flat.index("Folder (Enter = current):"),
+                flat.index("Choose video (1–1):"),
+            )
+            self.assertLess(
+                flat.index("Folder (Enter = current):"),
+                flat.index("1. edit"),
+            )
+            self.assertLess(
+                flat.index("Folder (Enter = current):"),
+                flat.rfind("╭"),
+            )
+            self.assertNotIn("Folder (Enter = current):", out)
+            self.assertNotIn("Choice:", flat)
+            self.assertEqual(jobs, [])
+
+            code, screen, out, err, jobs, _ff = self._run_verb(
+                ["edit", "--folder", folder], []
+            )
+            flat = "".join(screen.drawn)
+            self.assertEqual(code, 0, err + out)
+            self.assertNotIn("Folder (Enter = current):", flat)
+            self.assertIn("Choose video (1–1):", flat)
+            self.assertEqual(jobs, [])
+
+            code, screen, out, err, jobs, _ff = self._run_verb(
+                ["edit", "--percent", "50"], [10], cwd=folder
+            )
+            flat = "".join(screen.drawn)
+            self.assertEqual(code, 0, err + out)
+            self.assertIn("Folder (Enter = current):", flat)
+            self.assertNotIn("need --file", err)
+            self.assertEqual(jobs, [])
+        finally:
+            clip.unlink()
+            os.rmdir(folder)
+
+    def test_tp_mode_07_list_mp4_on_a_terminal(self):
+        """TP-MODE-07: list-mp4 on a terminal asks for the folder, lists, and does not encode."""
+        import os
+        import tempfile
+
+        folder = tempfile.mkdtemp(prefix="videospeed_list_")
+        clip = Path(folder) / "clip.mp4"
+        clip.write_bytes(b"")
+        empty = tempfile.mkdtemp(prefix="videospeed_list_")
+        try:
+            code, screen, out, err, jobs, ffmpeg_calls = self._run_verb(
+                ["list-mp4"], [10], cwd=folder
+            )
+            flat = "".join(screen.drawn)
+            self.assertEqual(code, 0, err + out)
+            self.assertIn("Folder (Enter = current):", flat)
+            self.assertIn("1. clip.mp4", flat)
+            self.assertNotIn("Choose video", flat)
+            self.assertLess(
+                flat.index("Folder (Enter = current):"),
+                flat.index("1. clip.mp4"),
+            )
+            self.assertNotIn("Processing", out + err)
+            self.assertEqual(jobs, [])
+            self.assertEqual(ffmpeg_calls, [])
+
+            code, screen, out, err, jobs, ffmpeg_calls = self._run_verb(
+                ["list-mp4", "--folder", folder], []
+            )
+            flat = "".join(screen.drawn)
+            self.assertEqual(code, 0, err + out)
+            self.assertNotIn("Folder (Enter = current):", flat)
+            self.assertIn("1. clip.mp4", flat)
+            self.assertEqual(jobs, [])
+            self.assertEqual(ffmpeg_calls, [])
+
+            code, screen, out, err, jobs, _ff = self._run_verb(
+                ["list-mp4"], [27], cwd=empty
+            )
+            self.assertEqual(code, 0, err + out)
+            self.assertEqual(jobs, [])
+
+            code, screen, out, err, jobs, _ff = self._run_verb(
+                ["list-mp4", "--folder", empty], []
+            )
+            flat = "".join(screen.drawn)
+            self.assertEqual(code, 1, err + out)
+            self.assertIn("No MP4 files found!", flat)
+            self.assertNotIn("Choose video", flat)
+            self.assertEqual(jobs, [])
+        finally:
+            clip.unlink()
+            os.rmdir(folder)
+            os.rmdir(empty)
 
 
 if __name__ == "__main__":

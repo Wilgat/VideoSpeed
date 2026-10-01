@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-logging.md
-**Status**: Active (Version 1.0.1)
+**Status**: Active (Version 1.0.2)
 **Area**: python
 **Key**: `requirement-python-cli-logging`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -33,7 +33,7 @@ VideoSpeed records **system status** through one **ChronicleLogger** instance: p
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
 | Start the program | It builds one logger named VideoSpeed, reads the resolved name and base folder back, and logs status with a component tag. | `video-speed --version` |
-| Ask for the debug lines | Set `DEBUG` before the process starts. The first `isDebug()` call remembers that value. | `DEBUG=1 video-speed --version` |
+| Ask for the debug lines | Set `DEBUG` before the process starts. `main` then displays the resolved name, the version triple, and `ChronicleLogger.class_version()` before the argument parser. When debug mode is off, those lines stay off. | `DEBUG=1 video-speed --version` |
 
 ## 2. Core Rules (Mandatory)
 
@@ -55,7 +55,7 @@ VideoSpeed records **system status** through one **ChronicleLogger** instance: p
 
 9. **MUST** ask `logger.isDebug()` for whether debug status is on. **MUST NOT** read `DEBUG` again in product code.  
 10. `isDebug()` remembers the first answer. `DEBUG` or `debug` **MUST** already be `1`, `true`, or `show` (any letter case) **before** `ChronicleLogger(...)`.  
-11. The startup identity lines (resolved app name, product version, `ChronicleLogger.class_version()`) **MUST** run only inside `if logger.isDebug():`.
+11. The startup identity lines **MUST** run only inside `if logger.isDebug():`, and `main` **MUST** run that block before the argument parser. That block is how debug mode is displayed: the resolved app name, the version triple, this file’s path, `ChronicleLogger.class_version()`, and the resolved base folder. When `isDebug()` is false, those lines **MUST NOT** be displayed. `--json` keeps the console mirror quiet so the lines do not join the one JSON object; the same lines still go to the daily file.
 
 ### 2.3 `log_message` level and component
 
@@ -107,7 +107,7 @@ VideoSpeed records **system status** through one **ChronicleLogger** instance: p
 | **Resolved name** | `video-speed` from `logName()` |
 | **Call order** | Same order as the sibling product AnimeDlp: construct with `logname`, then `logName()`, then `baseDir()`, then `isDebug()`, then `log_message` |
 | **Quiet** | `quiet(True)` before the text menu opens; batch jobs stay audible |
-| **Ship unit today** | This law is ahead of `cli.py`. The module does not construct the logger yet. Proof rows below are **todo** |
+| **Ship unit** | `main` in `src/VideoSpeed/cli.py` constructs one ChronicleLogger and displays the debug identity when `isDebug()` is true. The text-menu path calls `quiet(True)` before the frame. Edit, probe, and ffmpeg component lines remain `TP-LOG-03` |
 | **Debug switch** | Environment `DEBUG` only. There is no `--debug` flag |
 
 Construct, read-back, and the debug gate:
@@ -124,8 +124,8 @@ logdir = logger.logDir()
 
 if logger.isDebug():
     logger.log_message(
-        "{0} v{1}.{2}.{3}".format(
-            appname, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION
+        "{0} v{1}.{2}.{3} ({4})".format(
+            appname, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, __file__
         ),
         component="main",
     )
@@ -216,10 +216,10 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 
 | TP-ID | Case | Status | Map |
 |-------|------|--------|-----|
-| `TP-LOG-01` | One construct; read-back `logName` / `baseDir` / `logDir` under a temp base | todo | `tests/` · `reviews/test-plan.md` |
-| `TP-LOG-02` | `DEBUG=1` before construct shows the identity lines; unset `DEBUG` does not | todo | `reviews/test-plan.md` |
+| `TP-LOG-01` | One construct; read-back `logName` / `baseDir` / `logDir` under a temp base | have | `tests/test_logging.py` |
+| `TP-LOG-02` | `DEBUG=1` before construct shows the identity lines; unset `DEBUG` does not | have | `tests/test_logging.py` |
 | `TP-LOG-03` | `INFO`, `WARNING`, `ERROR`, `FATAL` and keyword `component` | todo | `reviews/test-plan.md` |
-| `TP-LOG-04` | Text menu path calls `quiet(True)` before the frame is drawn | todo | `reviews/test-plan.md` |
+| `TP-LOG-04` | Text menu path calls `quiet(True)` before the frame is drawn | have | `tests/test_logging.py` |
 
 ## 6. Related artifacts (versioned surface only)
 
@@ -241,6 +241,7 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 |------|--------|------|
 | 2026-10-01 | Active 1.0.0 | System status via ChronicleLogger; AnimeDlp call order |
 | 2026-10-01 | Active 1.0.1 | `--json` is not this logger; the console mirror stays quiet under that switch |
+| 2026-10-01 | Active 1.0.2 | `main` displays the debug identity when debug mode is already on, and stays silent when it is off |
 
 ---
 

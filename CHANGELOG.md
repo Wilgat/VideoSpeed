@@ -5,7 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.7] - 2026-10-01
+
+### Added
+- Positional verbs `help`, `about`, `hello`, `edit`, and `list-mp4` on `video-speed` and `python -m VideoSpeed`. `help` prints the same usage as `--help`. `about` and `hello` print a page and do not ask for a folder or a file. On a terminal, `edit` asks for the folder, then the file, inside the text screen. `list-mp4` lists MP4 files and does not encode.
+- An unknown positional verb exits 1 and names those five verbs. `Exit` stays a menu control. `./build.sh` tokens such as `setup` and `test` are not `video-speed` verbs.
+- Menu **7 hello**: the result page shows `Hello.`.
+- `requirement-python-oop` 1.0.0 names class `Tui` in `src/VideoSpeed/tui.py` and class `CheckSystem` in `src/VideoSpeed/check_system.py`. Those functions still live in `cli.py`, and the painter is still `menu.py`.
+
+### Changed
+- File moves use `shutil.move` (`requirement-python-coding-style` 1.2.0). Ship code does not call `os.rename` or `os.replace`, including when the output is on removable media.
+- The version-string match is a test (`requirement-python-coding-style` 1.3.0). Importing the CLI does not raise if the formatted triple and `__version__` differ.
+- `main` constructs ChronicleLogger before the argument parser (`requirement-python-cli-logging` 1.0.2). When `DEBUG` is `1`, `true`, or `show`, it displays the version and the ChronicleLogger version. When debug mode is off, those lines stay off.
+
+### Fixed
+- Interactive edit at full length, 100%, and no boomerang no longer sits on a second encode. The cut is published under the final name, and the text screen shows `Saved <filename> — Again? (y/n):`.
 
 ## [1.0.6] - 2026-10-01
 

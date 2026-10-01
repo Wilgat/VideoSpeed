@@ -44,6 +44,18 @@ class TestDocsStruct(unittest.TestCase):
         self.assertEqual(cli.CONSOLE_NAME, "video-speed")
         self.assertEqual(cli._PKG_VERSION, VideoSpeed.__version__)
 
+    def test_tp_doc_02_version_match_is_suite_not_import(self):
+        """TP-DOC-02: version equality is a suite check, not an import raise."""
+        import VideoSpeed
+        from VideoSpeed import cli
+
+        self.assertEqual(cli._PKG_VERSION, VideoSpeed.__version__)
+        ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        self.assertNotIn(
+            'raise RuntimeError("package version SSOT mismatch")',
+            ship,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

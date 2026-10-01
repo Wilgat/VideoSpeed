@@ -31,6 +31,7 @@ MIN_HEIGHT = MIN_MENU_ABOVE + CHROME_ROWS
 MIN_PLACEABLE = 2 + len(" " + INPUT_MARK) + 1
 MENU_ROWS = (
     (1, "edit", "cut, speed, and optional boomerang", "edit"),
+    (7, "hello", "show a hello message", "hello"),
     (8, "about", "version, FFmpeg, and OpenCV", "about"),
     (9, "Exit", "leave", "exit"),
 )
@@ -86,7 +87,7 @@ class MenuModel:
     """Keystroke state for the front board. The bottom frame is the input box.
 
     boards, when set, replaces the front rows for this session. Omit boards
-    and the model keeps VideoSpeed's edit / about / Exit list.
+    and the model keeps VideoSpeed's edit / hello / about / Exit list.
     """
 
     def __init__(self, boards: dict | None = None) -> None:

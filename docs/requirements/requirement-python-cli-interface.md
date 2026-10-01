@@ -1,18 +1,18 @@
 **file**: docs/requirements/requirement-python-cli-interface.md  
-**Status**: Active (Version 1.7.0)  
+**Status**: Active (Version 1.8.0)  
 **Area**: python  
 **Key**: `requirement-python-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define the official **command-line entry points** and the order of `main` for the VideoSpeed Python package. Which path runs after the parser — the menu walk, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
+Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are the same actions as the text menu: `help`, `about`, `hello`, `edit`, and `list-mp4`. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
 
 Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops are owned by **`requirement-video-ffmpeg-pipeline`**.
 
 ### 1.1 Human-facing
 
-**In one sentence:** This file says how you start VideoSpeed (`video-speed` or `python -m VideoSpeed`) and the order inside `main`; the menu walk versus one job is the mode file.
+**In one sentence:** This file says how you start VideoSpeed (`video-speed` or `python -m VideoSpeed`), the order inside `main`, and the verbs that match the text menu; the menu walk versus one verb versus one job is the mode file.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -22,17 +22,20 @@ Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops 
 
 | Includes | Excludes |
 |----------|----------|
-| Console script, module entry, `main` order, the flag names | The mode matrix (menu walk versus one job); root/sudo; online install |
+| Console script, module entry, `main` order, the flag names, the product verbs | The mode matrix (when a verb prompts); root/sudo; online install; `./build.sh` verbs |
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
 | `src/VideoSpeed/cli.py` | ship unit | live behavior |
-| `video-speed --help` | command | listed flags |
+| `video-speed help` | command | the same usage as `--help`, including the verb list |
+| `video-speed edit` | command | the edit action, without picking it from the front board first |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Edit one clip without prompts | The program must not wait on stdin. It needs a file and a time range. | `video-speed --file clip.mp4 --start 1 --end 5` |
-| Walk through prompts | Run with no arguments **in a terminal**. Without a terminal it exits and tells you to pass flags. | `video-speed` |
+| Edit one clip without prompts | The program must not wait on stdin. It needs a file and a time range. The verb `edit` is optional when those flags are present. | `video-speed edit --file clip.mp4 --start 1 --end 5` |
+| Run a menu action by name | The verb is the menu token. On a terminal, a verb that still needs a folder asks for the folder, then for the specific file when that verb needs one. | `video-speed edit` |
+| List MP4 files | `list-mp4` lists and does not encode. | `video-speed list-mp4` |
+| Walk the front board | Run with no arguments **in a terminal**. Without a terminal, and with no verb, it exits and tells you to pass flags. | `video-speed` |
 
 ---
 
@@ -52,7 +55,7 @@ Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops 
 M1. **Step 1 — main’s own version.** **MUST** read `MAJOR_VERSION`, `MINOR_VERSION`, and `PATCH_VERSION` from the package. **MUST NOT** assign a second triple. The string **MUST** equal `__version__`.  
 M2. **Step 2 — logger.** **MUST** construct one ChronicleLogger as `requirement-python-cli-logging` requires (`logname="VideoSpeed"`, then `logName()`, `baseDir()`, `logDir()`). If that import fails, **MUST** print the install next step and return `1` before the parser runs.  
 M3. **Step 3 — debug.** If `logger.isDebug()` is true, **MUST** log the identity line with the three integers and `ChronicleLogger.class_version()`, `component="main"`. `DEBUG` must already be set before step 2.  
-M4. **Step 4 — major import missing.** **MUST** use the AnimeDlp gate: `log_message` at `FATAL`, `component="main"`, then `return 1`. ChronicleLogger is that gate at step 2. OpenCV (`cv2`) stays lazy (`requirement-python-coding-style`). `main` **MUST** run that same FATAL gate immediately before a duration probe. The text menu is `VideoSpeed.menu` in this package (`requirement-python-tui`), not a pip import. `--help` and `--version` **MUST** still succeed when `cv2` is absent.  
+M4. **Step 4 — major import missing.** **MUST** use the AnimeDlp gate: `log_message` at `FATAL`, `component="main"`, then `return 1`. ChronicleLogger is that gate at step 2. OpenCV (`cv2`) stays lazy (`requirement-python-coding-style`). `main` **MUST** run that same FATAL gate immediately before a duration probe. The text menu stays in this package (`requirement-python-tui`). Its class home is `requirement-python-oop`. Until `src/VideoSpeed/tui.py` exists, that module is `VideoSpeed.menu`. It is not a pip import. `--help` and `--version` **MUST** still succeed when `cv2` is absent.  
 M5. **Step 5 — argument parser.** **MUST** build the `ArgumentParser` and call `parse_args` only after steps 1–3, and after the ChronicleLogger gate. Flags stay the list in §2.4. `--version` **MUST** print the package string from step 1.
 
 ```python
@@ -94,12 +97,12 @@ def main(argv=None):
 
 | Item | Value |
 |------|--------|
-| **Order today in `cli.py`** | The parser still runs first. Steps 2–4 are not in `main` yet. `TP-MAIN-01` is **todo** |
+| **Order today in `cli.py`** | Steps 1–3 run before the parser: version triple, one ChronicleLogger, then the debug identity when `isDebug()` is true. A missing ChronicleLogger returns 1 before the parser. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
 | **Version binding today** | `cli.py` imports the package triple and `__version__`. It does not declare its own triple |
 
 ### 2.2 Mode (owned elsewhere)
 
-5. **MUST** treat bare invocation as **Type N**. The menu walk, the one job, and the fail-closed stop **MUST** follow `requirement-python-interactive-vs-noninteractive`. This file **MUST NOT** keep a second copy of that matrix.  
+5. **MUST** treat bare invocation as **Type N**. The menu walk, a product verb, the one job, and the fail-closed stop **MUST** follow `requirement-python-interactive-vs-noninteractive`. This file **MUST NOT** keep a second copy of that matrix.  
 6. **MUST NOT** default empty argv to shell channel install or self-update.
 
 ### 2.3 Flags
@@ -108,11 +111,44 @@ def main(argv=None):
 8. **MUST** implement `--file`, `--start`, `--end`, optional `--percent`, optional `--boomerang`, `--folder`, and `--json`. When each flag selects a path is the mode requirement. What `--json` prints is `requirement-python-json-output`.  
 9. Each of `--file`, `--start`, `--end`, `--percent`, `--boomerang`, `--folder` **MUST** also be named on `requirement-domain-videospeed` and on `requirement-python-interactive-vs-noninteractive`. `--json` **MUST** also be named on `requirement-python-json-output` and on `requirement-python-interactive-vs-noninteractive`.
 
+### 2.3a Product verbs (the command line beside the menu)
+
+The text menu is one way to start an action. The command line is the other. A **product verb** is the first positional argument. It names the same action a person can pick on the menu. Flags stay. A verb does not remove `--file`, `--start`, or `--end`.
+
+These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
+
+| Verb | Same action as | Folder | Specific file |
+|------|----------------|--------|---------------|
+| `help` | `--help`. Usage text. The menu does not number this row. | no | no |
+| `about` | Menu **8 about**. Page body is `requirement-python-about` | no | no |
+| `hello` | Menu **7 hello**. Body is `Hello.` | no | no |
+| `edit` | Menu **1 edit**. Domain steps D-01..D-08 | yes, unless `--folder` or `--file` already names the directory | yes, unless `--file` names the MP4 |
+| `list-mp4` | The MP4 list edit shows after the folder question. The verb lists and stops. It does not encode | yes, unless `--folder` names the directory, or `--file` names a file whose parent is that directory | no |
+
+10. **MUST** accept the positional verbs `help`, `about`, `hello`, `edit`, and `list-mp4` on `video-speed` and on `python -m VideoSpeed`.  
+11. **MUST** make `help` and `--help` print the same usage. That usage **MUST** name each of the five verbs and the job flags.  
+12. An unknown positional token **MUST** exit non-zero, **MUST** name the five verbs, and **MUST NOT** open the menu and **MUST NOT** encode.  
+13. **MUST NOT** delete this verb list and leave flags as the only command line. **MUST NOT** make the front board the only way to run `about`, `hello`, `edit`, or `list-mp4`.  
+14. When a verb still needs a folder or a specific file, the order **MUST** be the folder first and the specific file second, as `requirement-python-interactive-vs-noninteractive` §2.1b. This file **MUST NOT** keep a second prompt matrix.  
+15. `help`, `about`, and `hello` **MUST NOT** ask for a folder or a file. `list-mp4` **MUST NOT** ask for a specific file and **MUST NOT** encode. `Exit` stays a menu control. It is not a sixth positional verb.  
+16. Without a terminal, `help`, `about`, `hello`, and `list-mp4` **MUST** still run and **MUST NOT** wait. `edit` without a terminal **MUST** follow the one-job rule when `--file`, `--start`, and `--end` are present, and the fail-closed stop when they are not.
+
+```text
+video-speed help
+video-speed about
+video-speed hello
+video-speed edit
+video-speed edit --folder ./clips
+video-speed edit --file clip.mp4 --start 1 --end 5 --percent 100
+video-speed list-mp4
+video-speed list-mp4 --folder ./clips
+```
+
 ### 2.4 Output behavior
 
-10. **MUST** print human-readable progress for each pipeline stage.  
-11. **MUST** emit user-visible errors on the console. Durable system status **MUST** follow `requirement-python-cli-logging`.  
-12. **MUST** implement `--json` as `requirement-python-json-output`. **MUST NOT** add `--quiet`.
+17. **MUST** print human-readable progress for each pipeline stage.  
+18. **MUST** emit user-visible errors on the console. Durable system status **MUST** follow `requirement-python-cli-logging`.  
+19. **MUST** implement `--json` as `requirement-python-json-output`. **MUST NOT** add `--quiet`.
 
 ### 2.5 Implementation Notes (this project)
 
@@ -122,7 +158,8 @@ def main(argv=None):
 | **Module entry** | `src/VideoSpeed/__main__.py` → `main()` |
 | **CLI module** | `src/VideoSpeed/cli.py` |
 | **Empty argv** | Mode matrix in `requirement-python-interactive-vs-noninteractive` |
-| **Argparse** | `--help`, `--version`, `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`, `--json` |
+| **Argparse** | positional verb `help` \| `about` \| `hello` \| `edit` \| `list-mp4`; flags `--help`, `--version`, `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`, `--json` |
+| **Product verbs** | §2.3a. Prompt order is the mode requirement |
 | **Empty argv, no TTY** | Fail closed; owned by the mode requirement |
 | **JSON** | `--json` owned by `requirement-python-json-output`. No `--quiet` |
 | **Privilege** | user-level only |
@@ -133,12 +170,12 @@ def main(argv=None):
 ### 2.6 Why This Requirement Exists (CIAO)
 
 - **Principle 2 – Intentional**: Entry and Type N empty-argv are explicit.  
-- **Principle 16 – Interactive awareness**: The mode file owns the walk versus the job.  
-- **Principle 5 – SSOT**: One CLI surface for entry. The mode matrix has one owner.
+- **Principle 16 – Interactive awareness**: The mode file owns the walk, the verb, and the job.  
+- **Principle 5 – SSOT**: One CLI surface for entry and for the verb names. The mode matrix has one owner.
 
 ### 2.7 Maintainer verbs (not this entry)
 
-`./build.sh` verbs are **not** `video-speed` flags. Behavior and samples stay on `requirement-python-build-script`. Named here so each token has a second home: `help`, `version`, `setup`, `clean`, `build`, `upload`, `git`, `tag`, `release`, `all`, `test-install`, `test`. `test` is the only test-purpose verb. `test-install` is operational: it replaces the pip install from this checkout. `all` is the same chain as `release`.
+`./build.sh` verbs are **not** `video-speed` verbs and **not** `video-speed` flags. Behavior and samples stay on `requirement-python-build-script`. Named here so each token has a second home: `help`, `version`, `setup`, `clean`, `build`, `upload`, `git`, `tag`, `release`, `all`, `test-install`, `test`. `test` is the only test-purpose verb. `test-install` is operational: it replaces the pip install from this checkout. `all` is the same chain as `release`. The maintainer token `help` prints `./build.sh` usage. The product verb `help` prints `video-speed` usage (§2.3a).
 
 ---
 
@@ -161,7 +198,9 @@ def main(argv=None):
 4. Require root to run normal editing.  
 5. Leave `cli-new.py` as silent dual SSOT for entry behavior.  
 6. Copy the mode matrix back into this file. Point at `requirement-python-interactive-vs-noninteractive`.  
-7. Copy `./build.sh` verb procedures into this file. Point at `requirement-python-build-script`.
+7. Copy `./build.sh` verb procedures into this file. Point at `requirement-python-build-script`.  
+8. Remove `help`, `about`, `hello`, `edit`, or `list-mp4`, or leave the command line as flags only.  
+9. Treat `./build.sh` verbs as `video-speed` verbs, or treat these product verbs as maintainer verbs.
 
 **Violating this rule is a critical CLI regression.**
 
@@ -182,7 +221,10 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | AC-5 | Invalid cut range does not call encode |
 | AC-6 | Success prints output path |
 | AC-7 | `--file` + `--start` + `--end` runs one job without prompts |
-| AC-8 | No TTY and no job flags → fail closed with next step |
+| AC-8 | No TTY, no verb, and no job flags → fail closed with next step |
+| AC-9 | `help` and `--help` both list `help`, `about`, `hello`, `edit`, and `list-mp4` |
+| AC-10 | An unknown positional verb exits non-zero, names those five verbs, and does not open the menu |
+| AC-11 | `about`, `hello`, and `list-mp4` run without a terminal and do not wait |
 
 ---
 
@@ -190,10 +232,11 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 
 | Key | Relationship |
 |-----|--------------|
-| `requirement-python-interactive-vs-noninteractive` | Menu walk versus one job versus fail closed |
+| `requirement-python-interactive-vs-noninteractive` | Menu walk versus one verb versus one job versus fail closed. Folder, then file |
 | `requirement-python-build-script` | `./build.sh` verbs; not this entry |
 | `requirement-python-json-output` | `--json` object; not a second mode matrix |
 | `requirement-python-tui` | Menu look (default TUI style) |
+| `requirement-python-oop` | `main` builds class `Tui` after that file exists |
 | `requirement-domain-videospeed` | Domain steps |
 | `requirement-video-ffmpeg-pipeline` | Encode |
 | `requirement-python-packaging` | Entrypoint declaration |
@@ -212,6 +255,7 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | TP-CLI-04 | `tests/test_cli.py` | have | Empty folder |
 | TP-CLI-05 | — | todo | Invalid index re-prompt |
 | TP-CLI-06 | `tests/test_cli.py` | have | Batch flags |
+| TP-CLI-07 | `tests/test_cli.py` | have | `help` lists the five product verbs; an unknown verb exits 1 and does not open the menu |
 | TP-MODE-01..03 | `tests/test_cli.py` | have | Mode matrix; see the mode requirement |
 | TP-TUI-* | `tests/test_tui.py` | have | Menu look owned by `requirement-python-tui` |
 | TP-MAIN-01 | — | todo | `main` order: version, logger, debug, missing lib, parser |
@@ -232,6 +276,9 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | 2026-10-01 | Active 1.5.1 | `./build.sh` verbs named; procedures stay on the build requirement |
 | 2026-10-01 | Active 1.6.0 | `--json` named; the object stays on `requirement-python-json-output` |
 | 2026-10-01 | Active 1.7.0 | `test-install` named; the procedure stays on `requirement-python-build-script` |
+| 2026-10-01 | Active 1.7.1 | Text-menu class home is `requirement-python-oop`. Until `tui.py` exists, the module is `VideoSpeed.menu` |
+| 2026-10-01 | Active 1.7.2 | `main` constructs ChronicleLogger and displays the debug identity before the parser |
+| 2026-10-01 | Active 1.8.0 | Product verbs `help`, `about`, `hello`, `edit`, `list-mp4` returned. Prompt order stays on the mode requirement |
 
 ---
 

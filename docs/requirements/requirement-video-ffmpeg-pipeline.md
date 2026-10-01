@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-video-ffmpeg-pipeline.md  
-**Status**: Active (Version 1.1.1)  
+**Status**: Active (Version 1.1.3)  
 **Area**: video  
 **Key**: `requirement-video-ffmpeg-pipeline`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -68,7 +68,7 @@ Domain feature catalog and user workflow labels live in **`requirement-domain-vi
 ### 2.5 FFmpeg invocation
 
 17. **MUST** invoke the system **`ffmpeg`** binary (PATH-resolved) via subprocess — not a reimplemented codec stack.  
-18. **MUST** use non-interactive flags suitable for automation (`-y` overwrite temps, hide banner, reduced log noise preferred).  
+18. **MUST** use non-interactive flags suitable for automation (`-nostdin`, `-y` overwrite temps, hide banner, reduced log noise preferred). `-nostdin` **MUST** be set so a step cannot wait on the terminal after the last frame.  
 19. **MUST NOT** shell-interpolate untrusted free-form filter strings from remote input without validation (times/percent are numeric).  
 20. **MUST** treat missing `ffmpeg` as a **runtime prerequisite failure** (pointer to `requirement-runtime-prerequisites`).
 
@@ -76,8 +76,8 @@ Domain feature catalog and user workflow labels live in **`requirement-domain-vi
 
 21. **MUST** create intermediate MP4 (and concat list when boomerang) via secure temp mechanisms (`tempfile` / `mkstemp` or equivalent).  
 22. **MUST** prefer staging intermediate files on the **same filesystem/mount as the final output** (critical when source/output is on USB / FAT / exFAT / other removable media while system `TMPDIR` is on the root disk).  
-23. **MUST** publish a completed intermediate to the final path with **`shutil.move`** (or a thin wrapper that only calls `shutil.move`). Same mount → rename; cross-device → copy then remove source (`EXDEV`-safe).  
-24. **MUST NOT** use bare **`os.rename` / `os.replace` / `pathlib.Path.rename` / `pathlib.Path.replace`** alone as the sole publish path when the source may be system temp and the destination may be another mount.  
+23. **MUST** publish a completed intermediate to the final path with **`shutil.move`** (or a thin wrapper that only calls `shutil.move`). Same device: rename inside `shutil.move`. Another device, including removable media: copy then remove the source.  
+24. **MUST NOT** call **`os.rename`**, **`os.replace`**, **`pathlib.Path.rename`**, or **`pathlib.Path.replace`** to move or publish. There is no same-mount exception. The general ban is **`requirement-python-coding-style`**.  
 25. **MUST** attempt cleanup of intermediate temps on success and failure paths (best-effort; log if cleanup fails).  
 26. **MUST NOT** leave final success dependent on deleting the user’s source.  
 
@@ -97,13 +97,14 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | **Cut filters** | video `trim=start:end,setpts=PTS-STARTPTS`; audio `atrim` + `asetpts` |
 | **Cut encode** | libx264, preset `ultrafast`, CRF 17; audio AAC |
 | **Speed math** | `speed = 100.0 / ratio_percent`; video `setpts=(1/speed)*PTS`; audio `atempo=speed` |
-| **Speed encode** | libx264, preset `medium`, CRF 18; AAC 192k; `+faststart` |
+| **100% length** | No second encode. The cut is the forward clip. With boomerang off, `promote_file` publishes that cut. The text screen then shows `Saved <filename> — Again? (y/n):` |
+| **Speed encode** | Only when the length is not 100%: libx264, preset `medium`, CRF 18; AAC 192k; `+faststart` |
 | **Boomerang** | `reverse` / `areverse` then concat demuxer list of forward + reverse |
 | **Duration probe** | OpenCV `VideoCapture` FPS × frame count (not FFmpeg probe) |
 | **Overwrite policy** | Final path may overwrite same-named prior output (`-y` on FFmpeg stages); source file never targeted as output |
 | **Temp staging** | `make_temp_path` / `staging_dir_for(final_out)` — prefer output parent (USB-safe) |
 | **Final promote** | `promote_file` → **`shutil.move(src, dest)`** only |
-| **Corresponding APIs (publish)** | Prefer: `shutil.move`. Avoid alone for cross-mount: `os.replace`, `os.rename`, `Path.replace`, `Path.rename`. Copy-only: `shutil.copy2` (not a move). |
+| **Corresponding APIs (publish)** | Use `shutil.move`. Do not call `os.replace`, `os.rename`, `Path.replace`, or `Path.rename`. Copy-only: `shutil.copy2` (not a move). |
 | **Elevation** | None — all work as invoking user |
 
 ### 2.9 Why This Requirement Exists (CIAO)
@@ -134,7 +135,7 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 4. Shell-out to FFmpeg with unsanitized free-form user filter graphs.  
 5. Move full encode law only into domain without keeping this ops SSOT.  
 6. Add root/sudo FFmpeg elevation without elev allowlist law and user order.  
-7. Reintroduce bare cross-device `os.replace`/`os.rename` as the only non-boomerang publish path (must stay **`shutil.move`**).
+7. Publish with `os.replace` or `os.rename` (publish stays **`shutil.move`**, including onto removable media).
 
 **Violating this rule is a critical media-safety regression.**
 
@@ -151,7 +152,7 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | AC-5 | Temps cleaned best-effort |
 | AC-6 | FFmpeg non-zero exits fail closed |
 | AC-7 | Non-boomerang job succeeds when source/output on a different mount than system TMPDIR (USB) |
-| AC-8 | Non-boomerang publish uses **`shutil.move`** (not bare cross-device rename only) |
+| AC-8 | Non-boomerang publish uses **`shutil.move`** and does not call `os.rename` or `os.replace` |
 
 ---
 
@@ -183,6 +184,8 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | 2026-08-09 | Active 1.0.0 | Initial FFmpeg pipeline ops law |
 | 2026-08-19 | Active 1.1.0 | §1.1; FS/ERR TP have |
 | 2026-10-01 | Active 1.1.1 | Walk versus job points at the mode requirement |
+| 2026-10-01 | Active 1.1.2 | Publish apply matches coding-style: `shutil.move` only; no `os.rename` or `os.replace` |
+| 2026-10-01 | Active 1.1.3 | 100% length publishes the cut; FFmpeg uses `-nostdin`; the text screen shows the saved name |
 
 ---
 

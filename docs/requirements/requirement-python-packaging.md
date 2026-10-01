@@ -72,7 +72,7 @@ Define packaging SSOT for the VideoSpeed Python distribution: **`pyproject.toml`
 |------|--------|
 | **Manifest** | `pyproject.toml` |
 | **Project name** | `VideoSpeed` |
-| **Version** | `1.0.6` from `MAJOR_VERSION=1`, `MINOR_VERSION=0`, `PATCH_VERSION=6` (`requirement-python-version`) |
+| **Version** | `1.0.7` from `MAJOR_VERSION=1`, `MINOR_VERSION=0`, `PATCH_VERSION=7` (`requirement-python-version`) |
 | **requires-python** | `>=3.11` (`tomllib` in the suite; the text menu uses 3.11 typing) |
 | **Dependencies** | Version floors owned by `requirement-python-dependency-management`: `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
 | **Build backend** | `setuptools.build_meta` |

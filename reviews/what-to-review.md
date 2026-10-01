@@ -4,7 +4,7 @@
 **Class:** software-development · domain SSOT present · **pip/local package** install.  
 **Always load first:** `reviews/lessons.md`
 
-**Last plan update:** 2026-09-30 (suite present: `tests/run.sh`)
+**Last plan update:** 2026-10-01 (product verbs `help`, `about`, `hello`, `edit`, `list-mp4`)
 
 ---
 
@@ -29,16 +29,17 @@
 | Class | `requirement-class-software-dev.md` | Python residual; no online shell package |
 | Domain | `requirement-domain-videospeed.md` | Four pillars; cut/speed/boomerang catalog |
 | FFmpeg pipeline | `requirement-video-ffmpeg-pipeline.md` | Order, temps, **`shutil.move`** publish, USB |
-| CLI interface | `requirement-python-cli-interface.md` | Entry points; `main` order; `--help`/`--version` |
-| Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, one job, or fail closed. A selector or a lone modifier must not open the menu |
+| CLI interface | `requirement-python-cli-interface.md` | Entry points; product verbs `help`, `about`, `hello`, `edit`, `list-mp4`; `main` order; `--help`/`--version` |
+| Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, verb prompts (folder then file), or one job. A selector with no verb must not open the menu |
 | JSON output | `requirement-python-json-output.md` | `--json` is one object on stdout. No text menu. Prompts, if any, are on stderr |
-| Text menu | `requirement-python-tui.md` | Default TUI style; writer is `src/VideoSpeed/menu.py`; glyphs stay out of `cli.py` |
+| Text menu | `requirement-python-tui.md` | Default TUI style; writer is `src/VideoSpeed/menu.py` until class `Tui`; glyphs stay out of `cli.py` |
+| OOP grouping | `requirement-python-oop.md` | Class `Tui` in `tui.py`; class `CheckSystem` in `check_system.py`. Session and host-check functions are still in `cli.py`. Painter is still `menu.py` |
 | About page | `requirement-python-about.md` | Identity, host check, star box. Each line names its read. No curl line while the download URL is empty |
-| Coding style | `requirement-python-coding-style.md` | Temps + move APIs; no bare cross-mount rename |
+| Coding style | `requirement-python-coding-style.md` | Temps; `shutil.move` for every file move; no `os.rename` or `os.replace` (removable media) |
 | Packaging | `requirement-python-packaging.md` | pyproject, entrypoint, version dual SSOT |
 | Maintainer build | `requirement-python-build-script.md` | `./build.sh` verbs. `test` is `tests/run.sh`. Empty argv does not upload |
 | Pip dependency floors | `requirement-python-dependency-management.md` | `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1`; no GUI `opencv-python`; no menu wheel |
-| System status log | `requirement-python-cli-logging.md` | One ChronicleLogger; `log_message` level and component; menu stays quiet |
+| System status log | `requirement-python-cli-logging.md` | One ChronicleLogger in `main`. Debug mode displays the version lines when `DEBUG` is `1`, `true`, or `show`. Menu path calls `quiet(True)` |
 | Project structure | `requirement-python-project-structure.md` | `src/` layout; cli SSOT |
 | Error handling | `requirement-python-error-handling.md` | Fail closed; source safe |
 | Runtime prereqs | `requirement-runtime-prerequisites.md` | FFmpeg system; OpenCV pip |
@@ -62,6 +63,7 @@
 | `__init__.py` | Heavy import chain | L-IMPORT-01 |
 | `open_text_menu` / `MENU_ROWS` | Frame glyphs copied into `cli.py`, or tests aimed at a sibling menu checkout | L-TUI-01 |
 | `main` mode gate | `--percent` or `--boomerang` alone, or any selector, falls through into the menu | mode requirement |
+| `_dispatch` product verbs | An unknown token, `Exit`, or a `./build.sh` verb opens the menu or encodes. `edit` or `list-mp4` paints the front board before the folder question | mode requirement |
 | `build.sh` dispatcher | `test` calls a second runner, empty argv uploads, or `test-install` embeds the project name | build-script requirement |
 | `--json` | Menu opens, or progress shares stdout with the object | JSON requirement |
 
@@ -92,7 +94,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.6` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.7` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---

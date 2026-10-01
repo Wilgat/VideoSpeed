@@ -71,7 +71,7 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | **System binary** | `ffmpeg` on `PATH` |
 | **Auto install command** | **none** (not implemented) |
 | **Platform notes** | Linux primary. Duration probing uses the headless OpenCV wheel, which does not need `libGL.so.1`. Other OS OK when FFmpeg + OpenCV are available |
-| **Product version** | 1.0.6 |
+| **Product version** | 1.0.7 |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 

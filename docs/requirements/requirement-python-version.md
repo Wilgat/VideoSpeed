@@ -57,16 +57,16 @@ Sibling product **AnimeDlp** names the same three fields, `MAJOR_VERSION`, `MINO
 | **SSOT file** | `src/VideoSpeed/__init__.py` |
 | **MAJOR_VERSION** | `1` |
 | **MINOR_VERSION** | `0` |
-| **PATCH_VERSION** | `6` |
-| **`__version__`** | `1.0.6` |
-| **Manifest copy** | `pyproject.toml` `[project].version` = `1.0.6` |
+| **PATCH_VERSION** | `7` |
+| **`__version__`** | `1.0.7` |
+| **Manifest copy** | `pyproject.toml` `[project].version` = `1.0.7` |
 | **Who reads it** | `main` in `src/VideoSpeed/cli.py` (`requirement-python-cli-interface`) |
-| **Debug line shape** | `{appname} v1.0.6 ({file})` from the three integers |
+| **Debug line shape** | `{appname} v1.0.7 ({file})` from the three integers |
 
 ```python
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
-PATCH_VERSION = 6
+PATCH_VERSION = 7
 __version__ = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 ```
 

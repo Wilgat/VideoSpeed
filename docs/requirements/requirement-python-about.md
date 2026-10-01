@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-about.md
-**Status**: Active (Version 1.0.0)
+**Status**: Active (Version 1.0.2)
 **Area**: python
 **Key**: `requirement-python-about`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -29,7 +29,9 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 | Surface | What you open | What for |
 |---------|---------------|----------|
 | `video-speed` | text menu on a terminal | Choose **8** or type `about` |
-| `src/VideoSpeed/cli.py` | `framework_about` | The page text |
+| `video-speed about` | the same page, no front-board pick | No folder prompt and no file prompt (`requirement-python-interactive-vs-noninteractive` §2.1b) |
+| `src/VideoSpeed/cli.py` | `framework_about` | The page text. It calls `CheckSystem` for the host check |
+| `src/VideoSpeed/check_system.py` | class `CheckSystem` | Host-check reads after `TP-OOP-02`. Until then those functions stay in `cli.py` |
 | `tests/test_about.py` | suite | The lines and the reads |
 
 | You do… | What it means | What you type |
@@ -39,7 +41,7 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 
 ## 2. Core Rules (Mandatory)
 
-1. **One page.** Menu action **about** **MUST** show one result page whose body is this file. The page **MUST** be three blocks in this order: identity, host check, star box. A blank line **MUST** separate the blocks. The page **MUST NOT** be `--version`, and **MUST NOT** be the JSON object.
+1. **One page.** Menu action **about** and the verb `video-speed about` **MUST** show one result page whose body is this file. The verb **MUST NOT** ask for a folder or a file. The page **MUST** be three blocks in this order: identity, host check, star box. A blank line **MUST** separate the blocks. The page **MUST NOT** be `--version`, and **MUST NOT** be the JSON object.
 2. **Identity block.** The first four lines **MUST** be, in order: `{APP_NAME} {version}`, `Domain: Cut → speed/length → optional boomerang for MP4`, `Runtime tools: FFmpeg (encode), OpenCV (duration probe)`, `Entry points: video-speed, python -m VideoSpeed`. `{version}` **MUST** be the package version from `requirement-python-version`. The page **MUST NOT** name `py-tui`.
 3. **Host-check header.** The check **MUST** start with `{local stamp} {APP_NAME}(v{version})  [CHECK SYSTEM]:` and the next line **MUST** be two spaces then `Now checking your operation system!`. The stamp **MUST** be local time `YYYY-MM-DD HH:MM:SS.ffffff` from `datetime.datetime.now()`. There are two spaces before `[CHECK SYSTEM]:`.
 4. **Host-check fields.** After the header, the page **MUST** print these labels in this order, each starting with four spaces, then the label, a colon, a space, and the value. A missing value **MUST** leave the line in place. The check **MUST NOT** spawn `python2`, `python3`, `conda`, or `pyenv`.
@@ -79,18 +81,19 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 14. **No privilege and no network.** Building the page **MUST NOT** call `sudo`, wrap `apt` or `dnf`, create an account, open a socket, or recommend `sudo pip` or `sudo curl | sh`. Git Bash and Windows cmd **MUST NOT** invoke Termux `pkg`.
 15. Actor / role / subject / approver: **considered**. No dest machine. No approver. The table stays on `requirement-class-software-dev.md`.
 16. Dest fence conditions: **considered — none**. Do not invent one.
+17. The host-check functions named in `requirement-python-oop` **MUST** be methods of class `CheckSystem` in `src/VideoSpeed/check_system.py`. This file still owns the line text. Until that module exists, `cli.py` may hold `check_system_lines` and its readers. The move is `TP-OOP-02`. `about_box_lines` and `framework_about` stay the about composer and **MUST** call `CheckSystem` for the check block and for `self_location`.
 
 ### 2.1 Sample shape
 
 Values in angle brackets are the live read. They are not a frozen login or home path.
 
 ```text
-VideoSpeed 1.0.6
+VideoSpeed 1.0.7
 Domain: Cut → speed/length → optional boomerang for MP4
 Runtime tools: FFmpeg (encode), OpenCV (duration probe)
 Entry points: video-speed, python -m VideoSpeed
 
-2026-10-01 11:16:23.700590 VideoSpeed(v1.0.6)  [CHECK SYSTEM]:
+2026-10-01 11:16:23.700590 VideoSpeed(v1.0.7)  [CHECK SYSTEM]:
   Now checking your operation system!
     Python: 3.12.3
     C Library: GCC 13.3.0
@@ -110,7 +113,7 @@ Entry points: video-speed, python -m VideoSpeed
 
 *****************************************************
 *                                                   *
-* VideoSpeed (1.0.6) by Wilgat Wong on 2026-10-01   *
+* VideoSpeed (1.0.7) by Wilgat Wong on 2026-10-01   *
 *                                                   *
 * You are using an UNINSTALLED version, location:   *
 *     <program path>                                *
@@ -135,7 +138,7 @@ Invocation: `video-speed` on a terminal, then `8` or `about`.
 | Item | Value |
 |------|--------|
 | **Page builder** | `framework_about` in `src/VideoSpeed/cli.py` |
-| **Host check** | `check_system_lines` |
+| **Host check** | `check_system_lines` in `cli.py` until class `CheckSystem` in `src/VideoSpeed/check_system.py` (`requirement-python-oop`, `TP-OOP-02`) |
 | **Star box** | `about_box_lines` |
 | **Menu hook** | `open_text_menu` passes `on_about=framework_about` |
 | **APP_NAME** | `VideoSpeed` |
@@ -204,8 +207,9 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | `docs/requirements/index.md` | Registry |
 | `docs/requirements/requirement-domain-videospeed.md` | Domain sentence on the identity block |
 | `docs/requirements/requirement-python-tui.md` | Result page; scroll; no frame on about |
+| `docs/requirements/requirement-python-oop.md` | Class `CheckSystem` owns the host-check reads |
 | `docs/requirements/requirement-python-version.md` | Version digits in the title and the stamp |
-| `docs/requirements/requirement-python-cli-interface.md` | `--version` stays the short human line |
+| `docs/requirements/requirement-python-cli-interface.md` | `--version` stays the short human line. The verb `about` is named there |
 | `docs/requirements/requirement-class-software-dev.md` | Approver none; no dest fence |
 | `src/VideoSpeed/cli.py` | `framework_about` |
 | `LICENSE.md` | Author name |
@@ -216,6 +220,8 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | Date | Status | Note |
 |------|--------|------|
 | 2026-10-01 | Active 1.0.0 | About page: identity, host check, star box, and the read for each line |
+| 2026-10-01 | Active 1.0.1 | Host-check functions belong to class `CheckSystem`. Until `check_system.py` exists, `cli.py` may hold them |
+| 2026-10-01 | Active 1.0.2 | Verb `video-speed about` shows this same page and does not ask for a folder or a file |
 
 **Last Updated**: 2026-10-01
 **Owner**: project maintainers

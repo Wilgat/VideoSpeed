@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-project-structure.md  
-**Status**: Active (Version 1.1.3)  
+**Status**: Active (Version 1.1.4)  
 **Area**: python  
 **Key**: `requirement-python-project-structure`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -38,7 +38,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 ### 2.1 Source package layout
 
 1. **MUST** keep the installable package under **`src/VideoSpeed/`**.  
-2. **MUST** include `__init__.py` (version SSOT: `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`, `__version__`), `__main__.py` (module entry), `cli.py` (CLI + domain session), and `menu.py` (text-menu painter, `requirement-python-tui`).  
+2. **MUST** include `__init__.py` (version SSOT: `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`, `__version__`), `__main__.py` (module entry), and `cli.py` (CLI + domain session). The text-menu painter today is `menu.py` (`requirement-python-tui`). `requirement-python-oop` names the later files: class `Tui` in `tui.py` and class `CheckSystem` in `check_system.py`. Those two files are required when `TP-OOP-01` and `TP-OOP-02` land. Until then this package does not have to contain them.  
 3. **MUST NOT** scatter a second installable package name that contradicts packaging SSOT without an explicit rename plan.
 
 ### 2.2 Project root layout
@@ -67,7 +67,9 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 |------|------|
 | `src/VideoSpeed/` | Installable package |
 | `src/VideoSpeed/cli.py` | Interactive CLI + FFmpeg helpers |
-| `src/VideoSpeed/menu.py` | Text-menu painter (`requirement-python-tui`) |
+| `src/VideoSpeed/menu.py` | Text-menu painter until `TP-OOP-01` (`requirement-python-tui`) |
+| `src/VideoSpeed/tui.py` | Class `Tui` after `TP-OOP-01` (`requirement-python-oop`). Not in the tree yet |
+| `src/VideoSpeed/check_system.py` | Class `CheckSystem` after `TP-OOP-02`. Not in the tree yet |
 | `src/VideoSpeed/__init__.py` | Version SSOT (`requirement-python-version`) |
 | `src/VideoSpeed/__main__.py` | Module entry |
 | `pyproject.toml` | Packaging SSOT |
@@ -132,6 +134,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | `requirement-python-build-script` | `build.sh` verbs |
 | `requirement-python-cli-interface` | Entry modules |
 | `requirement-class-software-dev` | Class residual |
+| `requirement-python-oop` | Later homes for `Tui` and `CheckSystem` |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -149,6 +152,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | 2026-09-30 | Active 1.1.1 | `setup.sh` targets `pyenv shell 3.14` |
 | 2026-10-01 | Active 1.1.2 | `menu.py` is the text-menu painter |
 | 2026-10-01 | Active 1.1.3 | `build.sh` points at `requirement-python-build-script` |
+| 2026-10-01 | Active 1.1.4 | `tui.py` and `check_system.py` are the OOP homes once those moves land. `menu.py` stays the painter until then |
 
 ---
 

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-json-output.md
-**Status**: Active (Version 1.0.0)
+**Status**: Active (Version 1.0.1)
 **Area**: python
 **Key**: `requirement-python-json-output`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -41,7 +41,7 @@ The path decision stays on the mode requirement. The screen picture stays on `re
 ## 2. Core Rules (Mandatory)
 
 1. **One switch.** `--json` **MUST** be a boolean flag. It **MUST NOT** select the job by itself and **MUST NOT** be ignored. It **MUST** be named on `requirement-python-cli-interface` and on `requirement-python-interactive-vs-noninteractive`.
-2. **No screen.** When `--json` is set, `main` **MUST NOT** open the text menu and **MUST NOT** draw a frame. A terminal with no selector **MUST** ask the same fields as the mode file, one at a time, on the error stream, and **MUST** read the answer from standard input. End of input **MUST** end the walk without encoding the open question.
+2. **No screen.** When `--json` is set, `main` **MUST NOT** open the text menu and **MUST NOT** draw a frame. A terminal with no product verb and no selector, and a terminal running `edit` while a target is still missing, **MUST** ask the fields the mode file still marks as missing, one at a time, on the error stream, folder before the specific file, and **MUST** read the answer from standard input. End of input **MUST** end the walk without encoding the open question. `help` **MUST** stay the human usage text, as `--help` does. `about`, `hello`, and `list-mp4` **MUST NOT** enter the edit walk. A folder question that `list-mp4` still needs is on the error stream. The about page, the hello line, and the MP4 list go to the error stream. Standard output for those three verbs stays this one object, with `jobs` empty.
 3. **Quiet standard output.** When `--json` is set, informational progress **MUST NOT** be written to standard output. FFmpeg **MUST NOT** inherit standard output. The only standard-output bytes **MUST** be one JSON object, pretty-printed with two-space indent, then a single newline. No banner before it and no second value after it.
 4. **Same shape.** The object **MUST** use the keys below, in this order. `mode` **MUST** be `interactive` only when the question walk was entered. Every other `--json` run **MUST** use `noninteractive`, including a fail-closed stop. `jobs` **MUST** be an array. A job path has at most one element. A walk may have one element per finished encode. `ok` **MUST** be true only when the process exit is 0.
 5. **Errors.** A terminal failure **MUST** set `error` to the failure sentence and `ok` to false, and **MUST** exit non-zero. `next` **MUST** be the next-step sentence when the failure has one, otherwise null. The human sentence **MAY** also be written to the error stream. It **MUST NOT** be written to standard output outside the object. A re-ask during the walk **MUST NOT** freeze `error`.
@@ -84,7 +84,7 @@ Failure, modifier alone:
   "ok": false,
   "mode": "noninteractive",
   "app": "VideoSpeed",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "error": "--percent and --boomerang need --file, --start, and --end.",
   "next": "video-speed --file clip.mp4 --start 0 --end 5",
   "jobs": []
@@ -98,7 +98,7 @@ Success, one job (paths are the paths the run used):
   "ok": true,
   "mode": "noninteractive",
   "app": "VideoSpeed",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "error": null,
   "next": null,
   "jobs": [
@@ -121,7 +121,7 @@ Walk entered, then end of input before a folder:
   "ok": true,
   "mode": "interactive",
   "app": "VideoSpeed",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "error": null,
   "next": null,
   "jobs": []
@@ -230,6 +230,7 @@ TP-JSON-01 asserts `--json --percent 80` exits 1, does not open the menu, and wr
 | Date | Status | Note |
 |------|--------|------|
 | 2026-10-01 | Active 1.0.0 | `--json` quiets stdout to one object and skips the text menu |
+| 2026-10-01 | Active 1.0.1 | `edit` under `--json` asks missing targets on the error stream, folder then file. `about`, `hello`, and `list-mp4` do not enter that walk |
 
 **Last Updated**: 2026-10-01
 **Owner**: VideoSpeed project maintainers

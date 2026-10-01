@@ -2,10 +2,14 @@
 from __future__ import print_function, unicode_literals
 
 import inspect
+import io
+import re
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -62,6 +66,98 @@ class TestFs(unittest.TestCase):
             for p in parent.iterdir():
                 p.unlink()
             parent.rmdir()
+
+    def test_tp_fs_05_ship_modules_do_not_call_os_rename_or_replace(self):
+        """TP-FS-05: ship modules move with shutil; no os.rename or os.replace."""
+        banned = re.compile(
+            r"\b(?:os\.(?:rename|replace)|Path\.(?:rename|replace))\s*\("
+        )
+        offenders = []
+        pkg = SRC / "VideoSpeed"
+        for path in sorted(pkg.glob("*.py")):
+            if path.name == "cli.bootstrap-old.py":
+                continue
+            for lineno, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), 1
+            ):
+                code = line.split("#", 1)[0]
+                if banned.search(code):
+                    offenders.append("{}:{}".format(path.name, lineno))
+        self.assertEqual(offenders, [])
+
+    def _job_with_fake_ffmpeg(self, percent, boomerang):
+        """Run process_job. Each FFmpeg call writes its output argument."""
+        folder = Path(tempfile.mkdtemp(prefix="vs_job_"))
+        source = folder / "clip.mp4"
+        source.write_bytes(b"source-bytes")
+        calls = []
+
+        def fake_run(cmd):
+            calls.append(list(cmd))
+            Path(cmd[-1]).write_bytes("pass-{}".format(len(calls)).encode("ascii"))
+
+        try:
+            with patch.object(cli, "run_ffmpeg", side_effect=fake_run):
+                with redirect_stdout(io.StringIO()):
+                    result = cli.process_job(source, 0.0, 1.0, percent, boomerang)
+        except Exception:
+            for path in folder.iterdir():
+                path.unlink()
+            folder.rmdir()
+            raise
+        return folder, source, calls, result
+
+    def _cleanup(self, folder):
+        for path in folder.iterdir():
+            path.unlink()
+        folder.rmdir()
+
+    def test_percent_100_publishes_cut_without_second_encode(self):
+        """100% and no boomerang renames the cut. It does not run the speed encode."""
+        folder, source, calls, result = self._job_with_fake_ffmpeg(100.0, False)
+        try:
+            self.assertIsNotNone(result)
+            self.assertEqual(result.name, "clip_cut0.0-1.0s_100pct.mp4")
+            self.assertEqual(result.read_bytes(), b"pass-1")
+            self.assertEqual(source.read_bytes(), b"source-bytes")
+            self.assertEqual(len(calls), 1)
+            self.assertIn("-nostdin", calls[0])
+            joined = " ".join(str(part) for part in calls[0])
+            self.assertNotIn("atempo", joined)
+            self.assertNotIn("medium", joined)
+            self.assertEqual(list(folder.glob("videospeed_*")), [])
+        finally:
+            self._cleanup(folder)
+
+    def test_percent_50_still_runs_the_speed_encode(self):
+        """A length other than 100% still runs cut, then the speed encode, then publish."""
+        folder, _source, calls, result = self._job_with_fake_ffmpeg(50.0, False)
+        try:
+            self.assertIsNotNone(result)
+            self.assertEqual(result.name, "clip_cut0.0-1.0s_50pct.mp4")
+            self.assertEqual(result.read_bytes(), b"pass-2")
+            self.assertEqual(len(calls), 2)
+            joined = " ".join(str(part) for part in calls[1])
+            self.assertIn("atempo", joined)
+            self.assertIn("medium", joined)
+            self.assertIn("-nostdin", calls[1])
+            self.assertEqual(list(folder.glob("videospeed_*")), [])
+        finally:
+            self._cleanup(folder)
+
+    def test_percent_100_with_boomerang_skips_speed_encode(self):
+        """100% with boomerang still reverses the cut and does not speed-encode."""
+        folder, _source, calls, result = self._job_with_fake_ffmpeg(100.0, True)
+        try:
+            self.assertIsNotNone(result)
+            self.assertTrue(result.name.endswith("_BOOMERANG.mp4"))
+            self.assertTrue(result.is_file())
+            joined = " ".join(" ".join(str(part) for part in cmd) for cmd in calls)
+            self.assertNotIn("atempo", joined)
+            self.assertNotIn("medium", joined)
+            self.assertEqual(list(folder.glob("videospeed_*")), [])
+        finally:
+            self._cleanup(folder)
 
 
 if __name__ == "__main__":

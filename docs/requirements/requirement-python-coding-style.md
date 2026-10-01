@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-coding-style.md  
-**Status**: Active (Version 1.1.0)  
+**Status**: Active (Version 1.3.1)  
 **Area**: python  
 **Key**: `requirement-python-coding-style`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -12,7 +12,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 ### 1.1 Human-facing
 
-**In one sentence:** When VideoSpeed writes a temp file and then publishes the result, it must put temps next to the output (so USB disks work) and move the file with `shutil.move`, not a bare rename.
+**In one sentence:** When VideoSpeed moves or publishes a file, including onto a USB stick or other removable disk, it uses `shutil.move` and does not call `os.rename` or `os.replace`.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -22,7 +22,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 | Includes | Excludes |
 |----------|----------|
-| Same-FS staging; `shutil.move` publish; lazy OpenCV import | Filter graphs; argparse flags |
+| Same-directory staging; `shutil.move` for every move and publish; lazy OpenCV import; identity locals inside `main()`; version equality in the suite | Filter graphs; argparse flags; `os.rename` / `os.replace`; import-time version `raise`; module globals for identity and bounds |
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
@@ -31,7 +31,9 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Save onto a USB stick | Temps must not live only under `/tmp` if the output is on the stick. | Keep `promote_file` → `shutil.move` |
+| Save onto a USB stick | Temps sit next to the output when that folder is writable. `shutil.move` renames on the stick and copies when the stick is a different device. | Keep `promote_file` → `shutil.move` |
+| Check that the version string matches the three integers | The suite compares them. Starting the program does not raise if a maintainer left them mismatched. | `tests/test_docs.py` |
+| Name the program | `APP_NAME` and the other identity values are locals inside `main()`, passed into the menu and the about page. | Assign them in `main()` |
 
 ---
 
@@ -44,7 +46,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 3. **SHOULD** use clear function **General Purpose** docstrings on public helpers.  
 4. **MUST** fail closed with user-visible messages on expected errors (missing FFmpeg, invalid range, missing OpenCV).  
 5. Heavy optional deps (e.g. OpenCV) **SHOULD** be imported lazily at use site when package import must succeed without them (version/help).  
-6. Full StateLogic+Attr OOP shape is **aspirational** for this product’s current interactive CLI; **MUST NOT** force a whole-file rewrite solely for style while the specialized architecture remains procedural-interactive (respect working code). Future OOP migration requires explicit user order and updated REQs.
+6. A full StateLogic+Attr rewrite of the encoder and of `main` is **aspirational**. **MUST NOT** force that rewrite solely for style while the CLI stays procedural-interactive. Grouping the text menu as class `Tui` and the host check as class `CheckSystem` is ordered by `requirement-python-oop`. Those two are ordinary classes, not that StateLogic shape.
 
 ### 2.2 Temporary files
 
@@ -52,21 +54,38 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 8. **MUST NOT** assume system `TMPDIR` / `/tmp` is the same mount as user media (USB, network, secondary disks).  
 9. **MUST** clean intermediate temps on success and failure paths (best-effort).
 
-### 2.3 Publishing / moving completed files (sacred)
+### 2.3 Moving and publishing files (sacred — removable media)
 
-10. To **move or publish** a completed file from a temporary path to its final path, **MUST** use **`shutil.move`** (or a thin wrapper whose only move implementation is `shutil.move`).  
-11. **MUST NOT** use bare **`os.replace`**, **`os.rename`**, **`pathlib.Path.replace`**, or **`pathlib.Path.rename`** alone as the sole publish mechanism when source and destination may be on different mounts.  
-12. **MAY** still use same-FS rename semantics **inside** what `shutil.move` performs; do not reimplement fragile bare rename as product publish.  
-13. **`shutil.copy2` / `copy` / `copyfile`** copy only — if used, **MUST** define whether source is kept or deleted; they are not a complete “move” by themselves.
+10. To **move, rename, replace, or publish** a file or a directory, product Python **MUST** use **`shutil.move`** (or a thin wrapper whose only move implementation is `shutil.move`).  
+    - Same device: `shutil.move` renames.  
+    - Another device, including removable media: `shutil.move` copies (default `shutil.copy2`) and then removes the source. That path is safe for `EXDEV` ("Invalid cross-device link").  
+11. Product Python **MUST NOT** call **`os.rename`**, **`os.replace`**, **`pathlib.Path.rename`**, or **`pathlib.Path.replace`**. The ban covers every move and publish, including a path that looks like the same mount. Removable media (USB sticks, SD cards, external disks, exFAT, FAT32, NTFS volumes, and some FUSE or network mounts) is often a different device from the system disk and from `TMPDIR`. Those calls raise `EXDEV` and do not copy. A cleanup after that failure looks like the output vanished.  
+12. **MUST NOT** reimplement a bare rename in product code. Which device a path is on is known only at runtime. `shutil.move` already renames when both paths are on the same device.  
+13. **`shutil.copy2`**, **`shutil.copy`**, **`shutil.copyfile`**, and **`shutil.copytree`** copy only. If one of them is used, the code **MUST** say whether the source stays. They are not a move. A move **MUST** stay on `shutil.move`. Removing the source is allowed only after that copy has succeeded, and only when a move was the intent. Prefer `shutil.move` for that intent.  
+14. A directory tree **MUST** move with **`shutil.move`**. On `EXDEV` it copies the tree and then removes the source. **MUST NOT** move a tree with `os.rename` or `os.replace`.
 
 ### 2.4 Corresponding commands / APIs (reference)
 
-| Intent | Prefer | Avoid as sole cross-mount publish |
-|--------|--------|-----------------------------------|
-| Move/publish file | **`shutil.move(src, dst)`** | bare **`os.replace`**, **`os.rename`** |
-| pathlib-oriented move | `Path` args + **`shutil.move`** | bare **`Path.replace`**, **`Path.rename`** across mounts |
-| Copy keep source | `shutil.copy2` | treating copy as move without unlink policy |
-| Same-FS atomic finish | OK via **`shutil.move`** rename path | assuming all mounts are identical |
+| Intent | Use | Do not call |
+|--------|-----|-------------|
+| Move, rename, replace, or publish a file or directory, including onto removable media | **`shutil.move(src, dst)`** | **`os.rename`**, **`os.replace`**, **`Path.rename`**, **`Path.replace`** |
+| Copy and keep the source | **`shutil.copy2`** (or `shutil.copy` / `shutil.copyfile`) | Treating a copy as a move |
+| Copy a directory tree and keep the source | **`shutil.copytree`** | **`os.rename`** of the tree |
+| Same-device finish | Leave the rename to **`shutil.move`** | A product-level **`os.replace`** for atomicity |
+
+### 2.4a Compile-time checks stay in the suite
+
+15. A comparison whose both sides are fixed in source **MUST** be a suite assertion. It does not read argv, the clock, the network, or a user file. A failure means the tree was edited inconsistently.  
+16. **MUST NOT** `raise` that comparison when the module is imported, and **MUST NOT** `raise` it at the start of `main()`.  
+17. The version case is `_PKG_VERSION` built as `"{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)` compared with `__version__`. `tests/test_docs.py` asserts they are equal. `src/VideoSpeed/cli.py` **MUST NOT** contain `raise RuntimeError("package version SSOT mismatch")`.  
+18. A missing `ffmpeg`, a missing file, or a bad argument stays a runtime check.
+
+### 2.4b Module globals belong inside `main()`
+
+19. Product identity, usage text, dates, the homepage, the download URL, numeric bounds, and the mutable message sink **MUST NOT** be module-level globals.  
+20. **MUST** assign them inside `main()` and pass them into the helpers that need them.  
+21. **MUST NOT** add a new module global for a value only `main()` and its call tree need.  
+22. The names in Implementation Notes are that block. They still sit at import today. The next edit that touches one of them **MUST** move that name under `main()` in the same change. Rule 6 still forbids a drive-by rewrite of helpers the edit does not touch.
 
 ### 2.5 Implementation Notes (this project)
 
@@ -75,17 +94,22 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | **Package** | `VideoSpeed` |
 | **Primary modules** | `src/VideoSpeed/cli.py`, `__main__.py`, `__init__.py` |
 | **Staging helpers** | `staging_dir_for`, `make_temp_path` |
-| **Publish helper** | `promote_file` → `shutil.move` |
+| **Publish helper** | `promote_file` → `shutil.move` only |
+| **Ship modules** | `src/VideoSpeed/*.py` except the archive below. No `os.rename`, `os.replace`, `Path.rename`, or `Path.replace` calls |
+| **Archive** | `src/VideoSpeed/cli.bootstrap-old.py` is not the ship unit. It still calls `os.replace`. Do not copy that call into ship modules |
 | **Ops apply** | `requirement-video-ffmpeg-pipeline` |
-| **Architecture shape today** | Interactive procedural CLI (bootstrap specialized); not full StateLogic yet |
+| **Architecture shape today** | Interactive procedural CLI. StateLogic rewrite of the encoder and of `main` is not ordered. Text-menu and host-check grouping is `requirement-python-oop` |
 | **System-status lines** | `requirement-python-cli-logging` — do not add a second logger here |
-| **Version** | `1.0.5` |
+| **Package version** | `requirement-python-version` |
+| **Version equality** | Suite only: `tests/test_docs.py` asserts `_PKG_VERSION == __version__`. Import does not raise |
+| **Identity block home** | Inside `main()` in `src/VideoSpeed/cli.py`. Still module-level until the next edit that touches a name |
+| **Identity block** | `APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, `RATIO_MAX` |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
-- **Principle 1 – Caution**: Multi-mount path failures are loud and designed around.  
+- **Principle 1 – Caution**: Multi-mount path failures are loud. A source mismatch fails the suite. Import does not raise it.  
 - **Principle 3 – Anti-fragile**: USB and system disk both work for publish.  
-- **Principle 5 – SSOT**: One coding-style home for move/temp rules.  
+- **Principle 5 – SSOT**: One coding-style home for move, temp, and identity rules. Identity values live in `main()` and are passed down.  
 - **Principle 11 – Temps**: Explicit staging and cleanup.
 
 ---
@@ -93,9 +117,9 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
 - **Caution:** Do not assume one filesystem.  
-- **Intentional:** `shutil.move` is the named publish API.  
-- **Anti-fragile:** Same-FS temps reduce full-file copies.  
-- **Over-protect:** Protection against reintroducing bare cross-device rename.
+- **Intentional:** `shutil.move` is the only move and publish API.  
+- **Anti-fragile:** Same-directory temps avoid a full-file copy. Removable media still publishes when the devices differ.  
+- **Over-protect:** Ship code does not grow a same-mount exception that calls `os.rename` or `os.replace`. It also does not grow an import-time version `raise`, or a new module global for identity, bounds, or the message sink.
 
 ---
 
@@ -103,11 +127,13 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 **Future AI assistants, Grok, or maintainers MUST NOT**:
 
-1. Replace `shutil.move` publish with bare `os.replace`/`os.rename` “for simplicity.”  
+1. Call `os.rename`, `os.replace`, `Path.rename`, or `Path.replace` to move or publish a file, including when the path looks like the same disk.  
 2. Stage all large intermediates only under system temp when final dest is known on another mount.  
 3. Cite templates/skills as product-source behavioral authority.  
-4. Force a full StateLogic rewrite without explicit user order while this REQ allows current interactive shape.  
-5. Store secrets in style docs or code.
+4. Force a full StateLogic rewrite of the encoder or of `main` without an explicit user order. Grouping `Tui` and `CheckSystem` follows `requirement-python-oop` and is not that rewrite.  
+5. Store secrets in style docs or code.  
+6. Put the `_PKG_VERSION` versus `__version__` comparison back on the import path, or add any other source-versus-source `raise` at import or at the start of `main()`.  
+7. Add module globals for `APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, `RATIO_MAX`, or a new name of that kind. Assign them inside `main()`.
 
 **Violating this rule is a critical regression.**
 
@@ -117,11 +143,14 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 | ID | Criterion |
 |----|-----------|
-| AC-1 | Publish uses `shutil.move` (or thin wrapper) |
-| AC-2 | Bare cross-mount rename forbidden as sole publish |
+| AC-1 | Every file move and publish uses `shutil.move` (or a thin wrapper that only calls it) |
+| AC-2 | Ship modules do not call `os.rename`, `os.replace`, `Path.rename`, or `Path.replace` |
 | AC-3 | Same-FS staging preferred when dest known |
 | AC-4 | Pipeline REQ remains ops SSOT for encode |
 | AC-5 | Registered in index |
+| AC-6 | Removable media (USB and the same class of disk) is in scope for the move rule |
+| AC-7 | Version triple versus `__version__` is a suite assertion. Import does not raise it |
+| AC-8 | `APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, and `RATIO_MAX` are assigned inside `main()` |
 
 ---
 
@@ -134,6 +163,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | `requirement-python-error-handling` | Fail messaging |
 | `requirement-python-cli-interface` | Entry |
 | `requirement-class-software-dev` | Class residual |
+| `requirement-python-oop` | Class homes for the text menu and the host check |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -142,8 +172,11 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 |----------------|-------|--------|------|
 | TP-FS-01 | `tests/test_fs.py` | have | `shutil.move` + two dirs |
 | TP-FS-02 | `tests/test_fs.py` | have | staging parent |
+| TP-FS-05 | `tests/test_fs.py` | have | ship modules do not call `os.rename` or `os.replace` |
+| TP-DOC-02 | `tests/test_docs.py` | have | `_PKG_VERSION == __version__`; ship module does not raise that mismatch |
+| TP-STYLE-01 | `tests/test_docs.py` | todo | identity block assigned inside `main()`, not at import |
 | TP-PKG-01 | `tests/test_package.py` | have | import without cv2 |
-| Code review | `reviews/reports/*` | pass (2026-08-09) | bare replace not sole publish |
+| Code review | `reviews/reports/*` | pass (2026-08-09) | later tightened by TP-FS-05 |
 
 ## 7. Status history
 
@@ -151,9 +184,12 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 |------|--------|------|
 | 2026-08-09 | Active 1.0.0 | Coding style + shutil.move / multi-mount file I/O |
 | 2026-08-19 | Active 1.1.0 | §1.1; TP-FS have |
+| 2026-10-01 | Active 1.2.0 | File moves use `shutil.move`. Ship code does not call `os.rename` or `os.replace` (removable media) |
+| 2026-10-01 | Active 1.3.0 | Version equality is a suite check. Identity, bounds, and the message sink belong inside `main()` |
+| 2026-10-01 | Active 1.3.1 | StateLogic stays aspirational for the encoder and `main`. `Tui` and `CheckSystem` are `requirement-python-oop` |
 
 ---
 
-**Last Updated**: 2026-08-19  
+**Last Updated**: 2026-10-01  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

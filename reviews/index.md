@@ -15,7 +15,7 @@
 
 Encode-path TPs remain **skip** until ffmpeg + fixture (not a product-review open issue).
 
-**Living plans:** `what-to-review.md` · `test-plan.md` · `lessons.md` · `requirement-test-matrix.md`
+**Living plans:** `what-to-review.md` · `test-plan.md` · `lessons.md` · `requirement-test-matrix.md` · `cli-routed-verb-table.md`
 
 ## Residual (2026-08-19)
 
