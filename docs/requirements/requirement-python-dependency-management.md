@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-dependency-management.md  
-**Status**: Active (Version 1.2.0)  
+**Status**: Active (Version 1.2.2)  
 **Area**: python  
 **Key**: `requirement-python-dependency-management`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -39,7 +39,7 @@ This file owns the **pip requirement strings** VideoSpeed declares. The machine 
 2. **MUST** attach a PEP 440 version specifier to every entry. A bare name is not a declaration.  
 3. **MUST** keep the strings in Implementation Notes identical to that list.  
 4. **MUST** use the headless OpenCV wheel for the duration probe. **MUST NOT** declare the GUI wheel `opencv-python`.  
-5. **MUST NOT** declare a menu distribution. The text menu is painted by this package (`requirement-python-tui`, `src/VideoSpeed/menu.py`).  
+5. **MUST NOT** declare a menu distribution. The text menu is painted by this package (`requirement-python-tui`, class `MenuPainter`; session is class `Tui`; `requirement-python-oop`).  
 6. **MUST** keep the status-log floor at ChronicleLogger 1.3.1, the release `requirement-python-cli-logging` consumes.  
 7. **MUST NOT** install operating-system packages, and **MUST NOT** use admin privilege, to satisfy these strings.  
 8. **MUST NOT** add `requirements.txt` as a second authority.
@@ -50,7 +50,7 @@ This file owns the **pip requirement strings** VideoSpeed declares. The machine 
 |-------|--------|
 | **Vision spec** | `opencv-python-headless>=5.0.0.93` |
 | **Status-log spec** | `ChronicleLogger>=1.3.1` |
-| **Menu distribution** | Not declared. Painter is `src/VideoSpeed/menu.py` |
+| **Menu distribution** | Not declared. Painter is class `MenuPainter`. Session is class `Tui` (`requirement-python-oop`) |
 | **GUI build forbidden** | `opencv-python` is not declared |
 | **Manifest** | `pyproject.toml` `[project].dependencies` |
 | **Why this OpenCV floor** | 5.0.0.93 is the headless wheel verified to import `cv2` and expose `VideoCapture` without `libGL.so.1` |
@@ -81,7 +81,7 @@ On Termux, Git Bash, Windows cmd, or the same class, these wheels stay a normal-
 
 1. Drop the version specifier from either dependency.  
 2. Replace `opencv-python-headless` with `opencv-python` while the program only uses `VideoCapture`.  
-3. Add a menu distribution while the painter is `src/VideoSpeed/menu.py`.  
+3. Add a menu distribution while the painter is class `MenuPainter` in this package.  
 4. Lower the ChronicleLogger floor below 1.3.1 while status lines use `log_message`.  
 5. Add a root installer for these libraries.  
 6. Leave this file’s strings different from `pyproject.toml`.
@@ -128,6 +128,8 @@ On Termux, Git Bash, Windows cmd, or the same class, these wheels stay a normal-
 | 2026-09-30 | Active 1.0.0 | Vision and menu pip floors |
 | 2026-10-01 | Active 1.1.0 | Add `ChronicleLogger>=1.3.1` |
 | 2026-10-01 | Active 1.2.0 | Menu wheel removed; painter is `src/VideoSpeed/menu.py` |
+| 2026-10-01 | Active 1.2.1 | Painter is class `Tui` in `src/VideoSpeed/tui.py`. Still no menu wheel |
+| 2026-10-01 | Active 1.2.2 | Painter is class `MenuPainter`. Still no menu wheel. `TP-OOP-03` is todo |
 
 ---
 

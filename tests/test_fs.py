@@ -17,14 +17,19 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from VideoSpeed import cli  # noqa: E402
+from VideoSpeed.encoder import Encoder  # noqa: E402
+from VideoSpeed.file_stage import FileStage  # noqa: E402
+from VideoSpeed.media_info import MediaInfo  # noqa: E402
+from VideoSpeed.run_output import RunOutput  # noqa: E402
 
 
 class TestFs(unittest.TestCase):
     def test_tp_fs_01_promote_uses_shutil_move(self):
         """TP-FS-01: promote_file uses shutil.move (source + two-dir behavior)."""
-        src = inspect.getsource(cli.promote_file)
+        src = inspect.getsource(FileStage.promote_file)
         self.assertIn("shutil.move", src)
         self.assertIn("shutil.move(str(src), str(dest))", src)
+        stage = FileStage()
 
         a = Path(tempfile.mkdtemp(prefix="vs_a_"))
         b = Path(tempfile.mkdtemp(prefix="vs_b_"))
@@ -32,7 +37,7 @@ class TestFs(unittest.TestCase):
             src_file = a / "src.bin"
             dest_file = b / "dest.bin"
             src_file.write_bytes(b"videospeed-promote")
-            cli.promote_file(src_file, dest_file)
+            stage.promote_file(src_file, dest_file)
             self.assertTrue(dest_file.is_file())
             self.assertEqual(dest_file.read_bytes(), b"videospeed-promote")
             self.assertFalse(src_file.exists())
@@ -47,7 +52,7 @@ class TestFs(unittest.TestCase):
         parent = Path(tempfile.mkdtemp(prefix="vs_stage_"))
         try:
             dest = parent / "out.mp4"
-            staged = cli.staging_dir_for(dest)
+            staged = FileStage().staging_dir_for(dest)
             self.assertEqual(Path(staged).resolve(), parent.resolve())
         finally:
             parent.rmdir()
@@ -59,7 +64,7 @@ class TestFs(unittest.TestCase):
             src = parent / "tmp.mp4"
             dest = parent / "final.mp4"
             src.write_bytes(b"x")
-            cli.promote_file(src, dest)
+            FileStage().promote_file(src, dest)
             self.assertTrue(dest.is_file())
             self.assertFalse(src.exists())
         finally:
@@ -97,9 +102,13 @@ class TestFs(unittest.TestCase):
             Path(cmd[-1]).write_bytes("pass-{}".format(len(calls)).encode("ascii"))
 
         try:
-            with patch.object(cli, "run_ffmpeg", side_effect=fake_run):
+            output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+            encoder = Encoder(
+                output, MediaInfo(output), FileStage(), cli.RATIO_MIN, cli.RATIO_MAX
+            )
+            with patch.object(encoder, "run_ffmpeg", side_effect=fake_run):
                 with redirect_stdout(io.StringIO()):
-                    result = cli.process_job(source, 0.0, 1.0, percent, boomerang)
+                    result = encoder.process_job(source, 0.0, 1.0, percent, boomerang)
         except Exception:
             for path in folder.iterdir():
                 path.unlink()

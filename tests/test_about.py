@@ -1,4 +1,5 @@
 # TP-ABOUT-01..07 — about page (requirement-python-about).
+# TP-OOP-02 — class CheckSystem owns the host check (requirement-python-oop).
 from __future__ import print_function, unicode_literals
 
 import datetime
@@ -20,10 +21,15 @@ class TestAbout(unittest.TestCase):
 
         return cli
 
+    def _page(self):
+        from VideoSpeed.cli import Cli
+
+        return Cli().about
+
     def test_about_names_the_host_check_and_the_box(self):
         """TP-ABOUT-01: identity, host-check labels, star-box title; no curl line."""
         cli = self._cli()
-        text = cli.framework_about()
+        text = self._page().framework_about()
         for label in (
             "Domain:",
             "[CHECK SYSTEM]:",
@@ -65,9 +71,10 @@ class TestAbout(unittest.TestCase):
 
     def test_check_system_stamp_and_field_order(self):
         """TP-ABOUT-02: stamp, CHECK SYSTEM header, and field order."""
-        cli = self._cli()
+        from VideoSpeed.check_system import CheckSystem
+
         when = datetime.datetime(2026, 10, 1, 11, 16, 23, 700590)
-        rows = cli.check_system_lines(now=when)
+        rows = CheckSystem().check_system_lines(now=when)
         self.assertTrue(rows[0].startswith("2026-10-01 11:16:23.700590 VideoSpeed(v"))
         self.assertTrue(rows[0].endswith("  [CHECK SYSTEM]:"))
         self.assertEqual(rows[1], "  Now checking your operation system!")
@@ -95,8 +102,7 @@ class TestAbout(unittest.TestCase):
 
     def test_about_box_is_a_rectangle(self):
         """TP-ABOUT-03: the star box is one rectangle."""
-        cli = self._cli()
-        box = cli.about_box_lines(
+        box = self._page().about_box_lines(
             usage="video-speed --file clip.mp4 --start 0 --end 5",
             location="/tmp/video-speed",
             kind="global",
@@ -119,7 +125,7 @@ class TestAbout(unittest.TestCase):
         """TP-ABOUT-04: install line only when a URL is passed; product URL stays empty."""
         cli = self._cli()
         box = "\n".join(
-            cli.about_box_lines(
+            self._page().about_box_lines(
                 location="/tmp/video-speed",
                 kind="local",
                 download_url="https://example.test/install",
@@ -132,70 +138,122 @@ class TestAbout(unittest.TestCase):
 
     def test_compiler_arch_and_libc_labels(self):
         """TP-ABOUT-05: compiler token, arch map, and libc token."""
-        cli = self._cli()
-        py, lib = cli.parse_sys_version(
+        from VideoSpeed.check_system import CheckSystem
+
+        host = CheckSystem()
+        py, lib = host.parse_sys_version(
             "3.12.3 (main, Jan 1 2024, 00:00:00) [GCC 13.3.0]",
             "3.12.3",
         )
         self.assertEqual(py, "3.12.3")
         self.assertEqual(lib, "GCC 13.3.0")
-        py2, lib2 = cli.parse_sys_version(
+        py2, lib2 = host.parse_sys_version(
             "3.10.14 (build)\n[PyPy 7.3.16 with GCC 13.2.0]",
             "3.10.14",
         )
         self.assertEqual(py2, "3.10.14 (PyPy 7.3.16)")
         self.assertEqual(lib2, "GCC 13.2.0")
-        self.assertEqual(cli.arch_label("MSC v.1929 64 bit (AMD64)", "AMD64"), "amd64")
-        self.assertEqual(cli.arch_label("GCC 13.3.0", "x86_64"), "amd64")
-        self.assertEqual(cli.arch_label("GCC 13.3.0", "aarch64"), "arm64")
+        self.assertEqual(host.arch_label("MSC v.1929 64 bit (AMD64)", "AMD64"), "amd64")
+        self.assertEqual(host.arch_label("GCC 13.3.0", "x86_64"), "amd64")
+        self.assertEqual(host.arch_label("GCC 13.3.0", "aarch64"), "arm64")
         self.assertEqual(
-            cli.libc_label("MSC v.1929 64 bit (AMD64)", "/bin/bash", detected="glibc"),
+            host.libc_label("MSC v.1929 64 bit (AMD64)", "/bin/bash", detected="glibc"),
             "msc",
         )
         self.assertEqual(
-            cli.libc_label("[Clang 15.0.0]", "/bin/bash", detected="glibc"),
+            host.libc_label("[Clang 15.0.0]", "/bin/bash", detected="glibc"),
             "clang",
         )
-        self.assertEqual(cli.libc_label("GCC 13.3.0", "/bin/ash", detected=""), "muslc")
-        self.assertEqual(cli.binary_type("amd64", "glibc"), "amd64-glibc")
-        self.assertEqual(cli.binary_type("amd64", ""), "amd64-")
+        self.assertEqual(host.libc_label("GCC 13.3.0", "/bin/ash", detected=""), "muslc")
+        self.assertEqual(host.binary_type("amd64", "glibc"), "amd64-glibc")
+        self.assertEqual(host.binary_type("amd64", ""), "amd64-")
 
     def test_install_kind(self):
         """TP-ABOUT-06: checkout, home copy, and /usr copy."""
         cli = self._cli()
-        self.assertEqual(cli.install_kind(cli.__file__), "uninstalled")
-        self.assertTrue(cli._is_source_checkout(os.path.realpath(cli.__file__)))
+        page = self._page()
+        self.assertEqual(page.install_kind(cli.__file__), "uninstalled")
+        self.assertTrue(page._is_source_checkout(os.path.realpath(cli.__file__)))
         home = os.path.realpath(os.path.expanduser("~"))
         local_script = os.path.join(home, ".local", "bin", "video-speed")
-        self.assertEqual(cli.install_kind(local_script), "local")
+        self.assertEqual(page.install_kind(local_script), "local")
         local_pkg = os.path.join(
             home, ".pyenv", "versions", "3.14.7", "lib", "python3.14",
             "site-packages", "VideoSpeed", "cli.py",
         )
-        self.assertEqual(cli.install_kind(local_pkg), "local")
-        self.assertEqual(cli.install_kind("/usr/local/bin/video-speed"), "global")
+        self.assertEqual(page.install_kind(local_pkg), "local")
+        self.assertEqual(page.install_kind("/usr/local/bin/video-speed"), "global")
         self.assertEqual(
-            cli.install_kind("/usr/lib/python3/dist-packages/VideoSpeed/cli.py"),
+            page.install_kind("/usr/lib/python3/dist-packages/VideoSpeed/cli.py"),
             "global",
         )
-        self.assertIn("GLOBAL INSTALLED", cli.install_sentence("global"))
-        self.assertIn("UNINSTALLED", cli.install_sentence("uninstalled"))
+        self.assertIn("GLOBAL INSTALLED", page.install_sentence("global"))
+        self.assertIn("UNINSTALLED", page.install_sentence("uninstalled"))
 
     def test_docker_marker_and_missing_command(self):
         """TP-ABOUT-07: docker marker file; missing tool location stays blank."""
-        cli = self._cli()
-        self.assertFalse(cli.inside_docker(marker="/tmp/videospeed-no-such-dockerenv"))
+        import VideoSpeed.check_system as check_mod
+        from VideoSpeed.check_system import CheckSystem
+
+        host = CheckSystem()
+        self.assertFalse(host.inside_docker(marker="/tmp/videospeed-no-such-dockerenv"))
         with tempfile.TemporaryDirectory() as tmp:
             marker = os.path.join(tmp, ".dockerenv")
             with open(marker, "w", encoding="utf-8"):
                 pass
-            self.assertTrue(cli.inside_docker(marker=marker))
-        original = cli.shutil.which
-        cli.shutil.which = lambda _name: None
+            self.assertTrue(host.inside_docker(marker=marker))
+        original = check_mod.shutil.which
+        check_mod.shutil.which = lambda _name: None
         try:
-            self.assertEqual(cli.command_location("conda"), "")
+            self.assertEqual(host.command_location("conda"), "")
         finally:
-            cli.shutil.which = original
+            check_mod.shutil.which = original
+
+    def test_tp_oop_02_check_system_owns_the_host_check(self):
+        """TP-OOP-02: CheckSystem in check_system.py; rule 11 functions are not in cli.py."""
+        import inspect
+
+        from VideoSpeed import cli
+        from VideoSpeed.about_page import AboutPage
+        from VideoSpeed.check_system import CheckSystem
+
+        names = (
+            "check_system_lines",
+            "parse_sys_version",
+            "arch_label",
+            "libc_label",
+            "binary_type",
+            "current_user",
+            "shell_text",
+            "python_executable_name",
+            "command_location",
+            "os_text",
+            "inside_docker",
+            "cpython_soabi",
+            "self_location",
+        )
+        self.assertTrue(inspect.isclass(CheckSystem))
+        self.assertEqual(
+            Path(inspect.getfile(CheckSystem)).resolve(),
+            (ROOT / "src" / "VideoSpeed" / "check_system.py").resolve(),
+        )
+        ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        for name in names:
+            self.assertTrue(inspect.isfunction(CheckSystem.__dict__[name]), name)
+            self.assertFalse(inspect.isfunction(getattr(cli, name, None)), name)
+            self.assertNotIn("\ndef {}(".format(name), "\n" + ship)
+        about = inspect.getsource(AboutPage.framework_about)
+        box = inspect.getsource(AboutPage.about_box_lines)
+        self.assertIn("check_system_lines", about)
+        self.assertIn("self.check", about)
+        self.assertIn("self_location", box)
+        self.assertIn("self.check", box)
+        page = (ROOT / "src" / "VideoSpeed" / "about_page.py").read_text(encoding="utf-8")
+        self.assertIn("CheckSystem", page)
+        self.assertIn("def framework_about(", page)
+        self.assertIn("def about_box_lines(", page)
+        self.assertNotIn("\ndef framework_about(", "\n" + ship)
+        self.assertNotIn("\ndef about_box_lines(", "\n" + ship)
 
 
 if __name__ == "__main__":

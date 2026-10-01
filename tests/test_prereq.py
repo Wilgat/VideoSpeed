@@ -12,6 +12,10 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from VideoSpeed import cli  # noqa: E402
+from VideoSpeed.encoder import Encoder  # noqa: E402
+from VideoSpeed.file_stage import FileStage  # noqa: E402
+from VideoSpeed.media_info import MediaInfo  # noqa: E402
+from VideoSpeed.run_output import RunOutput  # noqa: E402
 
 
 class TestPrereq(unittest.TestCase):
@@ -25,7 +29,11 @@ class TestPrereq(unittest.TestCase):
         old = sys.stderr
         try:
             sys.stderr = buf
-            ok = cli.ensure_ffmpeg()
+            output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+            encoder = Encoder(
+                output, MediaInfo(output), FileStage(), cli.RATIO_MIN, cli.RATIO_MAX
+            )
+            ok = encoder.ensure_ffmpeg()
         finally:
             sys.stderr = old
         self.assertFalse(ok)
@@ -41,7 +49,8 @@ class TestPrereq(unittest.TestCase):
         old = sys.stderr
         try:
             sys.stderr = buf
-            dur = cli.get_duration_cv2(Path("/tmp/no-such-videospeed.mp4"))
+            output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+            dur = MediaInfo(output).get_duration_cv2(Path("/tmp/no-such-videospeed.mp4"))
         finally:
             sys.stderr = old
         self.assertEqual(dur, 0.0)

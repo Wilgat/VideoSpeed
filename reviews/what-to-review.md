@@ -32,10 +32,10 @@
 | CLI interface | `requirement-python-cli-interface.md` | Entry points; product verbs `help`, `about`, `hello`, `edit`, `list-mp4`; `main` order; `--help`/`--version` |
 | Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, verb prompts (folder then file), or one job. A selector with no verb must not open the menu |
 | JSON output | `requirement-python-json-output.md` | `--json` is one object on stdout. No text menu. Prompts, if any, are on stderr |
-| Text menu | `requirement-python-tui.md` | Default TUI style; writer is `src/VideoSpeed/menu.py` until class `Tui`; glyphs stay out of `cli.py` |
-| OOP grouping | `requirement-python-oop.md` | Class `Tui` in `tui.py`; class `CheckSystem` in `check_system.py`. Session and host-check functions are still in `cli.py`. Painter is still `menu.py` |
+| Text menu | `requirement-python-tui.md` | Default TUI style; session is class `Tui`; frame is class `MenuPainter`; glyphs stay out of `cli.py`. `TP-OOP-03` have |
+| OOP grouping | `requirement-python-oop.md` | One class per file. `def main` stays in `cli.py`. `TP-OOP-01`, `TP-OOP-02`, `TP-OOP-03`, and `TP-OOP-04` have |
 | About page | `requirement-python-about.md` | Identity, host check, star box. Each line names its read. No curl line while the download URL is empty |
-| Coding style | `requirement-python-coding-style.md` | Temps; `shutil.move` for every file move; no `os.rename` or `os.replace` (removable media) |
+| Coding style | `requirement-python-coding-style.md` | Temps; `shutil.move` for every file move; no `os.rename` or `os.replace` (removable media); one class per file |
 | Packaging | `requirement-python-packaging.md` | pyproject, entrypoint, version dual SSOT |
 | Maintainer build | `requirement-python-build-script.md` | `./build.sh` verbs. `test` is `tests/run.sh`. Empty argv does not upload |
 | Pip dependency floors | `requirement-python-dependency-management.md` | `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1`; no GUI `opencv-python`; no menu wheel |
@@ -61,7 +61,7 @@
 | Cut range validation in interactive loop | Encode after invalid range | L-RANGE-01 |
 | `cli.bootstrap-old.py` / root `cli-new.py` | Dual ship SSOT | L-DUAL-01 |
 | `__init__.py` | Heavy import chain | L-IMPORT-01 |
-| `open_text_menu` / `MENU_ROWS` | Frame glyphs copied into `cli.py`, or tests aimed at a sibling menu checkout | L-TUI-01 |
+| `Tui.open_text_menu` / `MENU_ROWS` | Frame glyphs copied into `cli.py`, or tests aimed at a sibling menu checkout | L-TUI-01 |
 | `main` mode gate | `--percent` or `--boomerang` alone, or any selector, falls through into the menu | mode requirement |
 | `_dispatch` product verbs | An unknown token, `Exit`, or a `./build.sh` verb opens the menu or encodes. `edit` or `list-mp4` paints the front board before the folder question | mode requirement |
 | `build.sh` dispatcher | `test` calls a second runner, empty argv uploads, or `test-install` embeds the project name | build-script requirement |
@@ -94,7 +94,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.7` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.8` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---

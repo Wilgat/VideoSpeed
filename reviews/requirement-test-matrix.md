@@ -11,10 +11,10 @@
 | requirement-python-cli-interface | python | TP-CLI-* · TP-MAIN-01 | Entry, product verbs, and `main` order. `TP-CLI-07` **have**. `main` order **todo** |
 | requirement-python-interactive-vs-noninteractive | python | TP-MODE-01..08 · TP-CLI-03 · TP-CLI-06 · TP-CLI-07 | Menu walk, verb prompts (folder then file), or one job. `TP-MODE-05`..`08` and `TP-CLI-07` **have**. `TP-CLI-03` **todo** |
 | requirement-python-version | python | TP-VER-01..03 | Triple SSOT `1.0.7`; debug line **todo** |
-| requirement-python-tui | python | TP-TUI-01..05 | Default TUI style painted by `src/VideoSpeed/menu.py`. Menu 7 shows `Hello.` |
+| requirement-python-tui | python | TP-TUI-01..05 · TP-OOP-03 | Default TUI style. Session is class `Tui`. Frame is class `MenuPainter`. `TP-OOP-03` **have**. Menu 7 shows `Hello.` |
 | requirement-python-about | python | TP-ABOUT-01..08 | About page lines and the read for each line |
-| requirement-python-coding-style | python | TP-FS-01..02 · TP-FS-05 · TP-DOC-02 · TP-STYLE-01 · TP-PKG-01 | `shutil.move`; no import-time version `raise`. Identity locals inside `main()` (**TP-STYLE-01** todo) |
-| requirement-python-oop | python | TP-OOP-01 · TP-OOP-02 · TP-TUI-01..05 · TP-ABOUT-01..08 | Class `Tui` in `tui.py`; class `CheckSystem` in `check_system.py` (**TP-OOP-01**, **TP-OOP-02** todo). Picture and about lines stay have |
+| requirement-python-coding-style | python | TP-FS-01..02 · TP-FS-05 · TP-DOC-02 · TP-STYLE-01 · TP-PKG-01 · TP-OOP-03 · TP-OOP-04 | `shutil.move`; no import-time version `raise`. Identity locals inside `main()` (**TP-STYLE-01** todo). One class per file is **TP-OOP-03** / **TP-OOP-04** have |
+| requirement-python-oop | python | TP-OOP-01 · TP-OOP-02 · TP-OOP-03 · TP-OOP-04 · TP-TUI-01..05 · TP-ABOUT-01..08 | One class per file. `def main` stays in `cli.py`. **TP-OOP-01**, **TP-OOP-02**, **TP-OOP-03**, and **TP-OOP-04** have |
 | requirement-python-packaging | python | TP-PKG-* | Manifest + version dual SSOT |
 | requirement-python-build-script | python | TP-BUILD-01..06 | `./build.sh` verbs. `test-install` reads the project name. Real wheel build (TP-BUILD-05) **todo** |
 | requirement-python-json-output | python | TP-JSON-01..05 | `--json` one object; menu stays closed |

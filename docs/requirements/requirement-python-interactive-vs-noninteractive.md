@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-interactive-vs-noninteractive.md
-**Status**: Active (Version 1.2.0)
+**Status**: Active (Version 1.2.3)
 **Area**: python
 **Key**: `requirement-python-interactive-vs-noninteractive`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -135,17 +135,17 @@ video-speed --json --file clip.mp4 --start 0 --end 5
 
 | Item | Value |
 |------|--------|
-| **Decision** | `src/VideoSpeed/cli.py` `main`, after `parse_args` |
+| **Decision** | `def main` in `src/VideoSpeed/cli.py`, after `parse_args`. `main` stays in that file |
 | **Product verbs** | `help`, `about`, `hello`, `edit`, `list-mp4` (`requirement-python-cli-interface` §2.3a) |
-| **Interactive entry** | No verb: `open_text_menu` → edit → `_edit_in_tui`. Verb `edit` or `list-mp4` on a terminal starts at the folder question |
-| **Job entry** | `batch_session`, including `edit` with `--file`, `--start`, and `--end` |
-| **Screen** | `src/VideoSpeed/menu.py` (`requirement-python-tui`) |
+| **Interactive entry** | No verb: `Tui.open_text_menu` → edit → `Tui._edit_in_tui`. Verb `edit` or `list-mp4` on a terminal starts at the folder question |
+| **Job entry** | `Encoder.batch_session`, including `edit` with `--file`, `--start`, and `--end` (`requirement-python-oop`). `TP-OOP-04` has landed |
+| **Screen** | Class `Tui` in `src/VideoSpeed/tui.py`. Frame is class `MenuPainter` (`requirement-python-tui`, `requirement-python-oop`) |
 | **Selectors** | `--file`, `--start`, `--end`, `--folder` |
 | **Modifiers** | `--percent` (default 100), `--boomerang` (default off) |
 | **Percent bounds** | 20–200, same as `valid_percent` |
 | **Range** | `0 <= start < end <= duration`, same as `valid_cut_range` |
-| **stdin gate** | `stdin_is_tty` from `main` only |
-| **stdout gate** | `stdout_is_tty` from `open_text_menu` only |
+| **stdin gate** | `Cli.stdin_is_tty` from `main` only |
+| **stdout gate** | `Cli.stdout_is_tty` from `Tui.open_text_menu` only |
 | **Quiet / JSON** | No `--quiet`. `--json` is `requirement-python-json-output`. Durable log quiet-before-menu stays on `requirement-python-cli-logging` |
 | **Privilege** | normal user privilege |
 
@@ -227,6 +227,9 @@ TP-MODE-01 asserts rule 2 and rule 3 for a selector with no product verb: `--fil
 | 2026-10-01 | Active 1.0.0 | Mode matrix for the menu walk and the one-job path |
 | 2026-10-01 | Active 1.1.0 | `--json` keeps this matrix and closes the menu |
 | 2026-10-01 | Active 1.2.0 | Product verbs. Interactive `edit` asks folder, then the specific file. `list-mp4` asks for the folder only. `help`, `about`, and `hello` do not ask |
+| 2026-10-01 | Active 1.2.1 | The text screen is class `Tui` in `src/VideoSpeed/tui.py` |
+| 2026-10-01 | Active 1.2.2 | The session stays class `Tui`. The frame is class `MenuPainter`. The question order stays here. `EditWalk` carries it |
+| 2026-10-01 | Active 1.2.3 | `Encoder.batch_session` is on disk. `TP-OOP-04` has landed. The question order stays here |
 
 **Last Updated**: 2026-10-01
 **Owner**: VideoSpeed project maintainers

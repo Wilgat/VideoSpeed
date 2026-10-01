@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-video-ffmpeg-pipeline.md  
-**Status**: Active (Version 1.1.3)  
+**Status**: Active (Version 1.1.5)  
 **Area**: video  
 **Key**: `requirement-video-ffmpeg-pipeline`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -26,7 +26,7 @@ Domain feature catalog and user workflow labels live in **`requirement-domain-vi
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
-| `src/VideoSpeed/cli.py` | `process_job` / `cut_clip` | live encode |
+| `src/VideoSpeed/encoder.py` | class `Encoder` | `process_job` / `cut_clip`. Order in this file is unchanged. `TP-OOP-04` has landed |
 | `video-speed --file clip.mp4 --start 1 --end 5` | command | one job |
 
 | You do… | What it means | What you type |
@@ -93,17 +93,17 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 
 | Item | Value |
 |------|--------|
-| **Ops module** | `src/VideoSpeed/cli.py` functions `cut_clip`, `speed_change`, `add_boomerang`, `run_ffmpeg` |
+| **Ops class** | Class `Encoder` in `src/VideoSpeed/encoder.py` (`requirement-python-oop`). Methods `cut_clip`, `speed_change`, `add_boomerang`, `run_ffmpeg`. Order in this file is unchanged. `TP-OOP-04` has landed |
 | **Cut filters** | video `trim=start:end,setpts=PTS-STARTPTS`; audio `atrim` + `asetpts` |
 | **Cut encode** | libx264, preset `ultrafast`, CRF 17; audio AAC |
 | **Speed math** | `speed = 100.0 / ratio_percent`; video `setpts=(1/speed)*PTS`; audio `atempo=speed` |
 | **100% length** | No second encode. The cut is the forward clip. With boomerang off, `promote_file` publishes that cut. The text screen then shows `Saved <filename> — Again? (y/n):` |
 | **Speed encode** | Only when the length is not 100%: libx264, preset `medium`, CRF 18; AAC 192k; `+faststart` |
 | **Boomerang** | `reverse` / `areverse` then concat demuxer list of forward + reverse |
-| **Duration probe** | OpenCV `VideoCapture` FPS × frame count (not FFmpeg probe) |
+| **Duration probe** | Class `MediaInfo` in `src/VideoSpeed/media_info.py`. OpenCV `VideoCapture` FPS × frame count (not FFmpeg probe). `TP-OOP-04` has landed |
 | **Overwrite policy** | Final path may overwrite same-named prior output (`-y` on FFmpeg stages); source file never targeted as output |
-| **Temp staging** | `make_temp_path` / `staging_dir_for(final_out)` — prefer output parent (USB-safe) |
-| **Final promote** | `promote_file` → **`shutil.move(src, dest)`** only |
+| **Temp staging** | `FileStage.make_temp_path` / `FileStage.staging_dir_for(final_out)` — prefer output parent (USB-safe). `TP-OOP-04` has landed |
+| **Final promote** | `FileStage.promote_file` → **`shutil.move(src, dest)`** only |
 | **Corresponding APIs (publish)** | Use `shutil.move`. Do not call `os.replace`, `os.rename`, `Path.replace`, or `Path.rename`. Copy-only: `shutil.copy2` (not a move). |
 | **Elevation** | None — all work as invoking user |
 
@@ -165,6 +165,7 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | `requirement-python-cli-interface` | Entry |
 | `requirement-python-error-handling` | Fail messaging |
 | `requirement-python-coding-style` | General file move / temp coding rules |
+| `requirement-python-oop` | Class `Encoder`, class `MediaInfo`, class `FileStage`. This file keeps the order |
 | `requirement-runtime-prerequisites` | `ffmpeg` present |
 | `docs/requirements/index.md` | Registry |
 
@@ -186,6 +187,8 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | 2026-10-01 | Active 1.1.1 | Walk versus job points at the mode requirement |
 | 2026-10-01 | Active 1.1.2 | Publish apply matches coding-style: `shutil.move` only; no `os.rename` or `os.replace` |
 | 2026-10-01 | Active 1.1.3 | 100% length publishes the cut; FFmpeg uses `-nostdin`; the text screen shows the saved name |
+| 2026-10-01 | Active 1.1.4 | Encode methods are class `Encoder`. Order unchanged. `TP-OOP-04` is todo |
+| 2026-10-01 | Active 1.1.5 | `Encoder`, `MediaInfo`, and `FileStage` are on disk. `TP-OOP-04` has landed. Order unchanged |
 
 ---
 

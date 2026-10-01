@@ -1,5 +1,6 @@
 # TP-TUI — text menu default TUI style (requirement-python-tui)
-# Writer under test: src/VideoSpeed/menu.py. cli.py does not paint the frame.
+# TP-OOP-01 — class Tui owns the session and the painter (requirement-python-oop)
+# Writer under test: src/VideoSpeed/tui.py. cli.py does not paint the frame.
 from __future__ import print_function, unicode_literals
 
 import builtins
@@ -13,6 +14,18 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
+
+
+def _menu_rows():
+    from VideoSpeed.menu_painter import MenuPainter
+
+    return MenuPainter.MENU_ROWS
+
+
+def _about_text():
+    from VideoSpeed.cli import Cli
+
+    return Cli().about.framework_about()
 
 
 class FakeScreen:
@@ -47,22 +60,19 @@ class FakeScreen:
 
 class TestTui(unittest.TestCase):
     def _menu(self):
-        from VideoSpeed.menu import (
-            MenuModel,
-            MenuScreenError,
-            MenuSession,
-            format_rows,
-            paint,
-        )
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter
+        from VideoSpeed.menu_session import MenuScreenError, MenuSession
 
-        return MenuModel, MenuScreenError, MenuSession, format_rows, paint
+        painter = MenuPainter()
+        return MenuModel, MenuScreenError, MenuSession, painter.format_rows, painter.paint
 
     def test_tp_tui_01_frame(self):
         """TP-TUI-01: three-row rounded frame, full width, caret, status line."""
         MenuModel, _err, _session, _format_rows, paint = self._menu()
         from VideoSpeed import cli
 
-        model = MenuModel(boards={"front": cli.MENU_ROWS})
+        model = MenuModel(boards={"front": _menu_rows()})
         model.focus = "input"
         screen = FakeScreen([])
         paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
@@ -94,11 +104,12 @@ class TestTui(unittest.TestCase):
         """TP-TUI-02: this board's columns, and wider pads from this package's writer."""
         _model, _err, _session, format_rows, _paint = self._menu()
         from VideoSpeed import cli
+        from VideoSpeed.tui import Tui
 
-        lines = cli.menu_lines()
+        lines = Tui().menu_lines()
         self.assertTrue(lines[0].startswith("VideoSpeed ("))
         self.assertIn("main menu", lines[0])
-        body = format_rows(cli.MENU_ROWS)
+        body = format_rows(_menu_rows())
         self.assertEqual(
             body,
             [
@@ -135,10 +146,12 @@ class TestTui(unittest.TestCase):
                 "  0. about  : show the cache folders",
             ],
         )
-        painter = (ROOT / "src" / "VideoSpeed" / "menu.py").read_text(encoding="utf-8")
+        painter = (ROOT / "src" / "VideoSpeed" / "menu_painter.py").read_text(encoding="utf-8")
         ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        session = (ROOT / "src" / "VideoSpeed" / "tui.py").read_text(encoding="utf-8")
         self.assertIn("FRAME_TOP_LEFT", painter)
         self.assertNotIn("FRAME_TOP_LEFT", ship)
+        self.assertNotIn("FRAME_TOP_LEFT", session)
         self.assertNotIn("Choice:", ship)
 
     def test_tp_tui_03_fail_closed(self):
@@ -158,13 +171,13 @@ class TestTui(unittest.TestCase):
                 return -1
 
         saved_wrapper = curses.wrapper
-        saved_tty = cli.stdout_is_tty
+        saved_tty = cli.Cli.stdout_is_tty
         curses.wrapper = lambda fn: fn(Tiny())
-        cli.stdout_is_tty = lambda: True
+        cli.Cli.stdout_is_tty = lambda self: True
         try:
             err = io.StringIO()
             with redirect_stderr(err):
-                action = cli.open_text_menu()
+                action = cli.Cli().tui.open_text_menu()
             text = err.getvalue()
             self.assertEqual(action, "missing")
             self.assertIn("text screen", text)
@@ -173,7 +186,7 @@ class TestTui(unittest.TestCase):
             self.assertNotIn("Choice:", text)
         finally:
             curses.wrapper = saved_wrapper
-            cli.stdout_is_tty = saved_tty
+            cli.Cli.stdout_is_tty = saved_tty
 
     def test_tp_tui_03_package_has_no_external_menu(self):
         """TP-TUI-03: product source does not import or declare an external menu package."""
@@ -190,21 +203,22 @@ class TestTui(unittest.TestCase):
         import curses
 
         from VideoSpeed import cli
+        from VideoSpeed.encoder import Encoder
 
         screen = FakeScreen(keys)
         saved_wrapper = curses.wrapper
-        saved_out = cli.stdout_is_tty
-        saved_in = cli.stdin_is_tty
-        saved_ff = cli.ensure_ffmpeg
+        saved_out = cli.Cli.stdout_is_tty
+        saved_in = cli.Cli.stdin_is_tty
+        saved_ff = Encoder.ensure_ffmpeg
         saved_input = builtins.input
 
         def refuse_input(*_args, **_kwargs):
             raise AssertionError("input() left the text screen")
 
         curses.wrapper = lambda fn: fn(screen)
-        cli.stdout_is_tty = lambda: True
-        cli.stdin_is_tty = lambda: True
-        cli.ensure_ffmpeg = lambda: True
+        cli.Cli.stdout_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda self: True
+        Encoder.ensure_ffmpeg = lambda self: True
         builtins.input = refuse_input
         out = io.StringIO()
         err = io.StringIO()
@@ -213,9 +227,9 @@ class TestTui(unittest.TestCase):
                 code = cli.main([])
         finally:
             curses.wrapper = saved_wrapper
-            cli.stdout_is_tty = saved_out
-            cli.stdin_is_tty = saved_in
-            cli.ensure_ffmpeg = saved_ff
+            cli.Cli.stdout_is_tty = saved_out
+            cli.Cli.stdin_is_tty = saved_in
+            Encoder.ensure_ffmpeg = saved_ff
             builtins.input = saved_input
         return code, screen, out.getvalue(), err.getvalue()
 
@@ -233,8 +247,8 @@ class TestTui(unittest.TestCase):
             cli.APP_NAME,
             cli._PKG_VERSION,
             on_version=lambda: "{} {}".format(cli.APP_NAME, cli._PKG_VERSION),
-            on_about=cli.framework_about,
-            boards={"front": cli.MENU_ROWS},
+            on_about=_about_text,
+            boards={"front": _menu_rows()},
             on_kind=on_kind,
         )
         screen = FakeScreen([ord("1"), 10])
@@ -250,8 +264,8 @@ class TestTui(unittest.TestCase):
             cli.APP_NAME,
             cli._PKG_VERSION,
             on_version=lambda: cli._PKG_VERSION,
-            on_about=cli.framework_about,
-            boards={"front": cli.MENU_ROWS},
+            on_about=_about_text,
+            boards={"front": _menu_rows()},
             on_kind=on_kind,
         )
         screen = FakeScreen([ord("9"), 10])
@@ -259,15 +273,15 @@ class TestTui(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIsNone(session.leave_kind)
 
-        model = MenuModel(boards={"front": cli.MENU_ROWS})
+        model = MenuModel(boards={"front": _menu_rows()})
         model.handle_key(ord("3"))
         stayed = model.handle_key(10)
         self.assertIsNone(stayed)
         self.assertTrue(model.error)
         self.assertEqual(model.layer, "front")
 
-        model = MenuModel(boards={"front": cli.MENU_ROWS})
-        model.show_result(cli.framework_about())
+        model = MenuModel(boards={"front": _menu_rows()})
+        model.show_result(_about_text())
         screen = FakeScreen([])
         paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
         about = "\n".join(screen.drawn)
@@ -284,7 +298,9 @@ class TestTui(unittest.TestCase):
         MenuModel, _err, _session, _format_rows, paint = self._menu()
         from VideoSpeed import cli
 
-        self.assertEqual(cli.framework_hello(), "Hello.")
+        from VideoSpeed.tui import Tui
+
+        self.assertEqual(Tui().framework_hello(), "Hello.")
         code, screen, out, err = self._run_menu([ord("7"), 10])
         self.assertEqual(code, 0, err + out)
         flat = "".join(screen.drawn)
@@ -294,8 +310,8 @@ class TestTui(unittest.TestCase):
         self.assertNotIn("Hello.", out)
         self.assertNotIn("Choice:", flat)
 
-        model = MenuModel(boards={"front": cli.MENU_ROWS})
-        model.show_result(cli.framework_hello())
+        model = MenuModel(boards={"front": _menu_rows()})
+        model.show_result(Tui().framework_hello())
         page = FakeScreen([])
         paint(page, model, cli.APP_NAME, cli._PKG_VERSION)
         hello = "\n".join(page.drawn)
@@ -310,12 +326,12 @@ class TestTui(unittest.TestCase):
         MenuModel, _err, _session, _format_rows, paint = self._menu()
         from VideoSpeed import cli
 
-        model = MenuModel(boards={"front": cli.MENU_ROWS})
+        model = MenuModel(boards={"front": _menu_rows()})
         model.show_result("short")
         model.handle_key(curses.KEY_DOWN, 24)
         self.assertEqual(model.phase, "board")
 
-        model.show_result(cli.framework_about())
+        model.show_result(_about_text())
         screen = FakeScreen([], size=(24, 80))
         paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
         first = "\n".join(screen.drawn)
@@ -374,7 +390,9 @@ class TestTui(unittest.TestCase):
         import tempfile
 
         from VideoSpeed import cli
-        from VideoSpeed.menu import MenuModel
+        from VideoSpeed.encoder import Encoder
+        from VideoSpeed.media_info import MediaInfo
+        from VideoSpeed.menu_model import MenuModel
 
         folder = Path(tempfile.mkdtemp(prefix="vs_edit_"))
         (folder / "clip.mp4").write_bytes(b"")
@@ -392,15 +410,17 @@ class TestTui(unittest.TestCase):
         keys = [ord(c) for c in str(folder)] + [10]
         keys += [ord("1"), 10, 10, 10, 10, 10]
         screen = FakeScreen(keys)
-        model = MenuModel(boards={"front": cli.MENU_ROWS})
-        original = (cli.ensure_ffmpeg, cli.get_duration_cv2, cli.process_job)
-        cli.ensure_ffmpeg = lambda: True
-        cli.get_duration_cv2 = fake_duration
-        cli.process_job = fake_job
+        model = MenuModel(boards={"front": _menu_rows()})
+        original = (Encoder.ensure_ffmpeg, MediaInfo.get_duration_cv2, Encoder.process_job)
+        Encoder.ensure_ffmpeg = lambda self: True
+        MediaInfo.get_duration_cv2 = lambda self, path: fake_duration(path)
+        Encoder.process_job = lambda self, video_path, start, end, ratio, boomerang: fake_job(
+            video_path, start, end, ratio, boomerang
+        )
         try:
-            cli._edit_in_tui(screen, model)
+            cli.Cli().tui._edit_in_tui(screen, model)
         finally:
-            cli.ensure_ffmpeg, cli.get_duration_cv2, cli.process_job = original
+            Encoder.ensure_ffmpeg, MediaInfo.get_duration_cv2, Encoder.process_job = original
             for path in folder.iterdir():
                 path.unlink()
             folder.rmdir()
@@ -417,13 +437,14 @@ class TestTui(unittest.TestCase):
         import os
 
         from VideoSpeed import cli
+        from VideoSpeed.encoder import Encoder
 
         screen = FakeScreen(keys)
         saved_wrapper = curses.wrapper
-        saved_out = cli.stdout_is_tty
-        saved_in = cli.stdin_is_tty
-        saved_ff = cli.ensure_ffmpeg
-        saved_job = cli.process_job
+        saved_out = cli.Cli.stdout_is_tty
+        saved_in = cli.Cli.stdin_is_tty
+        saved_ff = Encoder.ensure_ffmpeg
+        saved_job = Encoder.process_job
         saved_input = builtins.input
         jobs = []
         ffmpeg_calls = []
@@ -431,15 +452,15 @@ class TestTui(unittest.TestCase):
         def refuse_input(*_args, **_kwargs):
             raise AssertionError("input() left the text screen")
 
-        def count_ffmpeg():
+        def count_ffmpeg(self):
             ffmpeg_calls.append(1)
             return True
 
         curses.wrapper = lambda fn: fn(screen)
-        cli.stdout_is_tty = lambda: True
-        cli.stdin_is_tty = lambda: True
-        cli.ensure_ffmpeg = count_ffmpeg
-        cli.process_job = lambda *args, **_kwargs: jobs.append(args) or None
+        cli.Cli.stdout_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda self: True
+        Encoder.ensure_ffmpeg = count_ffmpeg
+        Encoder.process_job = lambda self, *args, **_kwargs: jobs.append(args) or None
         builtins.input = refuse_input
         previous = os.getcwd()
         if cwd is not None:
@@ -451,10 +472,10 @@ class TestTui(unittest.TestCase):
                 code = cli.main(list(argv))
         finally:
             curses.wrapper = saved_wrapper
-            cli.stdout_is_tty = saved_out
-            cli.stdin_is_tty = saved_in
-            cli.ensure_ffmpeg = saved_ff
-            cli.process_job = saved_job
+            cli.Cli.stdout_is_tty = saved_out
+            cli.Cli.stdin_is_tty = saved_in
+            Encoder.ensure_ffmpeg = saved_ff
+            Encoder.process_job = saved_job
             builtins.input = saved_input
             os.chdir(previous)
         return code, screen, out.getvalue(), err.getvalue(), jobs, ffmpeg_calls
@@ -566,6 +587,91 @@ class TestTui(unittest.TestCase):
             clip.unlink()
             os.rmdir(folder)
             os.rmdir(empty)
+
+    def test_tp_oop_01_tui_owns_the_menu(self):
+        """TP-OOP-01: class Tui in tui.py owns the session. Those functions are not in cli.py."""
+        import inspect
+
+        from VideoSpeed import cli
+        from VideoSpeed.tui import Tui
+
+        self.assertTrue(inspect.isclass(Tui))
+        self.assertEqual(
+            Path(inspect.getfile(Tui)).resolve(),
+            (ROOT / "src" / "VideoSpeed" / "tui.py").resolve(),
+        )
+        names = (
+            "open_text_menu",
+            "menu_lines",
+            "framework_hello",
+            "_edit_in_tui",
+            "_list_in_tui",
+            "_open_direct_screen",
+            "_visible_lines",
+            "_tui_read",
+            "_tui_notice",
+            "_tui_float",
+            "_tui_yes_no",
+            "_tui_index",
+        )
+        ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        session = (ROOT / "src" / "VideoSpeed" / "tui.py").read_text(encoding="utf-8")
+        for name in names:
+            self.assertTrue(inspect.isfunction(Tui.__dict__[name]), name)
+            self.assertFalse(inspect.isfunction(getattr(cli, name, None)), name)
+            self.assertNotIn("\ndef {}(".format(name), "\n" + ship)
+        self.assertIn("class Tui", session)
+        self.assertNotIn("class MenuSession", session)
+        self.assertNotIn("class MenuModel", session)
+        self.assertIn("Tui(", ship)
+        self.assertFalse((ROOT / "src" / "VideoSpeed" / "menu.py").exists())
+
+    def test_tp_oop_03_one_class_per_menu_file(self):
+        """TP-OOP-03: painter, model, and session each have their own module."""
+        import inspect
+        import re
+
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter
+        from VideoSpeed.menu_session import MenuScreenError, MenuSession
+
+        painter_names = (
+            "paint",
+            "paint_prompt",
+            "format_rows",
+            "row_parts",
+            "rows_for",
+            "screen_can_hold_box",
+            "_put",
+            "_paint_box",
+            "_input_field",
+            "_status_line",
+            "_result_overflow",
+            "_result_room",
+        )
+        for name in painter_names:
+            self.assertTrue(inspect.isfunction(MenuPainter.__dict__[name]), name)
+        self.assertEqual(MenuPainter.FRAME_TOP_LEFT, "╭")
+        self.assertEqual(MenuPainter.MENU_ROWS[0][1], "edit")
+        self.assertTrue(inspect.isfunction(MenuModel.__dict__["edge_keys"]))
+        self.assertTrue(inspect.isfunction(MenuSession.__dict__["run"]))
+        self.assertTrue(issubclass(MenuScreenError, Exception))
+        homes = {
+            MenuPainter: "menu_painter.py",
+            MenuModel: "menu_model.py",
+            MenuSession: "menu_session.py",
+        }
+        for cls, filename in homes.items():
+            self.assertEqual(Path(inspect.getfile(cls)).name, filename)
+        session_file = (ROOT / "src" / "VideoSpeed" / "menu_session.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("class MenuScreenError", session_file)
+        tui_text = (ROOT / "src" / "VideoSpeed" / "tui.py").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r"^class (\w+)", tui_text, re.M), ["Tui"])
+        ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        self.assertNotIn("FRAME_TOP_LEFT", ship)
+        self.assertNotIn("FRAME_TOP_LEFT", tui_text)
 
 
 if __name__ == "__main__":

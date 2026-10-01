@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-runtime-prerequisites.md  
-**Status**: Active (Version 1.1.5)  
+**Status**: Active (Version 1.1.7)  
 **Area**: runtime  
 **Key**: `requirement-runtime-prerequisites`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -67,7 +67,7 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 |------|--------|
 | **Python package install** | `pip install .` or wheel from `dist/` / PyPI when published |
 | **Declared pip deps** | Owned by `requirement-python-dependency-management`: `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
-| **Text menu** | In this package (`requirement-python-tui`, `src/VideoSpeed/menu.py`). Not a pip package |
+| **Text menu** | In this package (`requirement-python-tui`, class `Tui` and class `MenuPainter`). Not a pip package |
 | **System binary** | `ffmpeg` on `PATH` |
 | **Auto install command** | **none** (not implemented) |
 | **Platform notes** | Linux primary. Duration probing uses the headless OpenCV wheel, which does not need `libGL.so.1`. Other OS OK when FFmpeg + OpenCV are available |
@@ -144,6 +144,8 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | 2026-09-30 | Active 1.1.3 | Pip floors owned by `requirement-python-dependency-management` |
 | 2026-10-01 | Active 1.1.4 | ChronicleLogger is a pip floor again, owned by the dependency requirement |
 | 2026-10-01 | Active 1.1.5 | Text menu is in this package; no menu pip row |
+| 2026-10-01 | Active 1.1.6 | Text menu is class `Tui` in `src/VideoSpeed/tui.py`. Still not a pip package |
+| 2026-10-01 | Active 1.1.7 | Text menu session is class `Tui`. Frame is class `MenuPainter`. Still not a pip package |
 
 ---
 

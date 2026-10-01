@@ -64,7 +64,7 @@ class TestLogging(unittest.TestCase):
 
         base, logd = self._dirs()
         self._push_debug(None)
-        logger = cli._start_logger(["--version"], base, logd)
+        logger = cli.Cli()._start_logger(["--version"], base, logd)
         self.assertIsNotNone(logger)
         self.assertEqual(logger.logName(), "video-speed")
         self.assertEqual(str(Path(logger.baseDir())), str(Path(base)))
@@ -132,8 +132,8 @@ class TestLogging(unittest.TestCase):
 
         base, logd = self._dirs()
         self._push_debug("show")
-        saved_tty = cli.stdin_is_tty
-        cli.stdin_is_tty = lambda: False
+        saved_tty = cli.Cli.stdin_is_tty
+        cli.Cli.stdin_is_tty = lambda self: False
         out = io.StringIO()
         err = io.StringIO()
         try:
@@ -142,7 +142,7 @@ class TestLogging(unittest.TestCase):
                     ["--json"], log_basedir=base, log_logdir=logd
                 )
         finally:
-            cli.stdin_is_tty = saved_tty
+            cli.Cli.stdin_is_tty = saved_tty
         raw = out.getvalue()
         self.assertNotIn("ChronicleLogger", raw)
         self.assertTrue(raw.strip().startswith("{"), raw)
@@ -152,31 +152,32 @@ class TestLogging(unittest.TestCase):
     def test_tp_log_04_menu_quiets_before_open(self):
         """TP-LOG-04: the text-menu path calls quiet(True) before the frame."""
         from VideoSpeed import cli
+        from VideoSpeed.tui import Tui
 
         base, logd = self._dirs()
         self._push_debug(None)
         seen = {}
-        saved_open = cli.open_text_menu
-        saved_tty = cli.stdin_is_tty
-        saved_start = cli._start_logger
+        saved_open = Tui.open_text_menu
+        saved_tty = cli.Cli.stdin_is_tty
+        saved_start = cli.Cli._start_logger
 
-        def wrapped(argv, log_basedir="", log_logdir=""):
-            logger = saved_start(argv, log_basedir, log_logdir)
+        def wrapped(self, argv, log_basedir="", log_logdir=""):
+            logger = saved_start(self, argv, log_basedir, log_logdir)
             seen["logger"] = logger
             return logger
 
-        def menu():
+        def menu(self):
             seen["quiet"] = seen["logger"].quiet()
             return None
 
-        cli._start_logger = wrapped
-        cli.open_text_menu = menu
-        cli.stdin_is_tty = lambda: True
+        cli.Cli._start_logger = wrapped
+        Tui.open_text_menu = menu
+        cli.Cli.stdin_is_tty = lambda self: True
         try:
             code = cli.main([], log_basedir=base, log_logdir=logd)
         finally:
-            cli._start_logger = saved_start
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_tty
+            cli.Cli._start_logger = saved_start
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_tty
         self.assertEqual(code, 0)
         self.assertIs(seen.get("quiet"), True)

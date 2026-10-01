@@ -106,10 +106,11 @@ class TestCli(unittest.TestCase):
 
         self.assertTrue(Path(cli.__file__).resolve().is_relative_to(ROOT))
         opened = []
-        saved_open = cli.open_text_menu
-        saved_in = cli.stdin_is_tty
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
+        from VideoSpeed.tui import Tui
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
         try:
             cases = (
                 ["--file", "clip.mp4"],
@@ -125,18 +126,19 @@ class TestCli(unittest.TestCase):
                 self.assertEqual(opened, [], argv)
                 self.assertIn("ERROR:", err.getvalue(), argv)
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
 
     def test_tp_mode_02_modifier_alone_fail_closed(self):
         """TP-MODE-02: lone --percent or --boomerang exits 1 and does not open the menu."""
         from VideoSpeed import cli
 
         opened = []
-        saved_open = cli.open_text_menu
-        saved_in = cli.stdin_is_tty
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
+        from VideoSpeed.tui import Tui
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
         try:
             for argv in (["--percent", "80"], ["--boomerang"]):
                 err = io.StringIO()
@@ -150,8 +152,8 @@ class TestCli(unittest.TestCase):
                 self.assertIn("--end", text, argv)
                 self.assertIn("Next:", text, argv)
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
 
     def test_tp_cli_07_help_and_unknown_verb(self):
         """TP-CLI-07: help lists the five verbs; an unknown verb exits 1."""
@@ -181,10 +183,11 @@ class TestCli(unittest.TestCase):
         from VideoSpeed import cli
 
         opened = []
-        saved_open = cli.open_text_menu
-        saved_in = cli.stdin_is_tty
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
+        from VideoSpeed.tui import Tui
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
         try:
             for token in ("setup", "Exit", "exit", "version", "test", "clean"):
                 proc = _run([token])
@@ -201,8 +204,8 @@ class TestCli(unittest.TestCase):
                 self.assertEqual(code, 1, token)
                 self.assertEqual(opened, [], token)
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
 
         proc = _run(["--json", "setup"])
         raw = proc.stdout.decode("utf-8")
@@ -304,12 +307,13 @@ class TestCli(unittest.TestCase):
         from VideoSpeed import cli
 
         opened = []
-        saved_open = cli.open_text_menu
-        saved_in = cli.stdin_is_tty
-        saved_out = cli.stdout_is_tty
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
-        cli.stdout_is_tty = lambda: True
+        from VideoSpeed.tui import Tui
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        saved_out = cli.Cli.stdout_is_tty
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdout_is_tty = lambda self: True
         try:
             for argv in (["about"], ["hello"], ["help"], ["about", "--boomerang"]):
                 buf = io.StringIO()
@@ -320,24 +324,26 @@ class TestCli(unittest.TestCase):
                 self.assertNotIn("Folder (Enter", err.getvalue() + buf.getvalue(), argv)
             self.assertEqual(opened, [])
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
-            cli.stdout_is_tty = saved_out
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
+            cli.Cli.stdout_is_tty = saved_out
 
     def test_tp_mode_05_edit_json_and_complete_job(self):
         """TP-MODE-05 coat: edit --json asks on stderr; a full job does not open the menu."""
         from VideoSpeed import cli
 
         opened = []
-        saved_open = cli.open_text_menu
-        saved_in = cli.stdin_is_tty
-        saved_out = cli.stdout_is_tty
-        saved_ff = cli.ensure_ffmpeg
+        from VideoSpeed.tui import Tui
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        saved_out = cli.Cli.stdout_is_tty
+        from VideoSpeed.encoder import Encoder
+        saved_ff = Encoder.ensure_ffmpeg
         saved_stdin = sys.stdin
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
-        cli.stdout_is_tty = lambda: True
-        cli.ensure_ffmpeg = lambda: True
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdout_is_tty = lambda self: True
+        Encoder.ensure_ffmpeg = lambda self: True
         sys.stdin = io.StringIO("")
         out = io.StringIO()
         err = io.StringIO()
@@ -345,10 +351,10 @@ class TestCli(unittest.TestCase):
             with redirect_stdout(out), redirect_stderr(err):
                 code = cli.main(["--json", "edit"])
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
-            cli.stdout_is_tty = saved_out
-            cli.ensure_ffmpeg = saved_ff
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
+            cli.Cli.stdout_is_tty = saved_out
+            Encoder.ensure_ffmpeg = saved_ff
             sys.stdin = saved_stdin
         raw = out.getvalue()
         doc = json_loads(raw)
@@ -360,8 +366,8 @@ class TestCli(unittest.TestCase):
         self.assertNotIn("Folder (Enter", raw)
 
         opened.clear()
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
         try:
             err = io.StringIO()
             with redirect_stderr(err):
@@ -376,8 +382,65 @@ class TestCli(unittest.TestCase):
             self.assertIn("File not found", err.getvalue())
             self.assertNotIn("Folder (Enter", err.getvalue())
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
+
+    def test_tp_oop_04_cli_is_the_entry_class(self):
+        """TP-OOP-04: cli.py is class Cli plus def main. Other jobs are not functions there."""
+        import inspect
+
+        from VideoSpeed.about_page import AboutPage
+        from VideoSpeed.cli import Cli, main
+        from VideoSpeed.edit_walk import EditWalk
+        from VideoSpeed.encoder import Encoder
+        from VideoSpeed.file_stage import FileStage
+        from VideoSpeed.media_info import MediaInfo
+        from VideoSpeed.run_output import RunOutput
+
+        self.assertTrue(inspect.isclass(Cli))
+        self.assertTrue(inspect.isfunction(main))
+        self.assertEqual(str(inspect.signature(main)), "(argv=None, log_basedir='', log_logdir='')")
+        ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        self.assertIn("class Cli", ship)
+        self.assertIn("def main(", ship)
+        self.assertEqual(ship.count("\nclass "), 1)
+        homes = (
+            (Encoder, "encoder.py", (
+                "ensure_ffmpeg", "run_ffmpeg", "_restore_text_screen", "cut_clip",
+                "_atempo_filters", "speed_change", "add_boomerang", "process_job",
+                "batch_session", "build_output_name", "valid_cut_range",
+                "valid_percent", "_length_unchanged",
+            )),
+            (FileStage, "file_stage.py", (
+                "staging_dir_for", "make_temp_path", "promote_file",
+            )),
+            (MediaInfo, "media_info.py", (
+                "get_mp4_files", "get_duration_cv2", "format_time",
+            )),
+            (AboutPage, "about_page.py", (
+                "framework_about", "about_box_lines", "install_kind",
+                "install_sentence", "_is_source_checkout",
+            )),
+            (EditWalk, "edit_walk.py", (
+                "_edit_json", "_prompt_line", "_prompt_float", "_prompt_yes_no",
+                "_err_line", "run_screen",
+            )),
+            (RunOutput, "run_output.py", (
+                "out_info", "out_err", "_json_reset", "_remember", "_remember_job",
+                "_emit_json", "_call_sunk", "_collect_lines",
+            )),
+        )
+        for cls, filename, names in homes:
+            self.assertEqual(Path(inspect.getfile(cls)).name, filename)
+            for name in names:
+                self.assertTrue(inspect.isfunction(cls.__dict__[name]), name)
+                self.assertNotIn("\ndef {}(".format(name), "\n" + ship)
+        for name in (
+            "build_parser", "_dispatch", "_start_logger", "_verb_help",
+            "_verb_about", "_verb_hello", "_verb_edit", "_verb_list_mp4",
+            "_unknown_verb", "stdin_is_tty", "stdout_is_tty",
+        ):
+            self.assertTrue(inspect.isfunction(Cli.__dict__[name]), name)
 
 
 def json_loads(raw):

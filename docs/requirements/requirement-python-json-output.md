@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-json-output.md
-**Status**: Active (Version 1.0.1)
+**Status**: Active (Version 1.0.3)
 **Area**: python
 **Key**: `requirement-python-json-output`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -30,7 +30,7 @@ The path decision stays on the mode requirement. The screen picture stays on `re
 |---------|---------------|----------|
 | `video-speed --json` | console script on a terminal | questions on the error stream, then one object |
 | `video-speed --json --file clip.mp4 --start 0 --end 5` | one job | one object, no questions |
-| `src/VideoSpeed/cli.py` | `emit` after the path returns | the only standard-output write for this switch |
+| `src/VideoSpeed/run_output.py` | class `RunOutput` | the only standard-output write for this switch. Shape unchanged. `TP-OOP-04` has landed |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
@@ -158,11 +158,11 @@ End of input at any row ends the walk. A missing `ffmpeg` before the first quest
 
 | Item | Value |
 |------|--------|
-| **Flag** | `--json` on `build_parser` in `src/VideoSpeed/cli.py` |
-| **Quiet channel** | `out_info` writes nothing while the switch is set |
-| **Result writer** | `_emit_json` after `_dispatch` returns |
-| **Walk** | `_edit_json` when the switch is set, no selector is set, and stdin is a terminal |
-| **Job** | `batch_session`, then one job object |
+| **Flag** | `--json` on `Cli.build_parser` in `src/VideoSpeed/cli.py`. `def main` stays in that file |
+| **Quiet channel** | `RunOutput.out_info` writes nothing while the switch is set |
+| **Result writer** | Class `RunOutput` in `src/VideoSpeed/run_output.py`. The emit runs after dispatch returns. Shape in this file is unchanged. `TP-OOP-04` has landed |
+| **Walk** | Class `EditWalk` in `src/VideoSpeed/edit_walk.py` when the switch is set, no selector is set, and stdin is a terminal |
+| **Job** | `Encoder.batch_session`, then one job object |
 | **Indent** | two spaces, `ensure_ascii` false, one trailing newline |
 | **FFmpeg** | standard output and standard error are captured while the switch is set |
 | **Privilege** | normal user privilege |
@@ -223,7 +223,10 @@ TP-JSON-01 asserts `--json --percent 80` exits 1, does not open the menu, and wr
 | `docs/requirements/requirement-python-cli-logging.md` | Durable status; not this encoder |
 | `docs/requirements/requirement-python-version.md` | String stored in `version` |
 | `docs/requirements/requirement-class-software-dev.md` | Approver none; no dest fence |
-| `src/VideoSpeed/cli.py` | Switch, walk, and the one writer |
+| `src/VideoSpeed/cli.py` | Class `Cli`. The `--json` flag. `def main` stays here |
+| `src/VideoSpeed/run_output.py` | Class `RunOutput`. The one writer. `TP-OOP-04` has landed |
+| `src/VideoSpeed/edit_walk.py` | Class `EditWalk`. The stderr questions. `TP-OOP-04` has landed |
+| `docs/requirements/requirement-python-oop.md` | Class homes. This file keeps the object shape |
 
 ## 7. Status history
 
@@ -231,6 +234,8 @@ TP-JSON-01 asserts `--json --percent 80` exits 1, does not open the menu, and wr
 |------|--------|------|
 | 2026-10-01 | Active 1.0.0 | `--json` quiets stdout to one object and skips the text menu |
 | 2026-10-01 | Active 1.0.1 | `edit` under `--json` asks missing targets on the error stream, folder then file. `about`, `hello`, and `list-mp4` do not enter that walk |
+| 2026-10-01 | Active 1.0.2 | The writer is class `RunOutput`. The walk is class `EditWalk`. The object shape is unchanged. `TP-OOP-04` is todo |
+| 2026-10-01 | Active 1.0.3 | `RunOutput` and `EditWalk` are on disk. `TP-OOP-04` has landed. The object shape is unchanged |
 
 **Last Updated**: 2026-10-01
 **Owner**: VideoSpeed project maintainers

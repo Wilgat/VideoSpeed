@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-videospeed.md  
-**Status**: Active (Version 1.1.7)  
+**Status**: Active (Version 1.1.9)  
 **Area**: domain  
 **Key**: `requirement-domain-videospeed`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -109,7 +109,7 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | Domain summary | Cut → speed/length → optional boomerang for MP4 |
 | Runtime tools | FFmpeg (encode), OpenCV (duration probe) |
 | Entry points | `video-speed`, `python -m VideoSpeed` |
-| Text menu | Default TUI style on a terminal (`requirement-python-tui`, painter `src/VideoSpeed/menu.py`) |
+| Text menu | Default TUI style on a terminal (`requirement-python-tui`; session class `Tui`; frame class `MenuPainter`) |
 
 **About is not** a remote version-check and **must not** advertise a shell `curl|sh` install channel unless a future install requirement is Active.
 
@@ -208,6 +208,8 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | 2026-10-01 | Active 1.1.5 | About page body points at `requirement-python-about` |
 | 2026-10-01 | Active 1.1.6 | Menu row **7 hello** shows `Hello.` |
 | 2026-10-01 | Active 1.1.7 | Product verbs `help`, `about`, `hello`, `edit`, `list-mp4`. `list-mp4` is D-01 only |
+| 2026-10-01 | Active 1.1.8 | Text-menu painter is class `Tui` in `src/VideoSpeed/tui.py` |
+| 2026-10-01 | Active 1.1.9 | Text-menu session is class `Tui`. Frame is class `MenuPainter`. Domain steps unchanged |
 
 ---
 

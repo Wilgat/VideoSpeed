@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.0.11 – VideoSpeed software-development class law + residual stack)  
+**Status**: Active (Version 1.0.14 – VideoSpeed software-development class law + residual stack)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -124,9 +124,9 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Project layout (`src/` package) | `requirement-python-project-structure` | Do not duplicate |
 | CLI entry / `main` order | `requirement-python-cli-interface` | Do not duplicate |
 | Interactive walk vs one job | `requirement-python-interactive-vs-noninteractive` | Mode matrix; do not duplicate |
-| Text menu look (default TUI style) | `requirement-python-tui` | Picture stays here. Painter home is `requirement-python-oop` (`menu.py` until `tui.py`) |
+| Text menu look (default TUI style) | `requirement-python-tui` | Picture stays here. Session is class `Tui`. Frame is class `MenuPainter` (`requirement-python-oop`) |
 | About page (identity, host check, star box) | `requirement-python-about` | Line text stays here. Host-check functions are class `CheckSystem` |
-| OOP grouping (text menu, host check) | `requirement-python-oop` | Class `Tui` in `tui.py`; class `CheckSystem` in `check_system.py`. Encoder stays put. Moves are `TP-OOP-01` and `TP-OOP-02` |
+| OOP grouping (one class per file) | `requirement-python-oop` | One class per file. `def main` stays in `cli.py`. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Domain surface (workflow, help framing) | `requirement-domain-videospeed` | Four pillars |
 | FFmpeg cut / speed / boomerang ops | `requirement-video-ffmpeg-pipeline` | Ops SSOT |
 | Error / fail-closed user messaging | `requirement-python-error-handling` | Do not duplicate |
@@ -223,7 +223,7 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | `requirement-python-build-script` | Maintainer `./build.sh` verbs |
 | `requirement-python-json-output` | `--json` object |
 | `requirement-python-about` | About page body |
-| `requirement-python-oop` | Class `Tui` and class `CheckSystem`, each in its own file |
+| `requirement-python-oop` | One class per file. `def main` stays in `cli.py` |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -247,6 +247,9 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | 2026-10-01 | Active 1.0.9 | `--json` object owned by `requirement-python-json-output` |
 | 2026-10-01 | Active 1.0.10 | About page owned by `requirement-python-about` |
 | 2026-10-01 | Active 1.0.11 | OOP grouping owned by `requirement-python-oop` (`Tui`, `CheckSystem`) |
+| 2026-10-01 | Active 1.0.12 | Painter home is class `Tui` in `tui.py`. Host check is class `CheckSystem` |
+| 2026-10-01 | Active 1.0.13 | OOP map is one class per file. `def main` stays in `cli.py`. `TP-OOP-03` and `TP-OOP-04` are todo |
+| 2026-10-01 | Active 1.0.14 | `TP-OOP-03` and `TP-OOP-04` have landed. `def main` stays in `cli.py` |
 
 ---
 

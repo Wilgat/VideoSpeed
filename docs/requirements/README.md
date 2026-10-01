@@ -9,10 +9,10 @@ Authoritative specialized product law for **VideoSpeed** lives here.
 | Field | Value |
 |-------|--------|
 | Product / package | `VideoSpeed` |
-| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 7 → `1.0.7` |
-| Text menu | `requirement-python-tui` — picture; painter is `src/VideoSpeed/menu.py` until class `Tui` |
+| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 8 → `1.0.8` |
+| Text menu | `requirement-python-tui` — picture; session is class `Tui`; frame is class `MenuPainter` |
 | About page | `requirement-python-about` — identity, host check, star box |
-| OOP grouping | `requirement-python-oop` — class `Tui` in `tui.py`; class `CheckSystem` in `check_system.py`. The move is still open |
+| OOP grouping | `requirement-python-oop` — one class per file. `def main` stays in `cli.py`. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Pip floors | `requirement-python-dependency-management` — `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
 | System status log | `requirement-python-cli-logging` — one ChronicleLogger, `log_message` level and component |
 | Modes | `requirement-python-interactive-vs-noninteractive` — menu walk, product verb (folder then file), or one job |
@@ -22,7 +22,7 @@ Authoritative specialized product law for **VideoSpeed** lives here.
 | Install mode | **pip / local package** |
 | Domain surface | `requirement-domain-videospeed` — four pillars |
 | Encode ops | `requirement-video-ffmpeg-pipeline` — cut / speed / boomerang |
-| Coding style | `requirement-python-coding-style` — temps; `shutil.move` for every file move; no `os.rename` or `os.replace` |
+| Coding style | `requirement-python-coding-style` — temps; `shutil.move` for every file move; no `os.rename` or `os.replace`; one class per file |
 | Runtime tools | FFmpeg (system) + OpenCV (pip) |
 | Public reviews | `reviews/` — what-to-review, test-plan, lessons, reports |
 

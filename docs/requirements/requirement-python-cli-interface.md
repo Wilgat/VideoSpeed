@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-interface.md  
-**Status**: Active (Version 1.8.0)  
+**Status**: Active (Version 1.8.2)  
 **Area**: python  
 **Key**: `requirement-python-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -55,7 +55,7 @@ Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops 
 M1. **Step 1 — main’s own version.** **MUST** read `MAJOR_VERSION`, `MINOR_VERSION`, and `PATCH_VERSION` from the package. **MUST NOT** assign a second triple. The string **MUST** equal `__version__`.  
 M2. **Step 2 — logger.** **MUST** construct one ChronicleLogger as `requirement-python-cli-logging` requires (`logname="VideoSpeed"`, then `logName()`, `baseDir()`, `logDir()`). If that import fails, **MUST** print the install next step and return `1` before the parser runs.  
 M3. **Step 3 — debug.** If `logger.isDebug()` is true, **MUST** log the identity line with the three integers and `ChronicleLogger.class_version()`, `component="main"`. `DEBUG` must already be set before step 2.  
-M4. **Step 4 — major import missing.** **MUST** use the AnimeDlp gate: `log_message` at `FATAL`, `component="main"`, then `return 1`. ChronicleLogger is that gate at step 2. OpenCV (`cv2`) stays lazy (`requirement-python-coding-style`). `main` **MUST** run that same FATAL gate immediately before a duration probe. The text menu stays in this package (`requirement-python-tui`). Its class home is `requirement-python-oop`. Until `src/VideoSpeed/tui.py` exists, that module is `VideoSpeed.menu`. It is not a pip import. `--help` and `--version` **MUST** still succeed when `cv2` is absent.  
+M4. **Step 4 — major import missing.** **MUST** use the AnimeDlp gate: `log_message` at `FATAL`, `component="main"`, then `return 1`. ChronicleLogger is that gate at step 2. OpenCV (`cv2`) stays lazy (`requirement-python-coding-style`). `main` **MUST** run that same FATAL gate immediately before a duration probe. The text menu stays in this package (`requirement-python-tui`). Its class home is `requirement-python-oop`. `def main` stays in `src/VideoSpeed/cli.py`. Class `Cli` in that file constructs the objects that requirement names, including class `Tui`. It is not a pip import. `--help` and `--version` **MUST** still succeed when `cv2` is absent.  
 M5. **Step 5 — argument parser.** **MUST** build the `ArgumentParser` and call `parse_args` only after steps 1–3, and after the ChronicleLogger gate. Flags stay the list in §2.4. `--version` **MUST** print the package string from step 1.
 
 ```python
@@ -236,7 +236,7 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | `requirement-python-build-script` | `./build.sh` verbs; not this entry |
 | `requirement-python-json-output` | `--json` object; not a second mode matrix |
 | `requirement-python-tui` | Menu look (default TUI style) |
-| `requirement-python-oop` | `main` builds class `Tui` after that file exists |
+| `requirement-python-oop` | `def main` stays in `cli.py`. Class `Cli` builds the objects |
 | `requirement-domain-videospeed` | Domain steps |
 | `requirement-video-ffmpeg-pipeline` | Encode |
 | `requirement-python-packaging` | Entrypoint declaration |
@@ -279,6 +279,8 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | 2026-10-01 | Active 1.7.1 | Text-menu class home is `requirement-python-oop`. Until `tui.py` exists, the module is `VideoSpeed.menu` |
 | 2026-10-01 | Active 1.7.2 | `main` constructs ChronicleLogger and displays the debug identity before the parser |
 | 2026-10-01 | Active 1.8.0 | Product verbs `help`, `about`, `hello`, `edit`, `list-mp4` returned. Prompt order stays on the mode requirement |
+| 2026-10-01 | Active 1.8.1 | `main` constructs class `Tui` in `VideoSpeed.tui`. `TP-OOP-01` has landed |
+| 2026-10-01 | Active 1.8.2 | `def main` stays in `cli.py`. Class `Cli` builds the objects named by `requirement-python-oop` |
 
 ---
 

@@ -31,9 +31,13 @@ class TestDocsStruct(unittest.TestCase):
         self.assertTrue(ship.is_file())
         self.assertTrue(archive.is_file())
         ship_text = ship.read_text(encoding="utf-8")
+        stage_text = (ROOT / "src" / "VideoSpeed" / "file_stage.py").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("def main(", ship_text)
-        self.assertIn("promote_file", ship_text)
-        self.assertIn("shutil.move", ship_text)
+        self.assertIn("class Cli", ship_text)
+        self.assertIn("def promote_file(", stage_text)
+        self.assertIn("shutil.move", stage_text)
 
     def test_tp_domain_02_about_version_honest(self):
         """TP-DOMAIN-02: about/version identity fields honest."""

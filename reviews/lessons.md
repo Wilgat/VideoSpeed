@@ -13,6 +13,7 @@ Durable failure modes. **Always re-check on product review.**
 | L-DUAL-01 | Root `cli-new.py` or bootstrap archive treated as ship SSOT | Ship SSOT = `src/VideoSpeed/cli.py`; launcher thin re-export only; **TP-STRUCT-01** | closed (have) |
 | L-DOCS-01 | README/CHANGELOG claim drift (version, layout, template heritage) | Align user docs with REQs before release claims; **TP-DOC-01** | closed (have) |
 | L-TEST-01 | No automated suite → regressions (USB, range, entry) silent | Implement `tests/` against `reviews/test-plan.md`; close TP **todo** → **have** | closed (have) |
-| L-TUI-01 | Menu tests import a sibling painter, or `cli.py` draws its own frame glyphs | Draw with the in-package painter (`src/VideoSpeed/menu.py` until class `Tui` in `src/VideoSpeed/tui.py`); keep `FRAME_TOP_LEFT` out of `cli.py`; do not declare a menu wheel; `requirement-python-tui` · `requirement-python-oop`; **TP-TUI-01** … **TP-TUI-05** | closed (have) |
+| L-TUI-01 | Menu tests import a sibling painter, or `cli.py` draws its own frame glyphs | Draw the frame with class `MenuPainter`; keep the session on class `Tui`; keep `FRAME_TOP_LEFT` out of `cli.py`; do not declare a menu wheel; `requirement-python-tui` · `requirement-python-oop`; **TP-TUI-01** … **TP-TUI-05** · **TP-OOP-01** · **TP-OOP-03** | closed (have) |
+| L-OOP-01 | A procedural `cli.py` keeps another class's methods, or `main` leaves `cli.py` | One class per file. `def main` stays in `cli.py`. Class homes are `requirement-python-oop`. **TP-OOP-04** | closed (have) |
 
 **Intentionally out of scope for default lessons:** shell online install Type O, Type 1 sudoers elevation (product has neither).

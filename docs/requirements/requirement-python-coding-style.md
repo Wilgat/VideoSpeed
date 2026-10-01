@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-coding-style.md  
-**Status**: Active (Version 1.3.1)  
+**Status**: Active (Version 1.4.1)  
 **Area**: python  
 **Key**: `requirement-python-coding-style`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -16,22 +16,22 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Maintainer editing `cli.py` | `promote_file` uses `shutil.move` |
+| You / this login | Maintainer publishing a file | `FileStage.promote_file` uses `shutil.move` |
 | The other role | Pipeline peer | When temps are created during encode |
 | Not this file | Prompt text | CLI interface |
 
 | Includes | Excludes |
 |----------|----------|
-| Same-directory staging; `shutil.move` for every move and publish; lazy OpenCV import; identity locals inside `main()`; version equality in the suite | Filter graphs; argparse flags; `os.rename` / `os.replace`; import-time version `raise`; module globals for identity and bounds |
+| Same-directory staging; `shutil.move` for every move and publish; lazy OpenCV import; identity locals inside `main()`; version equality in the suite; one class per file | Filter graphs; argparse flags; `os.rename` / `os.replace`; import-time version `raise`; module globals for identity and bounds; a second class in a class file |
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
-| `src/VideoSpeed/cli.py` | `promote_file` / `staging_dir_for` | live I/O |
+| `src/VideoSpeed/file_stage.py` | class `FileStage` | `promote_file` / `staging_dir_for` (`requirement-python-oop`) |
 | `./tests/run.sh` | suite | TP-FS-01 / TP-FS-02 |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Save onto a USB stick | Temps sit next to the output when that folder is writable. `shutil.move` renames on the stick and copies when the stick is a different device. | Keep `promote_file` → `shutil.move` |
+| Save onto a USB stick | Temps sit next to the output when that folder is writable. `shutil.move` renames on the stick and copies when the stick is a different device. | Keep `FileStage.promote_file` → `shutil.move` |
 | Check that the version string matches the three integers | The suite compares them. Starting the program does not raise if a maintainer left them mismatched. | `tests/test_docs.py` |
 | Name the program | `APP_NAME` and the other identity values are locals inside `main()`, passed into the menu and the about page. | Assign them in `main()` |
 
@@ -46,7 +46,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 3. **SHOULD** use clear function **General Purpose** docstrings on public helpers.  
 4. **MUST** fail closed with user-visible messages on expected errors (missing FFmpeg, invalid range, missing OpenCV).  
 5. Heavy optional deps (e.g. OpenCV) **SHOULD** be imported lazily at use site when package import must succeed without them (version/help).  
-6. A full StateLogic+Attr rewrite of the encoder and of `main` is **aspirational**. **MUST NOT** force that rewrite solely for style while the CLI stays procedural-interactive. Grouping the text menu as class `Tui` and the host check as class `CheckSystem` is ordered by `requirement-python-oop`. Those two are ordinary classes, not that StateLogic shape.
+6. A full StateLogic+Attr rewrite of the encoder and of `main` is **aspirational**. **MUST NOT** force that rewrite solely for style. Ordinary classes, one class per file, are ordered by `requirement-python-oop`. `def main` stays in `src/VideoSpeed/cli.py`. A procedural pile of another class's methods in `cli.py` is not an allowed end state.
 
 ### 2.2 Temporary files
 
@@ -85,7 +85,15 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 19. Product identity, usage text, dates, the homepage, the download URL, numeric bounds, and the mutable message sink **MUST NOT** be module-level globals.  
 20. **MUST** assign them inside `main()` and pass them into the helpers that need them.  
 21. **MUST NOT** add a new module global for a value only `main()` and its call tree need.  
-22. The names in Implementation Notes are that block. They still sit at import today. The next edit that touches one of them **MUST** move that name under `main()` in the same change. Rule 6 still forbids a drive-by rewrite of helpers the edit does not touch.
+22. The names in Implementation Notes are that block. They still sit at import today. The next edit that touches one of them **MUST** move that name under `main()` in the same change. Rule 6 still forbids a drive-by StateLogic rewrite of helpers the edit does not touch.
+
+### 2.4c One class per file
+
+23. A class **MUST** live in its own module under `src/VideoSpeed/`. The file name is the class job in snake case (`MenuPainter` → `menu_painter.py`, `CheckSystem` → `check_system.py`). The class list is `requirement-python-oop`.  
+24. That module **MUST** define one class. One exception type raised by that class **MAY** share the file.  
+25. Functions that share the class's job **MUST** be methods. The module **MUST NOT** also define them at module level.  
+26. `cli.py` **MUST** define class `Cli` and no other class. `def main` stays in `cli.py`. It builds the objects from `requirement-python-oop` and runs one job. `cli.py` **MUST NOT** define another class's methods. The console script stays `VideoSpeed.cli:main`.  
+27. This shape is ordinary classes. A StateLogic and `Attr` rewrite is still not required. `TP-OOP-03` and `TP-OOP-04` prove this file rule. They have landed. This section does not add a new test id.
 
 ### 2.5 Implementation Notes (this project)
 
@@ -94,11 +102,11 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | **Package** | `VideoSpeed` |
 | **Primary modules** | `src/VideoSpeed/cli.py`, `__main__.py`, `__init__.py` |
 | **Staging helpers** | `staging_dir_for`, `make_temp_path` |
-| **Publish helper** | `promote_file` → `shutil.move` only |
+| **Publish helper** | `FileStage.promote_file` → `shutil.move` only (`requirement-python-oop`) |
 | **Ship modules** | `src/VideoSpeed/*.py` except the archive below. No `os.rename`, `os.replace`, `Path.rename`, or `Path.replace` calls |
 | **Archive** | `src/VideoSpeed/cli.bootstrap-old.py` is not the ship unit. It still calls `os.replace`. Do not copy that call into ship modules |
 | **Ops apply** | `requirement-video-ffmpeg-pipeline` |
-| **Architecture shape today** | Interactive procedural CLI. StateLogic rewrite of the encoder and of `main` is not ordered. Text-menu and host-check grouping is `requirement-python-oop` |
+| **Architecture shape today** | Ordinary classes, one class per file, ordered by `requirement-python-oop`. `def main` stays in `cli.py`. StateLogic rewrite of the encoder and of `main` is not ordered. `TP-OOP-03` and `TP-OOP-04` have landed |
 | **System-status lines** | `requirement-python-cli-logging` — do not add a second logger here |
 | **Package version** | `requirement-python-version` |
 | **Version equality** | Suite only: `tests/test_docs.py` asserts `_PKG_VERSION == __version__`. Import does not raise |
@@ -119,7 +127,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 - **Caution:** Do not assume one filesystem.  
 - **Intentional:** `shutil.move` is the only move and publish API.  
 - **Anti-fragile:** Same-directory temps avoid a full-file copy. Removable media still publishes when the devices differ.  
-- **Over-protect:** Ship code does not grow a same-mount exception that calls `os.rename` or `os.replace`. It also does not grow an import-time version `raise`, or a new module global for identity, bounds, or the message sink.
+- **Over-protect:** Ship code does not grow a same-mount exception that calls `os.rename` or `os.replace`. It also does not grow an import-time version `raise`, a new module global for identity, bounds, or the message sink, or a second class in a class file.
 
 ---
 
@@ -130,7 +138,8 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 1. Call `os.rename`, `os.replace`, `Path.rename`, or `Path.replace` to move or publish a file, including when the path looks like the same disk.  
 2. Stage all large intermediates only under system temp when final dest is known on another mount.  
 3. Cite templates/skills as product-source behavioral authority.  
-4. Force a full StateLogic rewrite of the encoder or of `main` without an explicit user order. Grouping `Tui` and `CheckSystem` follows `requirement-python-oop` and is not that rewrite.  
+4. Force a full StateLogic rewrite of the encoder or of `main` without an explicit user order. One class per file follows `requirement-python-oop` and is not that rewrite.  
+4b. Add a module-level function for a job that already has a class, or put a second class in that class's file. `cli.py` keeps class `Cli` and `def main`.  
 5. Store secrets in style docs or code.  
 6. Put the `_PKG_VERSION` versus `__version__` comparison back on the import path, or add any other source-versus-source `raise` at import or at the start of `main()`.  
 7. Add module globals for `APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, `RATIO_MAX`, or a new name of that kind. Assign them inside `main()`.
@@ -151,6 +160,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | AC-6 | Removable media (USB and the same class of disk) is in scope for the move rule |
 | AC-7 | Version triple versus `__version__` is a suite assertion. Import does not raise it |
 | AC-8 | `APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, and `RATIO_MAX` are assigned inside `main()` |
+| AC-9 | Each class lives in its own module. `cli.py` defines class `Cli` and `def main` |
 
 ---
 
@@ -163,7 +173,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | `requirement-python-error-handling` | Fail messaging |
 | `requirement-python-cli-interface` | Entry |
 | `requirement-class-software-dev` | Class residual |
-| `requirement-python-oop` | Class homes for the text menu and the host check |
+| `requirement-python-oop` | Class map. One class per file. `def main` stays in `cli.py` |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -175,6 +185,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | TP-FS-05 | `tests/test_fs.py` | have | ship modules do not call `os.rename` or `os.replace` |
 | TP-DOC-02 | `tests/test_docs.py` | have | `_PKG_VERSION == __version__`; ship module does not raise that mismatch |
 | TP-STYLE-01 | `tests/test_docs.py` | todo | identity block assigned inside `main()`, not at import |
+| TP-OOP-03 · TP-OOP-04 | `tests/test_tui.py` · `tests/test_cli.py` | have | One class per file. Owned by `requirement-python-oop`. This file does not add a style test id |
 | TP-PKG-01 | `tests/test_package.py` | have | import without cv2 |
 | Code review | `reviews/reports/*` | pass (2026-08-09) | later tightened by TP-FS-05 |
 
@@ -187,6 +198,8 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | 2026-10-01 | Active 1.2.0 | File moves use `shutil.move`. Ship code does not call `os.rename` or `os.replace` (removable media) |
 | 2026-10-01 | Active 1.3.0 | Version equality is a suite check. Identity, bounds, and the message sink belong inside `main()` |
 | 2026-10-01 | Active 1.3.1 | StateLogic stays aspirational for the encoder and `main`. `Tui` and `CheckSystem` are `requirement-python-oop` |
+| 2026-10-01 | Active 1.4.0 | One class per file. `def main` stays in `cli.py`. The procedural pile is not an allowed end state. `TP-OOP-03` and `TP-OOP-04` stay todo |
+| 2026-10-01 | Active 1.4.1 | `TP-OOP-03` and `TP-OOP-04` have landed. Identity locals still sit at import (`TP-STYLE-01` stays todo) |
 
 ---
 

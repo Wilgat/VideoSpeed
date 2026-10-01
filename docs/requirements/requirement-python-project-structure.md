@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-project-structure.md  
-**Status**: Active (Version 1.1.4)  
+**Status**: Active (Version 1.1.7)  
 **Area**: python  
 **Key**: `requirement-python-project-structure`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -38,7 +38,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 ### 2.1 Source package layout
 
 1. **MUST** keep the installable package under **`src/VideoSpeed/`**.  
-2. **MUST** include `__init__.py` (version SSOT: `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`, `__version__`), `__main__.py` (module entry), and `cli.py` (CLI + domain session). The text-menu painter today is `menu.py` (`requirement-python-tui`). `requirement-python-oop` names the later files: class `Tui` in `tui.py` and class `CheckSystem` in `check_system.py`. Those two files are required when `TP-OOP-01` and `TP-OOP-02` land. Until then this package does not have to contain them.  
+2. **MUST** include `__init__.py` (version SSOT: `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`, `__version__`), `__main__.py` (module entry), and `cli.py`. `cli.py` holds class `Cli` and `def main` (`requirement-python-oop`). The other class files are the map in that requirement. `tui.py` and `check_system.py` **MUST** be in this package (`TP-OOP-01` and `TP-OOP-02` have landed). The remaining class modules **MUST** be in this package. `TP-OOP-03` and `TP-OOP-04` have landed.  
 3. **MUST NOT** scatter a second installable package name that contradicts packaging SSOT without an explicit rename plan.
 
 ### 2.2 Project root layout
@@ -66,10 +66,18 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | Path | Role |
 |------|------|
 | `src/VideoSpeed/` | Installable package |
-| `src/VideoSpeed/cli.py` | Interactive CLI + FFmpeg helpers |
-| `src/VideoSpeed/menu.py` | Text-menu painter until `TP-OOP-01` (`requirement-python-tui`) |
-| `src/VideoSpeed/tui.py` | Class `Tui` after `TP-OOP-01` (`requirement-python-oop`). Not in the tree yet |
-| `src/VideoSpeed/check_system.py` | Class `CheckSystem` after `TP-OOP-02`. Not in the tree yet |
+| `src/VideoSpeed/cli.py` | Class `Cli` and `def main`. Console script `VideoSpeed.cli:main` |
+| `src/VideoSpeed/tui.py` | Class `Tui`. Text-menu session (`requirement-python-tui`, `requirement-python-oop`) |
+| `src/VideoSpeed/check_system.py` | Class `CheckSystem`. Host check (`requirement-python-oop`) |
+| `src/VideoSpeed/menu_painter.py` | Class `MenuPainter`. `TP-OOP-03` have |
+| `src/VideoSpeed/menu_model.py` | Class `MenuModel`. `TP-OOP-03` have |
+| `src/VideoSpeed/menu_session.py` | Class `MenuSession`. `TP-OOP-03` have |
+| `src/VideoSpeed/about_page.py` | Class `AboutPage`. `TP-OOP-04` have |
+| `src/VideoSpeed/edit_walk.py` | Class `EditWalk`. `TP-OOP-04` have |
+| `src/VideoSpeed/encoder.py` | Class `Encoder`. `TP-OOP-04` have |
+| `src/VideoSpeed/media_info.py` | Class `MediaInfo`. `TP-OOP-04` have |
+| `src/VideoSpeed/file_stage.py` | Class `FileStage`. `TP-OOP-04` have |
+| `src/VideoSpeed/run_output.py` | Class `RunOutput`. `TP-OOP-04` have |
 | `src/VideoSpeed/__init__.py` | Version SSOT (`requirement-python-version`) |
 | `src/VideoSpeed/__main__.py` | Module entry |
 | `pyproject.toml` | Packaging SSOT |
@@ -134,7 +142,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | `requirement-python-build-script` | `build.sh` verbs |
 | `requirement-python-cli-interface` | Entry modules |
 | `requirement-class-software-dev` | Class residual |
-| `requirement-python-oop` | Later homes for `Tui` and `CheckSystem` |
+| `requirement-python-oop` | Class map. `def main` stays in `cli.py` |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -153,6 +161,9 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | 2026-10-01 | Active 1.1.2 | `menu.py` is the text-menu painter |
 | 2026-10-01 | Active 1.1.3 | `build.sh` points at `requirement-python-build-script` |
 | 2026-10-01 | Active 1.1.4 | `tui.py` and `check_system.py` are the OOP homes once those moves land. `menu.py` stays the painter until then |
+| 2026-10-01 | Active 1.1.5 | `TP-OOP-01` and `TP-OOP-02` landed. `tui.py` is the painter. `check_system.py` is the host check |
+| 2026-10-01 | Active 1.1.6 | `cli.py` is class `Cli` and `def main`. The other class files are ordered by `requirement-python-oop`. `TP-OOP-03` and `TP-OOP-04` are todo |
+| 2026-10-01 | Active 1.1.7 | `TP-OOP-03` and `TP-OOP-04` have landed. Those class modules are in the package |
 
 ---
 

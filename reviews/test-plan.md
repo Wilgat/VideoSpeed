@@ -4,7 +4,7 @@ Maps **TP-*** coverage to automated or documented checks.
 **Suite entry:** `tests/run.sh` (`PYTHONPATH=src python3 -m unittest discover -s tests -v`)  
 **Ship unit:** `src/VideoSpeed/cli.py`  
 **Last update:** 2026-10-01  
-**Last suite run:** 2026-10-01 (`PYENV_VERSION=3.14.7 ./tests/run.sh`: 68 ok, TP-PRE-01 skipped because ffmpeg is on PATH)
+**Last suite run:** 2026-10-01 (`PYENV_VERSION=3.14.7 ./tests/run.sh`: 71 ok, TP-PRE-01 skipped because ffmpeg is on PATH)
 
 Status: **have** = automated today · **todo** = needed · **manual** = documented human procedure · **n/a** · **skip** (environment)
 
@@ -21,7 +21,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
 | Product verbs `help`, `about`, `hello`, `edit`, `list-mp4` | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-MODE-05`..`TP-MODE-08`) |
-| Text menu frame and columns | **have** | `tests/test_tui.py` (`src/VideoSpeed/menu.py`) |
+| Text menu frame and columns | **have** | `tests/test_tui.py` (`src/VideoSpeed/tui.py`, class `Tui`) |
 | FFmpeg preflight | **have** | `tests/test_prereq.py` (missing-binary path) |
 | Cut → speed (no boomerang) | **skip** | needs fixture + ffmpeg |
 | Boomerang | **skip** | needs fixture + ffmpeg |
@@ -122,7 +122,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
 |-------|--------|-----------------|------------------------|--------|
 | TP-TUI-01 | Three-row rounded frame, full width, block caret, status line, no `Choice:` | `tests/test_tui.py` | requirement-python-tui | **have** |
-| TP-TUI-02 | This board’s number / verb / explain pads, plus two-digit and three-digit pads from `VideoSpeed.menu` | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-02 | This board’s number / verb / explain pads, plus two-digit and three-digit pads from `VideoSpeed.tui` | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-03 | Too-small screen fails closed; product source does not import or declare an external menu package | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-04 | edit stays and asks the folder line inside the frame; Exit leaves; unknown token stays; about result omits the frame | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-05 | Menu 7 shows `Hello.` on the result page and that page omits the frame | `tests/test_tui.py` | requirement-python-tui | **have** |
@@ -165,8 +165,10 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-FS-04 | After promote, intermediate source gone or not left as sole copy | `tests/test_fs.py` | pipeline | **have** |
 | TP-FS-05 | Ship modules do not call `os.rename` or `os.replace` (archive excluded) | `tests/test_fs.py` | coding-style · pipeline · L-XDEV-01 | **have** |
 | TP-STYLE-01 | Identity block (`APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, `RATIO_MAX`) is assigned inside `main()` | `tests/test_docs.py` | coding-style | **todo** |
-| TP-OOP-01 | Class `Tui` lives in `src/VideoSpeed/tui.py` and owns the text-menu session and the painter. Those functions are not defined in `cli.py` | `tests/test_tui.py` | requirement-python-oop | **todo** |
-| TP-OOP-02 | Class `CheckSystem` lives in `src/VideoSpeed/check_system.py` and owns the host-check functions. Those functions are not defined in `cli.py` | `tests/test_about.py` | requirement-python-oop | **todo** |
+| TP-OOP-01 | Class `Tui` lives in `src/VideoSpeed/tui.py` and owns the text-menu session. Those functions are not defined in `cli.py`. The painter split is TP-OOP-03 | `tests/test_tui.py` | requirement-python-oop | **have** |
+| TP-OOP-02 | Class `CheckSystem` lives in `src/VideoSpeed/check_system.py` and owns the host-check functions. Those functions are not defined in `cli.py` | `tests/test_about.py` | requirement-python-oop | **have** |
+| TP-OOP-03 | `paint`, `format_rows`, and the frame glyphs are methods or constants of `MenuPainter`. `MenuModel` and `MenuSession` are their own modules. `tui.py` defines class `Tui` only | `tests/test_tui.py` | requirement-python-oop | **have** |
+| TP-OOP-04 | `cli.py` defines class `Cli` and `def main`. Encoder, file stage, media info, about page, edit walk, and run output are not module-level functions there | `tests/test_cli.py` | requirement-python-oop | **have** |
 
 ### TP-FFMPEG (encode pipeline)
 

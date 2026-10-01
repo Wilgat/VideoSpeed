@@ -86,13 +86,15 @@ class TestJson(unittest.TestCase):
         from VideoSpeed import cli
 
         opened = []
-        saved_open = cli.open_text_menu
-        saved_in = cli.stdin_is_tty
-        saved_ff = cli.ensure_ffmpeg
+        from VideoSpeed.tui import Tui
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        from VideoSpeed.encoder import Encoder
+        saved_ff = Encoder.ensure_ffmpeg
         saved_stdin = sys.stdin
-        cli.open_text_menu = lambda: opened.append("open") or None
-        cli.stdin_is_tty = lambda: True
-        cli.ensure_ffmpeg = lambda: True
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda self: True
+        Encoder.ensure_ffmpeg = lambda self: True
         sys.stdin = io.StringIO("")
         out = io.StringIO()
         err = io.StringIO()
@@ -100,9 +102,9 @@ class TestJson(unittest.TestCase):
             with redirect_stdout(out), redirect_stderr(err):
                 code = cli.main(["--json"])
         finally:
-            cli.open_text_menu = saved_open
-            cli.stdin_is_tty = saved_in
-            cli.ensure_ffmpeg = saved_ff
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
+            Encoder.ensure_ffmpeg = saved_ff
             sys.stdin = saved_stdin
         raw = out.getvalue()
         doc = _assert_one_object(self, raw)

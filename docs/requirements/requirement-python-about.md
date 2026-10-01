@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-about.md
-**Status**: Active (Version 1.0.2)
+**Status**: Active (Version 1.0.5)
 **Area**: python
 **Key**: `requirement-python-about`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -30,8 +30,8 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 |---------|---------------|----------|
 | `video-speed` | text menu on a terminal | Choose **8** or type `about` |
 | `video-speed about` | the same page, no front-board pick | No folder prompt and no file prompt (`requirement-python-interactive-vs-noninteractive` §2.1b) |
-| `src/VideoSpeed/cli.py` | `framework_about` | The page text. It calls `CheckSystem` for the host check |
-| `src/VideoSpeed/check_system.py` | class `CheckSystem` | Host-check reads after `TP-OOP-02`. Until then those functions stay in `cli.py` |
+| `src/VideoSpeed/about_page.py` | class `AboutPage` | The page text. It calls `CheckSystem` for the host check. `TP-OOP-04` has landed |
+| `src/VideoSpeed/check_system.py` | class `CheckSystem` | Host-check reads. `TP-OOP-02` has landed |
 | `tests/test_about.py` | suite | The lines and the reads |
 
 | You do… | What it means | What you type |
@@ -81,7 +81,7 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 14. **No privilege and no network.** Building the page **MUST NOT** call `sudo`, wrap `apt` or `dnf`, create an account, open a socket, or recommend `sudo pip` or `sudo curl | sh`. Git Bash and Windows cmd **MUST NOT** invoke Termux `pkg`.
 15. Actor / role / subject / approver: **considered**. No dest machine. No approver. The table stays on `requirement-class-software-dev.md`.
 16. Dest fence conditions: **considered — none**. Do not invent one.
-17. The host-check functions named in `requirement-python-oop` **MUST** be methods of class `CheckSystem` in `src/VideoSpeed/check_system.py`. This file still owns the line text. Until that module exists, `cli.py` may hold `check_system_lines` and its readers. The move is `TP-OOP-02`. `about_box_lines` and `framework_about` stay the about composer and **MUST** call `CheckSystem` for the check block and for `self_location`.
+17. The host-check functions named in `requirement-python-oop` **MUST** be methods of class `CheckSystem` in `src/VideoSpeed/check_system.py`. This file still owns the line text. `TP-OOP-02` has landed. Class `AboutPage` in `src/VideoSpeed/about_page.py` is the about composer. It **MUST** call `CheckSystem` for the check block and for `self_location`. `TP-OOP-04` has landed.
 
 ### 2.1 Sample shape
 
@@ -137,10 +137,10 @@ Invocation: `video-speed` on a terminal, then `8` or `about`.
 
 | Item | Value |
 |------|--------|
-| **Page builder** | `framework_about` in `src/VideoSpeed/cli.py` |
-| **Host check** | `check_system_lines` in `cli.py` until class `CheckSystem` in `src/VideoSpeed/check_system.py` (`requirement-python-oop`, `TP-OOP-02`) |
-| **Star box** | `about_box_lines` |
-| **Menu hook** | `open_text_menu` passes `on_about=framework_about` |
+| **Page builder** | Class `AboutPage` in `src/VideoSpeed/about_page.py` (`framework_about`). `TP-OOP-04` has landed |
+| **Host check** | Class `CheckSystem` in `src/VideoSpeed/check_system.py` (`requirement-python-oop`, `TP-OOP-02`) |
+| **Star box** | `AboutPage.about_box_lines` calls `CheckSystem` for `self_location` and the Python executable name |
+| **Menu hook** | `Tui.open_text_menu` passes `on_about` to `AboutPage.framework_about` |
 | **APP_NAME** | `VideoSpeed` |
 | **Console script** | `video-speed` |
 | **Author** | `Wilgat Wong` (`LICENSE.md` copyright name) |
@@ -207,11 +207,11 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | `docs/requirements/index.md` | Registry |
 | `docs/requirements/requirement-domain-videospeed.md` | Domain sentence on the identity block |
 | `docs/requirements/requirement-python-tui.md` | Result page; scroll; no frame on about |
-| `docs/requirements/requirement-python-oop.md` | Class `CheckSystem` owns the host-check reads |
+| `docs/requirements/requirement-python-oop.md` | Class `CheckSystem` owns the host-check reads. Class `AboutPage` owns the composer |
 | `docs/requirements/requirement-python-version.md` | Version digits in the title and the stamp |
 | `docs/requirements/requirement-python-cli-interface.md` | `--version` stays the short human line. The verb `about` is named there |
 | `docs/requirements/requirement-class-software-dev.md` | Approver none; no dest fence |
-| `src/VideoSpeed/cli.py` | `framework_about` |
+| `src/VideoSpeed/about_page.py` | Class `AboutPage`. `framework_about`. `TP-OOP-04` has landed |
 | `LICENSE.md` | Author name |
 | `pyproject.toml` | Homepage URL |
 
@@ -222,6 +222,9 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | 2026-10-01 | Active 1.0.0 | About page: identity, host check, star box, and the read for each line |
 | 2026-10-01 | Active 1.0.1 | Host-check functions belong to class `CheckSystem`. Until `check_system.py` exists, `cli.py` may hold them |
 | 2026-10-01 | Active 1.0.2 | Verb `video-speed about` shows this same page and does not ask for a folder or a file |
+| 2026-10-01 | Active 1.0.3 | `TP-OOP-02` landed. The about composer calls `CheckSystem` |
+| 2026-10-01 | Active 1.0.4 | The composer is class `AboutPage`. Line text stays here. `TP-OOP-04` is todo |
+| 2026-10-01 | Active 1.0.5 | `AboutPage` is on disk. `TP-OOP-04` has landed. Line text stays here |
 
 **Last Updated**: 2026-10-01
 **Owner**: project maintainers

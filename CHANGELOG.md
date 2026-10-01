@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.8] - 2026-10-01
+
+### Changed
+- Each class lives in its own module. `def main` stays in `src/VideoSpeed/cli.py` beside class `Cli`. The console script stays `VideoSpeed.cli:main`.
+- The text-menu session is class `Tui`. The frame and `MENU_ROWS` are class `MenuPainter`. Keystrokes are class `MenuModel`. The run loop is class `MenuSession`.
+- The host check stays class `CheckSystem`. The about page is class `AboutPage` and calls `CheckSystem`.
+- Cut, speed, and boomerang are class `Encoder`. MP4 listing and duration are class `MediaInfo`. Staging and `shutil.move` publish are class `FileStage`. User-facing lines and the JSON object are class `RunOutput`. The shared edit questions are class `EditWalk`.
+
 ## [1.0.7] - 2026-10-01
 
 ### Added
