@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path
 
 from .file_stage import FileStage
+from .run_output import log_instantiated
 
 
 class Encoder:
@@ -20,10 +21,12 @@ class Encoder:
     Every command uses -nostdin. run_ffmpeg passes stdin DEVNULL.
     """
 
-    def __init__(self, output, media, stage, ratio_min, ratio_max):
+    def __init__(self, output, media, stage, ratio_min, ratio_max, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "Encoder")
         self.output = output
         self.media = media
-        self.stage = stage if stage is not None else FileStage()
+        self.stage = stage if stage is not None else FileStage(logger=logger)
         self.ratio_min = ratio_min
         self.ratio_max = ratio_max
 

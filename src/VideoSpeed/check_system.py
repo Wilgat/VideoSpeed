@@ -12,12 +12,18 @@ import shutil
 import sys
 import sysconfig
 
+from .run_output import log_instantiated
+
 
 class CheckSystem:
     """Reads for the [CHECK SYSTEM] block. One class, one module.
 
     The about composer calls this object. It does not own the star box.
     """
+
+    def __init__(self, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "CheckSystem")
 
     def parse_sys_version(self, version_text, python_version):
         """

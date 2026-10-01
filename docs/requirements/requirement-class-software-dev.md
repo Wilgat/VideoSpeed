@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.0.14 – VideoSpeed software-development class law + residual stack)  
+**Status**: Active (Version 1.0.17 – VideoSpeed software-development class law + residual stack)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -126,14 +126,15 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Interactive walk vs one job | `requirement-python-interactive-vs-noninteractive` | Mode matrix; do not duplicate |
 | Text menu look (default TUI style) | `requirement-python-tui` | Picture stays here. Session is class `Tui`. Frame is class `MenuPainter` (`requirement-python-oop`) |
 | About page (identity, host check, star box) | `requirement-python-about` | Line text stays here. Host-check functions are class `CheckSystem` |
-| OOP grouping (one class per file) | `requirement-python-oop` | One class per file. `def main` stays in `cli.py`. `TP-OOP-01` through `TP-OOP-04` have landed |
+| OOP grouping (one class per file) | `requirement-python-oop` | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Domain surface (workflow, help framing) | `requirement-domain-videospeed` | Four pillars |
 | FFmpeg cut / speed / boomerang ops | `requirement-video-ffmpeg-pipeline` | Ops SSOT |
 | Error / fail-closed user messaging | `requirement-python-error-handling` | Do not duplicate |
 | Python coding style / file move+temps | `requirement-python-coding-style` | `shutil.move`; no `os.rename` or `os.replace` |
 | Host runtime deps (FFmpeg, OpenCV) | `requirement-runtime-prerequisites` | External tools; pip floors point at the dependency requirement |
 | Pip dependency version floors | `requirement-python-dependency-management` | `opencv-python-headless` and `ChronicleLogger` strings |
-| Durable system-status logs | `requirement-python-cli-logging` | One ChronicleLogger; do not duplicate |
+| Durable system-status logs | `requirement-python-cli-logging` | One ChronicleLogger, including thread create and thread operations; do not duplicate |
+| Control-C during a long child | `requirement-python-graceful-exit` | Stop the child, do not publish, exit 130. Do not duplicate |
 | Product version integers | `requirement-python-version` | `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`; do not duplicate |
 | Public product reviews / TP map | `reviews/` (git-tracked) | what-to-review · test-plan · lessons · reports |
 | Online install / self-update / Type O | **intentionally absent** | Not a shell channel product |
@@ -219,6 +220,7 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | `requirement-python-error-handling` | Errors / cleanup |
 | `requirement-runtime-prerequisites` | Host tools |
 | `requirement-python-cli-logging` | System-status logs |
+| `requirement-python-graceful-exit` | Control-C during a long child |
 | `requirement-python-version` | Version integer SSOT |
 | `requirement-python-build-script` | Maintainer `./build.sh` verbs |
 | `requirement-python-json-output` | `--json` object |
@@ -250,6 +252,9 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | 2026-10-01 | Active 1.0.12 | Painter home is class `Tui` in `tui.py`. Host check is class `CheckSystem` |
 | 2026-10-01 | Active 1.0.13 | OOP map is one class per file. `def main` stays in `cli.py`. `TP-OOP-03` and `TP-OOP-04` are todo |
 | 2026-10-01 | Active 1.0.14 | `TP-OOP-03` and `TP-OOP-04` have landed. `def main` stays in `cli.py` |
+| 2026-10-01 | Active 1.0.15 | Control-C during a long child points at `requirement-python-graceful-exit`. Do not duplicate |
+| 2026-10-01 | Active 1.0.16 | Thread create and thread operations stay on `requirement-python-cli-logging`. Do not duplicate |
+| 2026-10-01 | Active 1.0.17 | The logger is an `__init__` parameter on `requirement-python-oop`. Do not duplicate |
 
 ---
 

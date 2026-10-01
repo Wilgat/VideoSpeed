@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-coding-style.md  
-**Status**: Active (Version 1.4.1)  
+**Status**: Active (Version 1.4.6)  
 **Area**: python  
 **Key**: `requirement-python-coding-style`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -89,7 +89,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 
 ### 2.4c One class per file
 
-23. A class **MUST** live in its own module under `src/VideoSpeed/`. The file name is the class job in snake case (`MenuPainter` → `menu_painter.py`, `CheckSystem` → `check_system.py`). The class list is `requirement-python-oop`.  
+23. A class **MUST** live in its own module under `src/VideoSpeed/`. The file name is the class job in snake case (`MenuPainter` → `menu_painter.py`, `CheckSystem` → `check_system.py`). The class list is `requirement-python-oop`. That class's `__init__` **MUST** accept the one logger and pass it on when it constructs another class in the map. The instantiation line stays on `requirement-python-cli-logging`.  
 24. That module **MUST** define one class. One exception type raised by that class **MAY** share the file.  
 25. Functions that share the class's job **MUST** be methods. The module **MUST NOT** also define them at module level.  
 26. `cli.py` **MUST** define class `Cli` and no other class. `def main` stays in `cli.py`. It builds the objects from `requirement-python-oop` and runs one job. `cli.py` **MUST NOT** define another class's methods. The console script stays `VideoSpeed.cli:main`.  
@@ -107,7 +107,7 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | **Archive** | `src/VideoSpeed/cli.bootstrap-old.py` is not the ship unit. It still calls `os.replace`. Do not copy that call into ship modules |
 | **Ops apply** | `requirement-video-ffmpeg-pipeline` |
 | **Architecture shape today** | Ordinary classes, one class per file, ordered by `requirement-python-oop`. `def main` stays in `cli.py`. StateLogic rewrite of the encoder and of `main` is not ordered. `TP-OOP-03` and `TP-OOP-04` have landed |
-| **System-status lines** | `requirement-python-cli-logging` — do not add a second logger here |
+| **System-status lines** | `requirement-python-cli-logging` — one ChronicleLogger in `main`. Pass that object into every class. Each class logs `instantiated` and keeps the logger for later status. A major file operation (write a temp, publish, discard an unfinished temp) logs the operation and the paths on that same logger. Thread creation and thread operations log on that same logger before the call that can block, and not while a work lock is held. `log_message` only. A non-TUI, non-JSON run shows `debug mode` when `isDebug()` is true. Do not add a second logger here. Control-C during a long child is `requirement-python-graceful-exit` (stop, do not publish, exit 130) |
 | **Package version** | `requirement-python-version` |
 | **Version equality** | Suite only: `tests/test_docs.py` asserts `_PKG_VERSION == __version__`. Import does not raise |
 | **Identity block home** | Inside `main()` in `src/VideoSpeed/cli.py`. Still module-level until the next edit that touches a name |
@@ -119,6 +119,10 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 - **Principle 3 – Anti-fragile**: USB and system disk both work for publish.  
 - **Principle 5 – SSOT**: One coding-style home for move, temp, and identity rules. Identity values live in `main()` and are passed down.  
 - **Principle 11 – Temps**: Explicit staging and cleanup.
+
+## Under command line for normal user only
+
+On Termux, Git Bash, Windows cmd, or the same class, file moves and status lines stay at this login. **This requirement:** do not use admin privilege, `sudo`, or a system package manager to publish a file or to write the status log. Control-C during a long child stays `requirement-python-graceful-exit`.
 
 ---
 
@@ -173,7 +177,9 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | `requirement-python-error-handling` | Fail messaging |
 | `requirement-python-cli-interface` | Entry |
 | `requirement-class-software-dev` | Class residual |
-| `requirement-python-oop` | Class map. One class per file. `def main` stays in `cli.py` |
+| `requirement-python-oop` | Class map. One class per file. `def main` stays in `cli.py`. The logger is an `__init__` parameter |
+| `requirement-python-cli-logging` | One logger. Major file operations and thread operations log here |
+| `requirement-python-graceful-exit` | Control-C during a long child |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -200,6 +206,11 @@ Pipeline-specific apply of these rules is owned by **`requirement-video-ffmpeg-p
 | 2026-10-01 | Active 1.3.1 | StateLogic stays aspirational for the encoder and `main`. `Tui` and `CheckSystem` are `requirement-python-oop` |
 | 2026-10-01 | Active 1.4.0 | One class per file. `def main` stays in `cli.py`. The procedural pile is not an allowed end state. `TP-OOP-03` and `TP-OOP-04` stay todo |
 | 2026-10-01 | Active 1.4.1 | `TP-OOP-03` and `TP-OOP-04` have landed. Identity locals still sit at import (`TP-STYLE-01` stays todo) |
+| 2026-10-01 | Active 1.4.2 | Status lines stay on ChronicleLogger. The non-TUI, non-JSON console shows `debug mode` |
+| 2026-10-01 | Active 1.4.3 | Every class receives the one logger and logs `instantiated` |
+| 2026-10-01 | Active 1.4.4 | Control-C is `requirement-python-graceful-exit`. Major file-operation lines stay on the one ChronicleLogger |
+| 2026-10-01 | Active 1.4.5 | Thread creation and thread operations stay on `requirement-python-cli-logging`. Do not duplicate |
+| 2026-10-01 | Active 1.4.6 | Each class `__init__` accepts the logger. The constructor home is `requirement-python-oop`. The instantiation line stays on `requirement-python-cli-logging` |
 
 ---
 

@@ -10,6 +10,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from .run_output import log_instantiated
+
 
 class FileStage:
     """Intermediate files and the publish step. One class, one module.
@@ -23,6 +25,10 @@ class FileStage:
     on EXDEV. Prefer temps next to the final output when that parent is writable.
     Law: requirement-video-ffmpeg-pipeline, requirement-python-coding-style
     """
+
+    def __init__(self, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "FileStage")
 
     def staging_dir_for(self, dest_path):
         """

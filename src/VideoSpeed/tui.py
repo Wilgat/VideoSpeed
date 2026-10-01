@@ -10,6 +10,7 @@ import curses
 
 from .menu_painter import MenuPainter
 from .menu_session import MenuScreenError, MenuSession
+from .run_output import log_instantiated
 
 
 class Tui:
@@ -19,14 +20,16 @@ class Tui:
     The menu rows stay the front board from requirement-python-tui.
     """
 
-    def __init__(self, app=None, app_name="VideoSpeed", version=None):
+    def __init__(self, app=None, app_name="VideoSpeed", version=None, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "Tui")
         self.app = app
         self.app_name = app_name
         if version is None:
             from . import __version__
             version = __version__
         self.version = version
-        self.painter = MenuPainter()
+        self.painter = MenuPainter(logger=logger)
 
     def _name(self):
         if self.app is not None:
@@ -228,6 +231,7 @@ class Tui:
             on_about=app.about.framework_about,
             boards={"front": MenuPainter.MENU_ROWS},
             on_kind=on_kind,
+            logger=self.logger,
         )
 
         def _wrapped(screen):
@@ -338,6 +342,7 @@ class Tui:
             on_about=app.about.framework_about,
             boards={"front": MenuPainter.MENU_ROWS},
             on_kind=lambda _kind: None,
+            logger=self.logger,
         )
 
         def _wrapped(screen):

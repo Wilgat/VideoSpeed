@@ -20,9 +20,10 @@
 | requirement-python-dependency-management | Pip floors for headless OpenCV and ChronicleLogger | python | Active | `requirement-python-dependency-management.md` | 2026-10-01 |
 | requirement-python-project-structure | Repository and `src/VideoSpeed` layout | python | Active | `requirement-python-project-structure.md` | 2026-10-01 |
 | requirement-python-error-handling | Fail-closed errors; source-safe cleanup | python | Active | `requirement-python-error-handling.md` | 2026-10-01 |
-| requirement-python-cli-logging | System status via ChronicleLogger (one logger, level, component) | python | Active | `requirement-python-cli-logging.md` | 2026-10-01 |
+| requirement-python-cli-logging | System status via ChronicleLogger (one logger, level, component, major file operations, thread create and thread operations) | python | Active | `requirement-python-cli-logging.md` | 2026-10-01 |
+| requirement-python-graceful-exit | Control-C during a long FFmpeg child: stop, do not publish, exit 130 | python | Active | `requirement-python-graceful-exit.md` | 2026-10-01 |
 | requirement-python-coding-style | Python style; temps; **shutil.move**; no `os.rename` or `os.replace`; no import-time static `raise`; identity locals belong in `main()`; one class per file | python | Active | `requirement-python-coding-style.md` | 2026-10-01 |
-| requirement-python-oop | One class per file; `def main` stays in `cli.py`; `TP-OOP-01` through `TP-OOP-04` have landed | python | Active | `requirement-python-oop.md` | 2026-10-01 |
+| requirement-python-oop | One class per file; `def main` stays in `cli.py`; each class `__init__` receives the logger; `TP-OOP-01` through `TP-OOP-04` have landed | python | Active | `requirement-python-oop.md` | 2026-10-01 |
 | requirement-runtime-prerequisites | Host FFmpeg + pip deps; no root auto-install claim | runtime | Active | `requirement-runtime-prerequisites.md` | 2026-10-01 |
 
 ## Intentionally absent (by design)

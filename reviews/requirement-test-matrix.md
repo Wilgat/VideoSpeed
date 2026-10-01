@@ -14,12 +14,13 @@
 | requirement-python-tui | python | TP-TUI-01..05 · TP-OOP-03 | Default TUI style. Session is class `Tui`. Frame is class `MenuPainter`. `TP-OOP-03` **have**. Menu 7 shows `Hello.` |
 | requirement-python-about | python | TP-ABOUT-01..08 | About page lines and the read for each line |
 | requirement-python-coding-style | python | TP-FS-01..02 · TP-FS-05 · TP-DOC-02 · TP-STYLE-01 · TP-PKG-01 · TP-OOP-03 · TP-OOP-04 | `shutil.move`; no import-time version `raise`. Identity locals inside `main()` (**TP-STYLE-01** todo). One class per file is **TP-OOP-03** / **TP-OOP-04** have |
-| requirement-python-oop | python | TP-OOP-01 · TP-OOP-02 · TP-OOP-03 · TP-OOP-04 · TP-TUI-01..05 · TP-ABOUT-01..08 | One class per file. `def main` stays in `cli.py`. **TP-OOP-01**, **TP-OOP-02**, **TP-OOP-03**, and **TP-OOP-04** have |
+| requirement-python-oop | python | TP-OOP-01 · TP-OOP-02 · TP-OOP-03 · TP-OOP-04 · TP-LOG-05 · TP-TUI-01..05 · TP-ABOUT-01..08 | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger (**TP-LOG-05** have). **TP-OOP-01**, **TP-OOP-02**, **TP-OOP-03**, and **TP-OOP-04** have |
 | requirement-python-packaging | python | TP-PKG-* | Manifest + version dual SSOT |
 | requirement-python-build-script | python | TP-BUILD-01..06 | `./build.sh` verbs. `test-install` reads the project name. Real wheel build (TP-BUILD-05) **todo** |
 | requirement-python-json-output | python | TP-JSON-01..05 | `--json` one object; menu stays closed |
 | requirement-python-dependency-management | python | TP-DEP-01..04 | Headless OpenCV `>=5.0.0.93`; ChronicleLogger `>=1.3.1` |
-| requirement-python-cli-logging | python | TP-LOG-01..04 | ChronicleLogger in `main`. Debug identity is displayed when `DEBUG` is on (**TP-LOG-03** todo) |
+| requirement-python-cli-logging | python | TP-LOG-01..07 | ChronicleLogger in `main`, passed into every class. Each object logs `instantiated` (**TP-LOG-05**). A major file operation logs the operation and the paths (**TP-LOG-06** todo). Thread creation and thread operations log before the call that can block (**TP-LOG-07** todo; the ship unit creates no threads). A non-TUI, non-JSON run shows `debug mode` when `DEBUG` is on (**TP-LOG-03** todo) |
+| requirement-python-graceful-exit | python | TP-EXIT-01 · TP-EXIT-02 | Control-C during a long child stops the group, does not publish, and exits 130. Both proofs **todo**. Not in the ship unit yet |
 | requirement-python-project-structure | python | TP-STRUCT-01 | src layout; ship SSOT |
 | requirement-python-error-handling | python | TP-ERR-* · TP-CLI-04..05 | Fail closed; source safe |
 | requirement-runtime-prerequisites | runtime | TP-PRE-* | FFmpeg + OpenCV honesty |

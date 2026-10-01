@@ -7,6 +7,7 @@ from __future__ import print_function, unicode_literals
 import os
 
 from .check_system import CheckSystem
+from .run_output import log_instantiated
 
 
 class AboutPage:
@@ -29,8 +30,11 @@ class AboutPage:
         download_url,
         usage,
         console_name,
+        logger=None,
     ):
-        self.check = check if check is not None else CheckSystem()
+        self.logger = logger
+        log_instantiated(logger, "AboutPage")
+        self.check = check if check is not None else CheckSystem(logger=logger)
         self.app_name = app_name
         self.version = version
         self.major = major

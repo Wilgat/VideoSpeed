@@ -9,10 +9,19 @@ import json
 import sys
 
 
+def log_instantiated(logger, class_name):
+    """Record one product object on the process logger. No second logger."""
+    if logger is None:
+        return
+    logger.log_message("instantiated", component=class_name)
+
+
 class RunOutput:
     """Stdout, stderr, the message sink, and the JSON result. One class, one module."""
 
-    def __init__(self, app_name, version):
+    def __init__(self, app_name, version, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "RunOutput")
         self.app_name = app_name
         self.version = version
         self.json_mode = False

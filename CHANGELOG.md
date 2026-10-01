@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.9] - 2026-10-01
+
+### Changed
+- `main` builds one ChronicleLogger before the argument parser, in the same order as AnimeDlp: `logname`, then `logName()`, `baseDir()`, and `logDir()`.
+- When `DEBUG` is already `1`, `true`, or `show`, a non-TUI, non-JSON run displays `debug mode` with the version line and `ChronicleLogger.class_version()`. `--json` and the text screen keep that mirror off the console. The daily log still records the lines.
+- That same logger is passed into every class. Each object stores it and logs `instantiated` under its class name. A non-TUI, non-JSON run shows those lines. `--json` and the text screen keep them off the console. The daily log still records them.
+
 ## [1.0.8] - 2026-10-01
 
 ### Changed

@@ -8,10 +8,16 @@ from collections.abc import Callable
 
 from .menu_model import MenuModel
 from .menu_painter import MenuPainter
+from .run_output import log_instantiated
 
 
 class MenuScreenError(Exception):
     """The terminal cannot hold the menu and the framed input box."""
+
+    def __init__(self, message="", logger=None):
+        super().__init__(message)
+        self.logger = logger
+        log_instantiated(logger, "MenuScreenError")
 
 
 class MenuSession:
@@ -29,22 +35,26 @@ class MenuSession:
         on_about: Callable[[], str],
         boards: dict | None = None,
         on_kind: Callable[[str], str | None] | None = None,
+        logger=None,
     ) -> None:
+        self.logger = logger
+        log_instantiated(logger, "MenuSession")
         self.app_name = app_name
         self.version = version
         self.on_version = on_version
         self.on_about = on_about
         self.on_kind = on_kind
         self.leave_kind = None
-        self.painter = MenuPainter()
-        self.model = MenuModel(boards=boards)
+        self.painter = MenuPainter(logger=logger)
+        self.model = MenuModel(boards=boards, logger=logger)
 
     def run(self, screen) -> int:
         screen.keypad(True)
         height, width = screen.getmaxyx()
         if not self.painter.screen_can_hold_box(height, width):
             raise MenuScreenError(
-                "The text screen is too small for the menu and the input box."
+                "The text screen is too small for the menu and the input box.",
+                logger=self.logger,
             )
         while True:
             self.painter.paint(screen, self.model, self.app_name, self.version)

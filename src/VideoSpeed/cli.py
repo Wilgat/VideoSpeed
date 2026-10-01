@@ -31,7 +31,7 @@ from .edit_walk import EditWalk
 from .encoder import Encoder
 from .file_stage import FileStage
 from .media_info import MediaInfo
-from .run_output import RunOutput
+from .run_output import RunOutput, log_instantiated
 from .tui import Tui
 
 _PKG_VERSION = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
@@ -58,17 +58,19 @@ class Cli:
     Collaborators arrive through the constructor. def main stays beside this class.
     """
 
-    def __init__(self):
+    def __init__(self, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "Cli")
         self.app_name = APP_NAME
         self.version = _PKG_VERSION
-        self.output = RunOutput(APP_NAME, _PKG_VERSION)
-        self.stage = FileStage()
-        self.media = MediaInfo(self.output)
+        self.output = RunOutput(APP_NAME, _PKG_VERSION, logger=logger)
+        self.stage = FileStage(logger=logger)
+        self.media = MediaInfo(self.output, logger=logger)
         self.encoder = Encoder(
-            self.output, self.media, self.stage, RATIO_MIN, RATIO_MAX
+            self.output, self.media, self.stage, RATIO_MIN, RATIO_MAX, logger=logger
         )
         self.about = AboutPage(
-            CheckSystem(),
+            CheckSystem(logger=logger),
             APP_NAME,
             _PKG_VERSION,
             MAJOR_VERSION,
@@ -80,11 +82,12 @@ class Cli:
             DOWNLOAD_URL,
             BASIC_USAGE,
             CONSOLE_NAME,
+            logger=logger,
         )
         self.edit = EditWalk(
-            self.output, self.encoder, self.media, RATIO_MIN, RATIO_MAX
+            self.output, self.encoder, self.media, RATIO_MIN, RATIO_MAX, logger=logger
         )
-        self.tui = Tui(self)
+        self.tui = Tui(self, logger=logger)
 
     def stdin_is_tty(self):
         """General Purpose: Whether stdin can take interactive prompts."""
@@ -284,31 +287,96 @@ class Cli:
         )
         return parser
 
+    def _opens_text_screen(self, argv):
+        """
+        General Purpose: Whether this argv draws the text screen.
+        Last updated: 2026-10-01
+        The real parser has not run yet. This walk only decides the debug
+        mirror. --json, --help, and --version never draw that screen.
+        """
+        if "--json" in argv or "--help" in argv or "-h" in argv or "--version" in argv:
+            return False
+        if not self.stdin_is_tty() or not self.stdout_is_tty():
+            return False
+        verb = None
+        has_file = False
+        has_start = False
+        has_end = False
+        has_folder = False
+        has_percent = False
+        has_boomerang = False
+        index = 0
+        while index < len(argv):
+            token = argv[index]
+            if token == "--file" or token.startswith("--file="):
+                has_file = True
+                if token == "--file":
+                    index += 1
+            elif token == "--start" or token.startswith("--start="):
+                has_start = True
+                if token == "--start":
+                    index += 1
+            elif token == "--end" or token.startswith("--end="):
+                has_end = True
+                if token == "--end":
+                    index += 1
+            elif token == "--folder" or token.startswith("--folder="):
+                has_folder = True
+                if token == "--folder":
+                    index += 1
+            elif token == "--percent" or token.startswith("--percent="):
+                has_percent = True
+                if token == "--percent":
+                    index += 1
+            elif token == "--boomerang":
+                has_boomerang = True
+            elif not token.startswith("-") and verb is None:
+                verb = token
+            index += 1
+        if verb in ("help", "about", "hello"):
+            return False
+        if verb == "edit":
+            return not (has_file and has_start and has_end)
+        if verb == "list-mp4":
+            return True
+        if verb is not None:
+            return False
+        if has_file or has_start or has_end or has_folder:
+            return False
+        if has_percent or has_boomerang:
+            return False
+        return True
+
     def _start_logger(self, argv, log_basedir="", log_logdir=""):
         """
         General Purpose: One ChronicleLogger for this process, then the debug identity.
 
         requirement-python-cli-logging: construct with logname, read logName, baseDir,
-        and logDir, and display the identity lines only when isDebug() is already true.
-        Empty basedir and logdir leave the folder choice to ChronicleLogger.
-        A missing library returns None. That line cannot go through log_message.
+        and logDir, then display the identity only when isDebug() is already true.
+        The console mirror stays on for a non-TUI, non-JSON run, so that run shows
+        the line "debug mode". --json and the text screen quiet the mirror first.
+        The daily file still receives the lines. Empty basedir and logdir leave
+        the folder choice to ChronicleLogger. A missing library returns None.
+        That line cannot go through log_message.
         """
         try:
             from ChronicleLogger import ChronicleLogger
         except ImportError:
-            self.output.out_err("ERROR: ChronicleLogger is not installed.")
-            self.output.out_err("   Next: pip install 'ChronicleLogger>=1.3.1'")
+            # This line cannot go through log_message. No product object exists yet.
+            print("ERROR: ChronicleLogger is not installed.", file=sys.stderr)
+            print("   Next: pip install 'ChronicleLogger>=1.3.1'", file=sys.stderr)
             return None
 
         logger = ChronicleLogger(
             logname="VideoSpeed",
             basedir=log_basedir or "",
             logdir=log_logdir or "",
-            is_quiet=("--json" in argv),
         )
         appname = logger.logName()
         basedir = logger.baseDir()
         logger.logDir()
+        if "--json" in argv or self._opens_text_screen(argv):
+            logger.quiet(True)
         if logger.isDebug():
             logger.log_message(
                 "{0} v{1}.{2}.{3} ({4})".format(
@@ -327,6 +395,10 @@ class Cli:
             logger.log_message(
                 "Base {0}".format(basedir),
                 level="DEBUG",
+                component="main",
+            )
+            logger.log_message(
+                "debug mode",
                 component="main",
             )
         return logger
@@ -426,16 +498,16 @@ class Cli:
             return 1
         return 0
 
-    def run(self, argv=None, log_basedir="", log_logdir=""):
-        """One job. main builds this object and calls run."""
+    def run(self, argv=None, log_basedir="", log_logdir="", logger=None):
+        """One job. main builds the logger, then calls run with that instance."""
         self.output._json_reset()
         if argv is None:
             argv = sys.argv[1:]
         argv = list(argv)
-
-        logger = self._start_logger(argv, log_basedir, log_logdir)
         if logger is None:
-            return 1
+            logger = self._start_logger(argv, log_basedir, log_logdir)
+            if logger is None:
+                return 1
 
         parser = self.build_parser()
         args = parser.parse_args(argv)
@@ -460,11 +532,25 @@ def main(argv=None, log_basedir="", log_logdir=""):
     No arguments in a terminal → interactive editor.
     No arguments without a terminal → fail closed (ask for --file/--start/--end).
 
-    requirement-python-cli-interface: version, ChronicleLogger, debug identity,
-    then the argument parser. log_basedir and log_logdir stay empty in normal
-    use so ChronicleLogger chooses the folder. Tests pass a temporary folder.
+    requirement-python-cli-interface and requirement-python-cli-logging:
+    one ChronicleLogger, the AnimeDlp read-back, then the debug identity,
+    then the product objects, then the argument parser. Quiet is decided
+    before any class is constructed, so each object can log instantiated
+    on that same logger. A non-TUI, non-JSON run leaves the console mirror
+    on. The text screen and --json quiet that mirror first.
+    log_basedir and log_logdir stay empty in normal use so ChronicleLogger
+    chooses the folder. Tests pass a temporary folder.
     """
-    return Cli().run(argv, log_basedir, log_logdir)
+    if argv is None:
+        argv = sys.argv[1:]
+    argv = list(argv)
+    # Logger and quiet come first. Cli.__init__ is what logs each object.
+    gate = Cli.__new__(Cli)
+    logger = gate._start_logger(argv, log_basedir, log_logdir)
+    if logger is None:
+        return 1
+    app = Cli(logger)
+    return app.run(argv, logger=logger)
 
 
 if __name__ == "__main__":

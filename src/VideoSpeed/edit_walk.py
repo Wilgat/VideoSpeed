@@ -10,11 +10,15 @@ from __future__ import print_function, unicode_literals
 import sys
 from pathlib import Path
 
+from .run_output import log_instantiated
+
 
 class EditWalk:
     """The edit question order. One class, one module."""
 
-    def __init__(self, output, encoder, media, ratio_min, ratio_max):
+    def __init__(self, output, encoder, media, ratio_min, ratio_max, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "EditWalk")
         self.output = output
         self.encoder = encoder
         self.media = media

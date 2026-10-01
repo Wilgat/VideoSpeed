@@ -6,11 +6,15 @@ from __future__ import print_function, unicode_literals
 
 from pathlib import Path
 
+from .run_output import log_instantiated
+
 
 class MediaInfo:
     """MP4 paths, duration, and the clock format. One class, one module."""
 
-    def __init__(self, output):
+    def __init__(self, output, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "MediaInfo")
         self.output = output
 
     def get_mp4_files(self, folder="."):

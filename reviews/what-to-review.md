@@ -33,13 +33,14 @@
 | Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, verb prompts (folder then file), or one job. A selector with no verb must not open the menu |
 | JSON output | `requirement-python-json-output.md` | `--json` is one object on stdout. No text menu. Prompts, if any, are on stderr |
 | Text menu | `requirement-python-tui.md` | Default TUI style; session is class `Tui`; frame is class `MenuPainter`; glyphs stay out of `cli.py`. `TP-OOP-03` have |
-| OOP grouping | `requirement-python-oop.md` | One class per file. `def main` stays in `cli.py`. `TP-OOP-01`, `TP-OOP-02`, `TP-OOP-03`, and `TP-OOP-04` have |
+| OOP grouping | `requirement-python-oop.md` | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger (`TP-LOG-05` have). `TP-OOP-01`, `TP-OOP-02`, `TP-OOP-03`, and `TP-OOP-04` have |
 | About page | `requirement-python-about.md` | Identity, host check, star box. Each line names its read. No curl line while the download URL is empty |
 | Coding style | `requirement-python-coding-style.md` | Temps; `shutil.move` for every file move; no `os.rename` or `os.replace` (removable media); one class per file |
 | Packaging | `requirement-python-packaging.md` | pyproject, entrypoint, version dual SSOT |
 | Maintainer build | `requirement-python-build-script.md` | `./build.sh` verbs. `test` is `tests/run.sh`. Empty argv does not upload |
 | Pip dependency floors | `requirement-python-dependency-management.md` | `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1`; no GUI `opencv-python`; no menu wheel |
-| System status log | `requirement-python-cli-logging.md` | One ChronicleLogger in `main`. Debug mode displays the version lines when `DEBUG` is `1`, `true`, or `show`. Menu path calls `quiet(True)` |
+| System status log | `requirement-python-cli-logging.md` | One ChronicleLogger in `main`, passed into every class. Each object logs `instantiated`. A major file operation logs the operation and the paths (`TP-LOG-06` todo). Thread creation and thread operations log before the call that can block (`TP-LOG-07` todo; the ship unit creates no threads). Debug mode displays the version lines when `DEBUG` is `1`, `true`, or `show`. Menu path calls `quiet(True)` |
+| Control-C during a long child | `requirement-python-graceful-exit.md` | Stop the child, do not publish, exit 130. `TP-EXIT-01` and `TP-EXIT-02` are todo. The ship unit does not catch Control-C yet |
 | Project structure | `requirement-python-project-structure.md` | `src/` layout; cli SSOT |
 | Error handling | `requirement-python-error-handling.md` | Fail closed; source safe |
 | Runtime prereqs | `requirement-runtime-prerequisites.md` | FFmpeg system; OpenCV pip |
@@ -94,7 +95,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.8` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.9` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---

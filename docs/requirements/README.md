@@ -2,19 +2,20 @@
 
 Authoritative specialized product law for **VideoSpeed** lives here.
 
-**Current state (2026-10-01):** Specialized **software-development** product. Left genesis. Registry is populated (18 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
+**Current state (2026-10-01):** Specialized **software-development** product. Left genesis. Registry is populated (19 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
 | Product / package | `VideoSpeed` |
-| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 8 → `1.0.8` |
+| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 9 → `1.0.9` |
 | Text menu | `requirement-python-tui` — picture; session is class `Tui`; frame is class `MenuPainter` |
 | About page | `requirement-python-about` — identity, host check, star box |
-| OOP grouping | `requirement-python-oop` — one class per file. `def main` stays in `cli.py`. `TP-OOP-01` through `TP-OOP-04` have landed |
+| OOP grouping | `requirement-python-oop` — one class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Pip floors | `requirement-python-dependency-management` — `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
-| System status log | `requirement-python-cli-logging` — one ChronicleLogger, `log_message` level and component |
+| System status log | `requirement-python-cli-logging` — one ChronicleLogger, passed into every class. Each object logs `instantiated`. A major file operation logs the operation and the paths. Thread creation and thread operations log before the call that can block (`TP-LOG-07` todo; the ship unit creates no threads). A non-TUI, non-JSON run shows `debug mode` |
+| Control-C during a long child | `requirement-python-graceful-exit` — stop the child, do not publish, exit 130. Not in the ship unit yet (`TP-EXIT-01`, `TP-EXIT-02` todo) |
 | Modes | `requirement-python-interactive-vs-noninteractive` — menu walk, product verb (folder then file), or one job |
 | Maintainer build | `requirement-python-build-script` — `./build.sh` verbs |
 | JSON output | `requirement-python-json-output` — `--json` is one object; no text menu |

@@ -7,9 +7,15 @@ from __future__ import annotations
 
 import curses
 
+from .run_output import log_instantiated
+
 
 class MenuPainter:
     """Draws the front board and the rounded input box. One class, one module."""
+
+    def __init__(self, logger=None):
+        self.logger = logger
+        log_instantiated(logger, "MenuPainter")
 
     # =============================================================================
     # CIAO-Lite Protection Zone

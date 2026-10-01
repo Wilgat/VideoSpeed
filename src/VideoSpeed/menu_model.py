@@ -7,6 +7,7 @@ from __future__ import annotations
 import curses
 
 from .menu_painter import MenuPainter
+from .run_output import log_instantiated
 
 
 class MenuModel:
@@ -16,8 +17,10 @@ class MenuModel:
     and the model keeps VideoSpeed's edit / hello / about / Exit list.
     """
 
-    def __init__(self, boards: dict | None = None) -> None:
-        self.painter = MenuPainter()
+    def __init__(self, boards: dict | None = None, logger=None) -> None:
+        self.logger = logger
+        log_instantiated(logger, "MenuModel")
+        self.painter = MenuPainter(logger=logger)
         if boards is None:
             boards = {"front": MenuPainter.MENU_ROWS}
         self.boards = boards

@@ -26,4 +26,4 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 | `test_about.py` | TP-ABOUT-01..07 · TP-OOP-02 |
 | `test_docs.py` | TP-DOC-01 · TP-STRUCT-01 · TP-DOMAIN-02 |
 
-FFmpeg encode cases (TP-FFMPEG-*) stay **skip** until `ffmpeg` is on `PATH` and a fixture MP4 is available. Interactive TTY walk (TP-CLI-03 / TP-CLI-05) stays **todo**. One class per file (`TP-OOP-03`, `TP-OOP-04`) is **have**. The text menu (`TP-TUI-*`) drives class `Tui` in `src/VideoSpeed/tui.py` with a fake screen; the frame is class `MenuPainter`. It does not need a real terminal. Last suite run: 73 tests, OK, skipped=1 (`TP-PRE-01`, ffmpeg on PATH).
+FFmpeg encode cases (TP-FFMPEG-*) stay **skip** until `ffmpeg` is on `PATH` and a fixture MP4 is available. Interactive TTY walk (TP-CLI-03 / TP-CLI-05) stays **todo**. One class per file (`TP-OOP-03`, `TP-OOP-04`) is **have**. The text menu (`TP-TUI-*`) drives class `Tui` in `src/VideoSpeed/tui.py` with a fake screen; the frame is class `MenuPainter`. It does not need a real terminal. Last suite run: 74 tests, OK, skipped=1 (`TP-PRE-01`, ffmpeg on PATH).

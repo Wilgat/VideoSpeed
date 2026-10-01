@@ -113,8 +113,10 @@ class TestLogging(unittest.TestCase):
         self.assertIn("video-speed v", text)
         self.assertIn("ChronicleLogger v", text)
         self.assertIn("Base ", text)
+        self.assertIn("debug mode", text)
         logged = self._log_text(logd)
         self.assertIn("ChronicleLogger v", logged)
+        self.assertIn("debug mode", logged)
         self.assertIn("@main", logged)
 
         off_base, off_log = self._dirs()
@@ -124,7 +126,9 @@ class TestLogging(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 cli.main(["--version"], log_basedir=off_base, log_logdir=off_log)
         self.assertNotIn("ChronicleLogger v", off.getvalue())
+        self.assertNotIn("debug mode", off.getvalue())
         self.assertNotIn("ChronicleLogger v", self._log_text(off_log))
+        self.assertNotIn("debug mode", self._log_text(off_log))
 
     def test_tp_log_02_json_keeps_debug_off_stdout(self):
         """TP-LOG-02: --json still stores the debug lines, and stdout stays one object."""
@@ -145,8 +149,11 @@ class TestLogging(unittest.TestCase):
             cli.Cli.stdin_is_tty = saved_tty
         raw = out.getvalue()
         self.assertNotIn("ChronicleLogger", raw)
+        self.assertNotIn("debug mode", raw)
         self.assertTrue(raw.strip().startswith("{"), raw)
-        self.assertIn("ChronicleLogger v", self._log_text(logd))
+        logged = self._log_text(logd)
+        self.assertIn("ChronicleLogger v", logged)
+        self.assertIn("debug mode", logged)
         self.assertEqual(code, 1)
 
     def test_tp_log_04_menu_quiets_before_open(self):
@@ -181,3 +188,99 @@ class TestLogging(unittest.TestCase):
             cli.Cli.stdin_is_tty = saved_tty
         self.assertEqual(code, 0)
         self.assertIs(seen.get("quiet"), True)
+
+    def test_tp_log_02_text_screen_keeps_debug_off_stdout(self):
+        """TP-LOG-02: the text screen quiets the mirror. The file still says debug mode."""
+        from VideoSpeed import cli
+        from VideoSpeed.tui import Tui
+
+        base, logd = self._dirs()
+        self._push_debug("1")
+        saved_open = Tui.open_text_menu
+        saved_in = cli.Cli.stdin_is_tty
+        saved_out = cli.Cli.stdout_is_tty
+        Tui.open_text_menu = lambda self: None
+        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdout_is_tty = lambda self: True
+        out = io.StringIO()
+        try:
+            with redirect_stdout(out):
+                code = cli.main([], log_basedir=base, log_logdir=logd)
+        finally:
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
+            cli.Cli.stdout_is_tty = saved_out
+        self.assertEqual(code, 0)
+        self.assertNotIn("debug mode", out.getvalue())
+        self.assertIn("debug mode", self._log_text(logd))
+
+    def test_tp_log_05_each_object_logs_instantiated(self):
+        """TP-LOG-05: every constructed class stores the one logger and logs instantiated."""
+        from VideoSpeed import cli
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_session import MenuScreenError, MenuSession
+
+        base, logd = self._dirs()
+        self._push_debug(None)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            with self.assertRaises(SystemExit) as caught:
+                cli.main(["--version"], log_basedir=base, log_logdir=logd)
+        self.assertEqual(caught.exception.code, 0)
+        text = out.getvalue()
+        logged = self._log_text(logd)
+        for name in (
+            "Cli",
+            "RunOutput",
+            "FileStage",
+            "MediaInfo",
+            "Encoder",
+            "CheckSystem",
+            "AboutPage",
+            "EditWalk",
+            "Tui",
+            "MenuPainter",
+        ):
+            line = "@{0} :] instantiated".format(name)
+            self.assertIn(line, logged, name)
+            self.assertIn(line, text, name)
+        self.assertNotIn("debug mode", text)
+        self.assertNotIn("debug mode", logged)
+
+        gate = cli.Cli.__new__(cli.Cli)
+        logger = gate._start_logger(["--version"], base, logd)
+        app = cli.Cli(logger)
+        self.assertIs(app.encoder.logger, logger)
+        self.assertIs(app.tui.painter.logger, logger)
+        self.assertIs(app.about.check.logger, logger)
+        self.assertIs(app.edit.logger, logger)
+        self.assertIs(app.media.logger, logger)
+        self.assertIs(app.output.logger, logger)
+        self.assertIs(app.stage.logger, logger)
+        session = MenuSession(
+            "VideoSpeed",
+            "0",
+            on_version=lambda: "0",
+            on_about=lambda: "about",
+            logger=logger,
+        )
+        self.assertIs(session.model.logger, logger)
+        self.assertIs(session.model.painter.logger, logger)
+        self.assertIs(MenuModel(logger=logger).logger, logger)
+        self.assertIs(MenuScreenError("too small", logger=logger).logger, logger)
+        logged = self._log_text(logd)
+        for name in ("MenuSession", "MenuModel", "MenuScreenError"):
+            self.assertIn("@{0} :] instantiated".format(name), logged)
+
+        json_base, json_log = self._dirs()
+        json_out = io.StringIO()
+        with redirect_stdout(json_out):
+            with self.assertRaises(SystemExit) as json_caught:
+                cli.main(
+                    ["--json", "--version"],
+                    log_basedir=json_base,
+                    log_logdir=json_log,
+                )
+        self.assertEqual(json_caught.exception.code, 0)
+        self.assertNotIn("instantiated", json_out.getvalue())
+        self.assertIn("@Cli :] instantiated", self._log_text(json_log))

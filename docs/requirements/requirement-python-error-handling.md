@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-error-handling.md  
-**Status**: Active (Version 1.2.2)  
+**Status**: Active (Version 1.2.3)  
 **Area**: python  
 **Key**: `requirement-python-error-handling`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -40,7 +40,8 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 1. **MUST NOT** silently ignore FFmpeg non-zero exits.  
 2. **MUST NOT** treat invalid user input as success.  
 3. **MUST** prefer clear human-readable messages over stack traces for expected user mistakes.  
-4. **MUST** leave the source video intact on all failure paths.
+4. **MUST** leave the source video intact on all failure paths.  
+4a. **MUST NOT** classify Control-C / SIGINT during a long child as an FFmpeg non-zero exit or as `CalledProcessError`. Exit 130, stopping the child, and not publishing belong to `requirement-python-graceful-exit`. A real FFmpeg failure stays in this file.
 
 ### 2.2 Required error categories
 
@@ -51,7 +52,8 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 | Invalid cut range | not `0 <= start < end <= duration` | Message + re-prompt (do not encode) |
 | Unreadable media / zero duration | OpenCV probe fails or duration ≤ 0 | Clear error; do not encode |
 | FFmpeg missing | subprocess cannot find binary | Actionable message: install FFmpeg |
-| FFmpeg failure | non-zero exit / CalledProcessError | Report failure; cleanup temps |
+| FFmpeg failure | non-zero exit / CalledProcessError | Report failure; cleanup temps. Exit 130 is not this row |
+| Control-C during a long child | SIGINT while the child is running | Not this table. Exit 130 is `requirement-python-graceful-exit` |
 | Temp cleanup failure | unlink errors | Best-effort; do not mask original error |
 
 ### 2.3 Cleanup on failure
@@ -75,6 +77,7 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 | **No MP4** | Menu return on the walk; non-zero on `--folder` |
 | **Temp cleanup** | `finally` unlinks cut/speed temps |
 | **Logging** | Console sentence stays here. Durable status file is `requirement-python-cli-logging` |
+| **Control-C** | Not an FFmpeg failure. Exit 130 is `requirement-python-graceful-exit` |
 | **Non-interactive** | `requirement-python-interactive-vs-noninteractive` |
 | **JSON** | The same failure sentence is `error` in `requirement-python-json-output`. It is not a second stdout line |
 
@@ -83,6 +86,10 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 - **Principle 1 – Caution**: Fail closed on encode errors.  
 - **Principle 11 – Temps**: Cleanup without destroying source.  
 - **Principle 12 – Traceability**: User-visible failure reasons.
+
+## Under command line for normal user only
+
+On Termux, Git Bash, Windows cmd, or the same class, a failure is still reported at this login and the source file stays. **This requirement:** do not use admin privilege, `sudo`, or a system package manager to clean up a failed encode or to stop a child. Control-C stays `requirement-python-graceful-exit`.
 
 ---
 
@@ -103,7 +110,8 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 2. Delete source media on error.  
 3. Encode after invalid range validation failure.  
 4. Replace clear messages with silent `pass`.  
-5. Log credentials or API tokens (none should exist).
+5. Log credentials or API tokens (none should exist).  
+6. Treat Control-C as an FFmpeg failure exit. That stop is `requirement-python-graceful-exit`.
 
 **Violating this rule is a critical safety regression.**
 
@@ -129,6 +137,7 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 | `requirement-python-cli-interface` | Prompt re-entry |
 | `requirement-runtime-prerequisites` | Missing FFmpeg |
 | `requirement-python-cli-logging` | Durable status copy of a failure |
+| `requirement-python-graceful-exit` | Control-C during a long child. Not an FFmpeg failure |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -148,6 +157,7 @@ Define how VideoSpeed **detects, reports, and recovers from errors** during inte
 | 2026-10-01 | Active 1.2.0 | Console sentence stays; durable copy points at `requirement-python-cli-logging` |
 | 2026-10-01 | Active 1.2.1 | Walk versus job exits point at the mode requirement |
 | 2026-10-01 | Active 1.2.2 | `--json` repeats the failure sentence inside the one object |
+| 2026-10-01 | Active 1.2.3 | Control-C during a long child is not an FFmpeg failure. Exit 130 is `requirement-python-graceful-exit` |
 
 ---
 

@@ -1,12 +1,12 @@
 **file**: docs/requirements/requirement-python-oop.md
-**Status**: Active (Version 1.1.1)
+**Status**: Active (Version 1.2.0)
 **Area**: python
 **Key**: `requirement-python-oop`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define when VideoSpeed uses a class, and name the file that holds each class. One class lives in one module. `def main` stays in `src/VideoSpeed/cli.py`.
+Define when VideoSpeed uses a class, and name the file that holds each class. One class lives in one module. `def main` stays in `src/VideoSpeed/cli.py`. Every class in the map accepts the one status logger as an `__init__` parameter so that class can log. The line text stays on `requirement-python-cli-logging`.
 
 The menu picture stays on `requirement-python-tui`. The about-page lines stay on `requirement-python-about`. Encode order stays on `requirement-video-ffmpeg-pipeline`. The JSON object shape stays on `requirement-python-json-output`. This file decides the class and the file. It does not invent a second picture, a second line list, a second encode order, or a second JSON shape.
 
@@ -14,7 +14,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 
 ### 1.1 Human-facing
 
-**In one sentence:** Each class lives in its own file, and `main` stays in `cli.py`.
+**In one sentence:** Each class lives in its own file, `main` stays in `cli.py`, and each class receives the logger in `__init__`.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -27,6 +27,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | One class per file; the class is the only public surface of that module | A second class in the same file, or a module-level function beside the class |
 | `def main` in `src/VideoSpeed/cli.py` | Moving `main` to another module |
 | Ordinary classes named in the map below | One class per function; a StateLogic rewrite |
+| The one logger passed into `__init__` | A setter, a module global, or a second logger built inside the class |
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
@@ -60,6 +61,14 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 9. The console script **MUST** stay `video-speed = "VideoSpeed.cli:main"`. `src/VideoSpeed/__main__.py` **MUST** keep `from .cli import main`.  
 10. `cli.py` **MUST NOT** define another class's methods. `Cli` owns `build_parser`, `_dispatch`, `_start_logger`, the five verb methods, `_unknown_verb`, `stdin_is_tty`, and `stdout_is_tty`.  
 11. `Cli` constructs the other classes and calls them. Each class receives its collaborators through its constructor. A lazy `_host()` import of `cli` is not the end state.
+
+### 2.2a The logger arrives through `__init__`
+
+11a. Every class in the map, and `MenuScreenError`, **MUST** accept the one ChronicleLogger as a parameter of `__init__`.  
+11b. `__init__` **MUST** store that object on `self.logger`. A class that constructs another class in the map **MUST** pass that same object into that constructor.  
+11c. `main` builds the logger before `Cli` (`requirement-python-cli-logging`) and **MUST** pass it into `Cli`. The parameter **MAY** default to absent so a caller that has no logger can omit it. `main` has the logger and **MUST NOT** omit it.  
+11d. **MUST NOT** construct a ChronicleLogger inside a class. **MUST NOT** attach the logger through a setter or a module global after `__init__` returns.  
+11e. The instantiation line, its level, and quiet stay on `requirement-python-cli-logging`. This file owns only that the logger arrives through `__init__`.
 
 ### 2.3 Text menu
 
@@ -109,13 +118,18 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | **Console script** | `video-speed = "VideoSpeed.cli:main"` |
 | **Module entry** | `src/VideoSpeed/__main__.py` imports `main` from `.cli` |
 | **Landed** | `TP-OOP-01` session left `cli.py`. `TP-OOP-02` host check is `CheckSystem`. `TP-OOP-03` painter and screen types left `tui.py`. `TP-OOP-04` the other jobs left `cli.py` |
-| **Not this split** | Menu rows, about line text, encode order, JSON object shape, version integers |
+| **Logger** | Every class `__init__` in the map accepts `logger` and stores it. `main` passes the one ChronicleLogger into `Cli`. Collaborators receive that same object. Already on the ship unit. The instantiation line is `requirement-python-cli-logging` (`TP-LOG-05` have) |
+| **Not this split** | Menu rows, about line text, encode order, JSON object shape, version integers, the wording of the instantiation line |
 
 ### 2.7 Why This Requirement Exists (CIAO)
 
-- **Principle 2 – Intentional**: Each job has one class and one file.  
+- **Principle 2 – Intentional**: Each job has one class and one file. That class receives the logger in `__init__`.  
 - **Principle 5 – SSOT**: `cli.py` does not keep a second copy of another class's methods. `main` has one home.  
 - **Principle 1 – Caution**: The picture, the lines, the encode order, and the JSON shape stay where they already work.
+
+## Under command line for normal user only
+
+On Termux, Git Bash, Windows cmd, or the same class, each class still receives the logger through `__init__` at this login. **This requirement:** do not use admin privilege, `sudo`, or a system package manager to construct a class or to pass the logger.
 
 ---
 
@@ -124,7 +138,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 - **Caution:** Move a whole named set together. A half-move leaves two homes.  
 - **Intentional:** The map above is the class list. `main` stays in `cli.py`.  
 - **Anti-fragile:** Picture, lines, encode order, and JSON shape keep their own requirements.  
-- **Over-protect:** Do not flatten a class back into module functions. Do not put a second class in its file.
+- **Over-protect:** Do not flatten a class back into module functions. Do not put a second class in its file. Do not build the logger inside the class.
 
 ---
 
@@ -140,7 +154,8 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 6. Split one class across two modules.  
 7. Rewrite `cut_clip`, `speed_change`, or `add_boomerang` into StateLogic because this file exists.  
 8. Change the about line list or the menu rows in this file.  
-9. Mark `TP-OOP-03` or `TP-OOP-04` have before the suite asserts the new homes.
+9. Mark `TP-OOP-03` or `TP-OOP-04` have before the suite asserts the new homes.  
+10. Construct a class in the map without passing the logger into `__init__` when the caller has it, or attach that logger through a setter or a module global.
 
 **Violating this rule is a critical regression.**
 
@@ -159,6 +174,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | AC-7 | `cli.py` defines class `Cli` and `def main`. The console script is `VideoSpeed.cli:main` |
 | AC-8 | Menu picture, about lines, encode order, and JSON shape stay on their own requirements |
 | AC-9 | Registered in the index |
+| AC-10 | Every class in the map, and `MenuScreenError`, accepts the one logger in `__init__` and stores it. `main` passes it into `Cli` |
 
 ---
 
@@ -171,6 +187,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | `requirement-python-coding-style` | One class per file is also a style rule. StateLogic stays aspirational. `shutil.move` stays there |
 | `requirement-python-project-structure` | Package directory |
 | `requirement-python-cli-interface` | `main` stays in `cli.py` and builds the objects |
+| `requirement-python-cli-logging` | The instantiation line. This file owns the `__init__` parameter |
 | `requirement-python-interactive-vs-noninteractive` | Question order that `EditWalk` carries |
 | `requirement-video-ffmpeg-pipeline` | Encode order. `Encoder` carries it |
 | `requirement-python-json-output` | JSON object shape. `RunOutput` writes it |
@@ -184,6 +201,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | TP-OOP-02 | `tests/test_about.py` | have | `CheckSystem` owns the host-check set. Those functions are not defined in `cli.py` |
 | TP-OOP-03 | `tests/test_tui.py` | have | `paint`, `format_rows`, and the frame glyphs are methods or constants of `MenuPainter`. `MenuModel` and `MenuSession` are their own modules. `tui.py` defines class `Tui` only |
 | TP-OOP-04 | `tests/test_cli.py` | have | `cli.py` defines class `Cli` and `def main`. Encoder, file stage, media info, about page, edit walk, and run output are not module-level functions there |
+| TP-LOG-05 | `tests/test_logging.py` | have | Constructors in this map accept the logger and store it. The instantiation line is owned by `requirement-python-cli-logging`. This file does not add `TP-OOP-05` |
 | TP-TUI-01..05 | `tests/test_tui.py` | have | Picture stays true |
 | TP-ABOUT-01..08 | `tests/test_about.py` | have | Host-check lines stay true |
 
@@ -195,6 +213,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | 2026-10-01 | Active 1.0.1 | `TP-OOP-01` and `TP-OOP-02` landed. `cli.py` constructs the two classes and does not keep the sets |
 | 2026-10-01 | Active 1.1.0 | One class per file. `def main` stays in `cli.py`. Painter, screen types, and the other jobs have their own classes. `TP-OOP-03` and `TP-OOP-04` are todo |
 | 2026-10-01 | Active 1.1.1 | `TP-OOP-03` and `TP-OOP-04` have landed. The suite asserts those homes |
+| 2026-10-01 | Active 1.2.0 | Every class in the map accepts the one logger in `__init__` and stores it. The instantiation line stays on `requirement-python-cli-logging`. Already on the ship unit (`TP-LOG-05` have) |
 
 ---
 

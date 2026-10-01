@@ -16,7 +16,8 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 |------|--------|----------|
 | Package import / version without OpenCV | **have** | `tests/test_package.py` |
 | Pip dependency floors (OpenCV headless, ChronicleLogger) | **have** | `tests/test_dependencies.py` |
-| ChronicleLogger system-status wiring | **partial** | `requirement-python-cli-logging` (`TP-LOG-01`, `TP-LOG-02`, `TP-LOG-04` have; `TP-LOG-03` todo) |
+| ChronicleLogger system-status wiring | **partial** | `requirement-python-cli-logging` (`TP-LOG-01`, `TP-LOG-02`, `TP-LOG-04`, `TP-LOG-05` have; `TP-LOG-03`, `TP-LOG-06`, `TP-LOG-07` todo) |
+| Control-C during a long child | **todo** | `requirement-python-graceful-exit` (`TP-EXIT-01`, `TP-EXIT-02` todo) |
 | `--version` / `--help` | **have** | `tests/test_cli.py` |
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
@@ -67,9 +68,19 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
 |-------|--------|-----------------|------------------------|--------|
 | TP-LOG-01 | One construct; read back `logName` / `baseDir` / `logDir` under a temp base | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
-| TP-LOG-02 | `DEBUG=1` before construct shows identity lines; unset `DEBUG` does not | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
+| TP-LOG-02 | `DEBUG=1` on a non-TUI, non-JSON run shows the identity lines and `debug mode`; unset `DEBUG` does not. `--json` and the text screen keep that mirror off stdout | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
 | TP-LOG-03 | `INFO` / `WARNING` / `ERROR` / `FATAL` with keyword `component` | — | requirement-python-cli-logging | **todo** |
 | TP-LOG-04 | Text menu path calls `quiet(True)` before the frame | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
+| TP-LOG-05 | Each constructed class stores the one logger and logs `instantiated`. `--json` keeps that line off stdout | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
+| TP-LOG-06 | A publish or a temp write logs the operation and the paths | — | requirement-python-cli-logging | **todo** |
+| TP-LOG-07 | A thread create, start, or wait writes the action, the thread name, and the wait target before the call that can block. The log call is not made while a work lock is held | — | requirement-python-cli-logging | **todo** |
+
+### TP-EXIT (Control-C during a long child)
+
+| TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
+|-------|--------|-----------------|------------------------|--------|
+| TP-EXIT-01 | Control-C during the child stops the group, does not publish, the log contains interrupted, the process exits 130, and there is no traceback | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-02 | A second Control-C during cleanup still exits 130 and the child is gone | — | requirement-python-graceful-exit | **todo** |
 
 ### TP-CLI (CLI surface)
 
@@ -169,6 +180,8 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-OOP-02 | Class `CheckSystem` lives in `src/VideoSpeed/check_system.py` and owns the host-check functions. Those functions are not defined in `cli.py` | `tests/test_about.py` | requirement-python-oop | **have** |
 | TP-OOP-03 | `paint`, `format_rows`, and the frame glyphs are methods or constants of `MenuPainter`. `MenuModel` and `MenuSession` are their own modules. `tui.py` defines class `Tui` only | `tests/test_tui.py` | requirement-python-oop | **have** |
 | TP-OOP-04 | `cli.py` defines class `Cli` and `def main`. Encoder, file stage, media info, about page, edit walk, and run output are not module-level functions there | `tests/test_cli.py` | requirement-python-oop | **have** |
+
+The logger parameter on each class `__init__` is `TP-LOG-05` (**have**). `requirement-python-oop` does not add `TP-OOP-05`.
 
 ### TP-FFMPEG (encode pipeline)
 

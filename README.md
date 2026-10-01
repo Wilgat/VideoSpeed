@@ -1,6 +1,6 @@
 # VideoSpeed - Cut, speed, and boomerang MP4 clips from the CLI
 
-![Version](https://img.shields.io/badge/Version-1.0.8-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.9-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 [![Stars](https://img.shields.io/github/stars/Wilgat/VideoSpeed?style=flat-square)](https://github.com/Wilgat/VideoSpeed)
@@ -13,7 +13,7 @@ VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent)
 |-----|----------------|----------|
 | Editor at a terminal or a script | FFmpeg on `PATH` (does the encode) | A website, installer, or root/sudo tool |
 
-Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.8**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
+Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.9**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
 
 ## Features
 
@@ -76,9 +76,9 @@ The console script is installed on the pyenv 3.14 prefix. `./setup.sh` changes t
 
 ```bash
 # after: python -m build   (or ./build.sh build)
-pip install dist/VideoSpeed-1.0.8-py3-none-any.whl
+pip install dist/VideoSpeed-1.0.9-py3-none-any.whl
 # or
-pip install dist/VideoSpeed-1.0.8.tar.gz
+pip install dist/VideoSpeed-1.0.9.tar.gz
 ```
 
 ### Verify
@@ -183,4 +183,4 @@ MIT License — see [`LICENSE.md`](LICENSE.md).
 
 ## Last Update
 
-2026-10-01 — **1.0.8**: each class lives in its own module. `def main` stays in `src/VideoSpeed/cli.py`.
+2026-10-01 — **1.0.9**: a non-TUI, non-JSON run shows `debug mode` when `DEBUG` is already on, and each class logs `instantiated` on the one ChronicleLogger. `def main` stays in `src/VideoSpeed/cli.py`.
