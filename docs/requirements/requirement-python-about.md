@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-about.md
-**Status**: Active (Version 1.0.5)
+**Status**: Active (Version 1.0.7)
 **Area**: python
 **Key**: `requirement-python-about`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -16,7 +16,7 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 
 | Box | Meaning | Example |
 |-----|---------|---------|
-| You / this login | Person reading the about page | Menu row **8 about** |
+| You / this login | Person reading the about page | Menu row **83 about**, under **8** self-management |
 | The other role | The text-menu result page | `requirement-python-tui` draws it and scrolls it |
 | Not this file | Cut, speed, boomerang, and `--json` | Domain, pipeline, and JSON requirements |
 
@@ -28,7 +28,7 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
-| `video-speed` | text menu on a terminal | Choose **8** or type `about` |
+| `video-speed` | text menu on a terminal | Choose **8**, then **83**, or type `about` |
 | `video-speed about` | the same page, no front-board pick | No folder prompt and no file prompt (`requirement-python-interactive-vs-noninteractive` §2.1b) |
 | `src/VideoSpeed/about_page.py` | class `AboutPage` | The page text. It calls `CheckSystem` for the host check. `TP-OOP-04` has landed |
 | `src/VideoSpeed/check_system.py` | class `CheckSystem` | Host-check reads. `TP-OOP-02` has landed |
@@ -36,8 +36,9 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Open about | The menu stays in the result page. The page starts with the product name and the domain sentence, then the host check, then the star box. Up and Down scroll when the page is longer than the screen. Any other key returns to the menu. | `video-speed`, then `8` |
+| Open about | The menu stays in the result page. The page starts with the product name and the domain sentence, then the host check, then the star box. Up and Down scroll when the page is longer than the screen. Any other key returns to the menu. | `video-speed`, then `8`, then `83` |
 | Read the install sentence | A checkout under `src/VideoSpeed` with `pyproject.toml` above it says UNINSTALLED. A copy under your home directory says LOCAL INSTALLED. A copy under `/usr`, `/opt`, or `/bin` says GLOBAL INSTALLED. | Same page |
+| Read the pyenv lines | When this login has pyenv, `python2 location` and `python3 location` are paths inside that root. `pyenv location` is `bin/pyenv`, not `libexec/pyenv`. The reads are `requirement-python-pyenv`. | `video-speed about` |
 
 ## 2. Core Rules (Mandatory)
 
@@ -55,10 +56,10 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 | `Current User` | Environment `USER`, else `USERNAME`, else `getpass.getuser()`. On failure, empty. |
 | `Shell` | Environment `SHELL`, else empty. |
 | `Python Executable` | Basename of `sys.executable`. Split on `/` or `\`. Empty when `sys.executable` is empty. |
-| `python2 location` | `shutil.which("python2")`, else empty. |
-| `python3 location` | `shutil.which("python3")`, else empty. |
+| `python2 location` | When the check is under pyenv, the path from `requirement-python-pyenv`. Otherwise `shutil.which("python2")`, else empty. |
+| `python3 location` | When the check is under pyenv, the path from `requirement-python-pyenv`. Otherwise `shutil.which("python3")`, else empty. |
 | `conda location` | `shutil.which("conda")`, else empty. |
-| `pyenv location` | `shutil.which("pyenv")`, else empty. |
+| `pyenv location` | When the check is under pyenv, `{root}/bin/pyenv` from `requirement-python-pyenv`. Otherwise `shutil.which("pyenv")`, else empty. |
 | `Inside docker container` | `True` when `/.dockerenv` exists, otherwise `False`. Python’s `True` / `False` spelling. No other container probe. |
 | `Cython String` | `sysconfig.get_config_var("SOABI")`, else empty. The label stays `Cython String`. |
 | `Binary Type` | `{arch}-{libc}` when both are non-empty. `{arch}-` when libc is empty. Empty when arch is empty. |
@@ -102,10 +103,10 @@ Entry points: video-speed, python -m VideoSpeed
     Current User: <login>
     Shell: /bin/bash
     Python Executable: python3
-    python2 location:
-    python3 location: <python3 on PATH>
+    python2 location: <python2 inside the pyenv root, or empty>
+    python3 location: <python3 inside the pyenv root, or empty>
     conda location:
-    pyenv location: <pyenv on PATH>
+    pyenv location: <pyenv root>/bin/pyenv
     Inside docker container: False
     Cython String: cpython-312-x86_64-linux-gnu
     Binary Type: amd64-glibc
@@ -139,6 +140,7 @@ Invocation: `video-speed` on a terminal, then `8` or `about`.
 |------|--------|
 | **Page builder** | Class `AboutPage` in `src/VideoSpeed/about_page.py` (`framework_about`). `TP-OOP-04` has landed |
 | **Host check** | Class `CheckSystem` in `src/VideoSpeed/check_system.py` (`requirement-python-oop`, `TP-OOP-02`) |
+| **Pyenv paths** | `python2`, `python3`, and `pyenv` locations when under pyenv (`requirement-python-pyenv`) |
 | **Star box** | `AboutPage.about_box_lines` calls `CheckSystem` for `self_location` and the Python executable name |
 | **Menu hook** | `Tui.open_text_menu` passes `on_about` to `AboutPage.framework_about` |
 | **APP_NAME** | `VideoSpeed` |
@@ -175,6 +177,7 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 
 - Drop a host-check label or change its order.
 - Replace `shutil.which` with a subprocess that runs `python2`, `python3`, `conda`, or `pyenv`.
+- Report `{root}/libexec/pyenv` as `pyenv location` when `{root}/bin/pyenv` exists. That read is `requirement-python-pyenv`.
 - Probe containers by anything other than `/.dockerenv`.
 - Show GLOBAL, LOCAL, or UNINSTALLED for a path the rules in this file classify differently.
 - Put `curl -fsSL` on the live about page while the download URL is empty.
@@ -194,8 +197,10 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | TP-ABOUT-06 | `tests/test_about.py` | have |
 | TP-ABOUT-07 | `tests/test_about.py` | have |
 | TP-ABOUT-08 | `tests/test_tui.py` | have |
+| TP-ABOUT-09 | `tests/test_about.py` | have |
+| TP-ABOUT-10 | `tests/test_about.py` | have |
 
-TP-ABOUT-01 asserts the identity line, every host-check label, the star-box title, and that the live page has no `curl -fsSL` and no `py-tui`. TP-ABOUT-02 asserts the stamp `YYYY-MM-DD HH:MM:SS.ffffff`, the `[CHECK SYSTEM]:` header, and the field order. TP-ABOUT-03 asserts the star box is one rectangle and that a global path uses the GLOBAL sentence. TP-ABOUT-04 asserts an explicit download URL renders the install line, and that the product URL stays empty. TP-ABOUT-05 asserts the GCC token, the PyPy token, the arch map, `msc`, `clang`, `muslc`, and `amd64-glibc`. TP-ABOUT-06 asserts checkout = uninstalled, a home copy = local, and `/usr` = global. TP-ABOUT-07 asserts the docker marker file and a missing `which` result. TP-ABOUT-08 asserts a long about page scrolls to `Basic Usage:` and a one-line result still closes on Down.
+TP-ABOUT-01 asserts the identity line, every host-check label, the star-box title, and that the live page has no `curl -fsSL` and no `py-tui`. TP-ABOUT-02 asserts the stamp `YYYY-MM-DD HH:MM:SS.ffffff`, the `[CHECK SYSTEM]:` header, and the field order. TP-ABOUT-03 asserts the star box is one rectangle and that a global path uses the GLOBAL sentence. TP-ABOUT-04 asserts an explicit download URL renders the install line, and that the product URL stays empty. TP-ABOUT-05 asserts the GCC token, the PyPy token, the arch map, `msc`, `clang`, `muslc`, and `amd64-glibc`. TP-ABOUT-06 asserts checkout = uninstalled, a home copy = local, and `/usr` = global. TP-ABOUT-07 asserts the docker marker file and a missing `which` result. TP-ABOUT-08 asserts a long about page scrolls to `Basic Usage:` and a one-line result still closes on Down. TP-ABOUT-09 and TP-ABOUT-10 assert the pyenv paths. The pass text is `requirement-python-pyenv`.
 
 **Matrix:** `reviews/requirement-test-matrix.md`
 **Map:** `reviews/test-plan.md`.
@@ -208,6 +213,7 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | `docs/requirements/requirement-domain-videospeed.md` | Domain sentence on the identity block |
 | `docs/requirements/requirement-python-tui.md` | Result page; scroll; no frame on about |
 | `docs/requirements/requirement-python-oop.md` | Class `CheckSystem` owns the host-check reads. Class `AboutPage` owns the composer |
+| `docs/requirements/requirement-python-pyenv.md` | Under pyenv, the `python2`, `python3`, and `pyenv` paths |
 | `docs/requirements/requirement-python-version.md` | Version digits in the title and the stamp |
 | `docs/requirements/requirement-python-cli-interface.md` | `--version` stays the short human line. The verb `about` is named there |
 | `docs/requirements/requirement-class-software-dev.md` | Approver none; no dest fence |
@@ -225,7 +231,9 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | 2026-10-01 | Active 1.0.3 | `TP-OOP-02` landed. The about composer calls `CheckSystem` |
 | 2026-10-01 | Active 1.0.4 | The composer is class `AboutPage`. Line text stays here. `TP-OOP-04` is todo |
 | 2026-10-01 | Active 1.0.5 | `AboutPage` is on disk. `TP-OOP-04` has landed. Line text stays here |
+| 2026-10-02 | Active 1.0.6 | `python2`, `python3`, and `pyenv` locations, when under pyenv, are `requirement-python-pyenv` |
+| 2026-10-02 | Active 1.0.7 | About is row **83** under front **8** self-management. Typing `about` still opens this page |
 
-**Last Updated**: 2026-10-01
+**Last Updated**: 2026-10-02
 **Owner**: project maintainers
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-tui.md
-**Status**: Active (Version 1.1.9)
+**Status**: Active (Version 1.2.0)
 **Area**: python
 **Key**: `requirement-python-tui`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -24,7 +24,7 @@ Which path runs stays on `requirement-python-interactive-vs-noninteractive`. The
 |----------|----------|
 | The menu region above the box, and the rounded three-row frame | A `Choice:` line, `print` / `read`, or `input()` for that menu |
 | UTF-8 arc corners and bars, full screen width, typing on the only inner line | Frame glyphs copied into `cli.py`, and a menu pip wheel |
-| The status line under the frame, and this product’s front rows (edit, hello, about, Exit) | Putting the numbered rows inside the frame |
+| The status line under the frame, and this product’s front rows (edit, hello, self-management, Exit) | Putting the numbered rows inside the frame |
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
@@ -36,7 +36,7 @@ Which path runs stays on `requirement-python-interactive-vs-noninteractive`. The
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Start on a terminal with no words | You see edit, hello, about, and Exit. The bottom of the screen is one rounded box from the left edge to the right edge, then a status line. The block caret sits on the only line inside the box when that box is focused. | `video-speed` |
+| Start on a terminal with no words | You see edit, hello, self-management, and Exit. The bottom of the screen is one rounded box from the left edge to the right edge, then a status line. The block caret sits on the only line inside the box when that box is focused. | `video-speed` |
 | Choose edit | The screen stays up. The menu region asks for the folder (Enter means the current directory), then the video, the cut, the percent, and boomerang. Each answer is typed in the same bottom box. Esc returns to the menu. | `1` then Enter, or type `edit` |
 | Choose hello | The screen shows the hello message. The next key returns to the menu. | `7` then Enter, or type `hello` |
 | Start in a script | An error on stderr and a next step. The program does not draw the box and does not wait. | `video-speed` with no terminal |
@@ -44,7 +44,7 @@ Which path runs stays on `requirement-python-interactive-vs-noninteractive`. The
 ## 2. Core Rules (Mandatory)
 
 1. **Package writer.** The text-menu session **MUST** be class `Tui` in `src/VideoSpeed/tui.py`. The frame **MUST** be drawn by class `MenuPainter` in `src/VideoSpeed/menu_painter.py` (`requirement-python-oop`). VideoSpeed **MUST** pass its product name, package version, and front board into that session. `cli.py` **MUST NOT** contain the frame glyphs (`FRAME_TOP_LEFT` belongs to `MenuPainter`). The product **MUST NOT** import `py_tui` and **MUST NOT** declare `py-tui`. The menu **MUST NOT** be drawn with `print` / `read` / `input()` or a `Choice:` line. After **edit** is chosen, the domain questions stay on this same screen: the question text is in the menu region, and the answer is typed in the same bottom box. Those questions **MUST NOT** close the screen or use `input()`. `TP-OOP-03` has landed.
-2. **Two regions.** On the front board the writer **MUST** draw a menu region and a bottom input box on the same screen. The menu region is every row above the box. It **MUST** show the board title and the numbered rows for that board. Those rows **MUST NOT** be drawn inside the box. Each numbered row is a number, a verb, and an explain. On that board the number field is as wide as the longest number, and a shorter number is padded with spaces on the left (`11` beside ` 0` when the longest number has two digits; `232` beside `  0` when it has three). The verb field is as wide as the longest verb on that same board, and a shorter verb is padded with spaces immediately before the colon (`version:` beside `about  :`). The explain **MUST** be drawn after exactly one space. This board uses its own widths. VideoSpeed’s front board is the one in Implementation Notes: **1** edit, **7** hello, **8** about, **9** Exit. It **MUST NOT** open a self-management board.
+2. **Two regions.** On the front board the writer **MUST** draw a menu region and a bottom input box on the same screen. The menu region is every row above the box. It **MUST** show the board title and the numbered rows for that board. Those rows **MUST NOT** be drawn inside the box. Each numbered row is a number, a verb, and an explain. On that board the number field is as wide as the longest number, and a shorter number is padded with spaces on the left (`11` beside ` 0` when the longest number has two digits; `232` beside `  0` when it has three). The verb field is as wide as the longest verb on that same board, and a shorter verb is padded with spaces immediately before the colon (`version:` beside `about  :`). The explain **MUST** be drawn after exactly one space. This board uses its own widths. VideoSpeed’s front board is the one in Implementation Notes: **1** edit, **7** hello, **8** self-management, **9** Exit. Row **8** **MUST** open the self-management board. That board **MUST** list **82** version, **83** about, **84** version-check, **85** self-update, **86** self-uninstall, **87** self-install, and **0** Back. `help` **MUST** stay off every numbered row. The front board **MUST NOT** list version, about, version-check, self-update, self-uninstall, or self-install.
 3. **Three-row frame plus status line.** The bottom input box **MUST** be exactly three terminal rows high: a top border, one inner row, and a bottom border. The status line **MUST** be the next row, and that row **MUST** be the last row of the screen. The frame **MUST** span the full width of the screen. The left border is the first column. The right border is the last column the screen writer can place. There **MUST** be no blank column before the left border or after the right border.
 4. **UTF-8 frame.** Those three rows **MUST** be drawn with these UTF-8 box-drawing characters. Each one occupies one column. ASCII `+`, `-`, and `|` **MUST NOT** stand in for them. Sharp corners `┌` `┐` `└` `┘` **MUST NOT** stand in for the arcs.
 
@@ -55,7 +55,7 @@ Which path runs stays on `requirement-python-interactive-vs-noninteractive`. The
 | Bottom | `╰` (U+2570), then `─` (U+2500) repeated, then `╯` (U+256F) |
 
 5. **Input inside the frame.** One space, the mark `> `, the typed characters, and the caret **MUST** sit on the only inner line, strictly between the two `│` characters. The mark, the typed characters, and the caret **MUST NOT** sit on the top border, the bottom border, or a menu row. When the box is focused, the caret **MUST** be the block `█` (U+2588) at the caret index on that inner line. When the list is focused, that block **MUST NOT** be drawn. Up and Down **MUST** walk the numbered rows and the box: Down on the last row enters the box, Up on the first row enters the box, Up from the box returns to the last row, and Down from the box returns to the first row. Enter **MUST** run the typed token, or the highlighted row when the box is empty. The box **MUST NOT** be a `Choice:` line.
-6. **This board’s actions.** **edit** **MUST** stay on this screen and ask the domain questions in the same bottom input box: source folder (empty means the current directory), video index, cut bounds, length percent, boomerang, and again. Esc **MUST** return to the front board. The screen **MUST NOT** close into a plain `input()` prompt for those questions. **hello** **MUST** show the result page. The page body **MUST** be the message `Hello.`. Typing `7` or `hello` **MUST** open that page. It **MUST NOT** leave the program. **about** **MUST** show the result page. The page body is `requirement-python-about` (product name, version, domain summary, host check, and install box). That page **MUST NOT** name `py-tui`. **Exit** **MUST** leave the program. An unknown token **MUST** stay on this board and show an error line in the menu region above the box. It **MUST NOT** exit the process. A positional product verb (`requirement-python-cli-interface` §2.3a) **MUST** enter that action without a front-board pick. `edit` **MUST** start at the folder question, then the specific file. `about` and `hello` **MUST** open their result pages and **MUST NOT** ask for a folder or a file. `list-mp4` **MUST** ask for the folder when it is missing, then show the numbered MP4 list on this screen, and **MUST NOT** encode and **MUST NOT** ask for a specific file. `help` **MUST NOT** draw this screen. Empty argv with no verb **MUST** still show the front board.
+6. **This board’s actions.** **edit** **MUST** stay on this screen and ask the domain questions in the same bottom input box: source folder (empty means the current directory), video index, cut bounds, length percent, boomerang, and again. Esc **MUST** return to the front board. The screen **MUST NOT** close into a plain `input()` prompt for those questions. **hello** **MUST** show the result page. The page body **MUST** be the message `Hello.`. Typing `7` or `hello` **MUST** open that page. It **MUST NOT** leave the program. **self-management** (**8**) **MUST** open that board and **MUST NOT** leave the program. On that board, **version** (**82**) **MUST** show the installed version and **MUST NOT** call pip. **about** (**83**) **MUST** show the result page. The page body is `requirement-python-about` (product name, version, domain summary, host check, and install box). That page **MUST NOT** name `py-tui`. **version-check** (**84**) **MUST** run `python -m pip index versions VideoSpeed`. **self-update** (**85**) **MUST** run `python -m pip install --upgrade VideoSpeed`. **self-uninstall** (**86**) **MUST** run `python -m pip uninstall -y VideoSpeed`. Choosing that row is the confirmation. **self-install** (**87**) **MUST** run `python -m pip install VideoSpeed`. Those pip commands **MUST NOT** use `sudo` and **MUST NOT** use `curl`. **0** **MUST** return to the front board. **Exit** **MUST** leave the program. An unknown token **MUST** stay on this board and show an error line in the menu region above the box. It **MUST NOT** exit the process. A positional product verb (`requirement-python-cli-interface` §2.3a) **MUST** enter that action without a front-board pick. `edit` **MUST** start at the folder question, then the specific file. `about` and `hello` **MUST** open their result pages and **MUST NOT** ask for a folder or a file. `version` **MUST** print the installed version and **MUST NOT** call pip. `version-check`, `self-update`, and `self-install` **MUST** run the pip command above and **MUST NOT** open this screen. `self-uninstall` on the command line **MUST** require `--force` and **MUST NOT** open this screen. `list-mp4` **MUST** ask for the folder when it is missing, then show the numbered MP4 list on this screen, and **MUST NOT** encode and **MUST NOT** ask for a specific file. The command `help` **MUST NOT** draw this screen. Typing `help` on an open screen **MUST** show a result page and **MUST NOT** add a numbered help row. Empty argv with no verb **MUST** still show the front board and **MUST NOT** run self-install or self-update.
 7. **Status line and errors.** The status line under the frame **MUST** show the product name, the version, the board title, and the key hint `Up/Down  •  Enter`, separated by `│`. It **MUST NOT** replace one of the three frame rows. An error line, when shown, **MUST** sit in the menu region above the box.
 8. **Result page.** After hello or about, the result page may omit the menu rows, the box, and the status line until the next key returns to the front board.
 9. **Too small or no terminal.** If stdout is not a terminal, or the screen cannot hold the title, at least one numbered menu row, the three-row box, and the status line, or cannot hold both corners plus the mark and one cell between them, the program **MUST NOT** collapse the box into one unframed row and **MUST NOT** fall back to a `Choice:` line. It **MUST** fail closed: non-zero, an operator-readable line, and a next step (`--help`, or `--file` / `--start` / `--end`).
@@ -66,16 +66,16 @@ Which path runs stays on `requirement-python-interactive-vs-noninteractive`. The
 Picture of this board. The box in the picture is 16 columns wide so the corners stay visible. On a real screen those 16 columns become the full width, and the menu stays above the frame. The block in the picture is the focused caret:
 
 ```text
-VideoSpeed (1.0.7) — main menu
+VideoSpeed (1.0.10) — main menu
 
-1. edit : cut, speed, and optional boomerang
-7. hello: show a hello message
-8. about: version, FFmpeg, and OpenCV
-9. Exit : leave
+1. edit           : cut, speed, and optional boomerang
+7. hello          : show a hello message
+8. self-management: version, about, and pip lifecycle
+9. Exit           : leave
 ╭──────────────╮
 │ > █          │
 ╰──────────────╯
-  VideoSpeed 1.0.7  │  main menu  │  Up/Down  •  Enter
+  VideoSpeed 1.0.10  │  main menu  │  Up/Down  •  Enter
 ```
 
 The column rule on a wider number field (same writer, not this product’s board):
@@ -95,10 +95,11 @@ The column rule on a wider number field (same writer, not this product’s board
 | **Session** | Class `Tui` in `src/VideoSpeed/tui.py` |
 | **Painter** | Class `MenuPainter` in `src/VideoSpeed/menu_painter.py` (`paint`, `format_rows`, frame glyphs). `TP-OOP-03` has landed |
 | **Caller** | Class `Cli` in `src/VideoSpeed/cli.py`. `def main` stays in that file |
-| **Front rows** | **1** `edit` — cut, speed, and optional boomerang; **7** `hello` — show a hello message; **8** `about` — version, FFmpeg, and OpenCV; **9** `Exit` — leave |
+| **Front rows** | **1** `edit` — cut, speed, and optional boomerang; **7** `hello` — show a hello message; **8** `self-management` — version, about, and pip lifecycle; **9** `Exit` — leave |
+| **Self-management rows** | **82** `version`; **83** `about`; **84** `version-check` (pip index versions); **85** `self-update` (pip install --upgrade); **86** `self-uninstall` (pip uninstall); **87** `self-install` (pip install); **0** `Back`. `help` is typed, not numbered |
 | **edit** | Stays on the screen. Asks folder, video, cut, percent, boomerang, and again in the bottom box. Esc returns to the front board |
 | **hello** | Result page. Body is `Hello.`. Omits the frame. The next key returns to the front board |
-| **about** | Result page from `requirement-python-about`. Omits the frame. Does not name `py-tui`. Up/Down scroll when the text is longer than the screen |
+| **about** | Row **83** on the self-management board. Result page from `requirement-python-about`. Omits the frame. Does not name `py-tui`. Up/Down scroll when the text is longer than the screen |
 | **Box height** | 3 terminal rows, then one status row |
 | **Box width** | Full width the writer can place. Left border at column 0 |
 | **Mark inside the frame** | one space, then `> ` |
@@ -140,8 +141,8 @@ The column rule on a wider number field (same writer, not this product’s board
 - Copy the frame glyphs into `cli.py`. `FRAME_TOP_LEFT` belongs to class `MenuPainter` in `src/VideoSpeed/menu_painter.py`.
 - Declare `py-tui`, or import `py_tui`.
 - Point tests at a sibling checkout for this screen.
-- Open a self-management board as this product’s front board.
-- Add an installer verb or an in-tool `sudo` on this screen.
+- Put **about** on the front board as row **8**. Row **8** is **self-management**.
+- Call `sudo`, `sudo pip`, or `curl` from a self-management row. version-check and self-update use pip without sudo.
 
 ## Under command line for normal user only
 
@@ -156,8 +157,9 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | TP-TUI-03 | `tests/test_tui.py` | have |
 | TP-TUI-04 | `tests/test_tui.py` | have |
 | TP-TUI-05 | `tests/test_tui.py` | have |
+| TP-TUI-06 | `tests/test_tui.py` | have |
 
-TP-TUI-01 asserts rules 3, 4, 5, and 7: three rows, the arc corners, full width, the mark and the block caret on the only inner line, and the status line under the frame. TP-TUI-02 asserts the number, verb, and explain columns in rule 2 for this board and for a two-digit and a three-digit number field from this package’s `format_rows`, and that `FRAME_TOP_LEFT` is absent from `cli.py`. The glyph home is class `MenuPainter`. `TP-OOP-03` has landed. The suite reads the glyph from `menu_painter.py`. TP-TUI-03 asserts rule 9 and rule 1: a screen that cannot hold the frame fails closed with a next step, and product source does not import `py_tui` or declare `py-tui`. TP-TUI-04 asserts rules 6 and 8: edit stays and asks the folder line inside the frame, Exit leaves, an unknown token stays, and the about result page omits the frame and does not name `py-tui`. TP-TUI-05 asserts rule 6 and rule 8 for **hello**: choosing **7** shows `Hello.` on the result page and that page omits the frame.
+TP-TUI-01 asserts rules 3, 4, 5, and 7: three rows, the arc corners, full width, the mark and the block caret on the only inner line, and the status line under the frame. TP-TUI-02 asserts the number, verb, and explain columns in rule 2 for this board and for a two-digit and a three-digit number field from this package’s `format_rows`, and that `FRAME_TOP_LEFT` is absent from `cli.py`. The glyph home is class `MenuPainter`. `TP-OOP-03` has landed. The suite reads the glyph from `menu_painter.py`. TP-TUI-03 asserts rule 9 and rule 1: a screen that cannot hold the frame fails closed with a next step, and product source does not import `py_tui` or declare `py-tui`. TP-TUI-04 asserts rules 6 and 8: edit stays and asks the folder line inside the frame, Exit leaves, an unknown token stays, and the about result page omits the frame and does not name `py-tui`. TP-TUI-05 asserts rule 6 and rule 8 for **hello**: choosing **7** shows `Hello.` on the result page and that page omits the frame. TP-TUI-06 asserts rule 2 and rule 6: row **8** opens the self-management board, and **84** version-check runs `python -m pip index versions VideoSpeed` with no `sudo`.
 
 **Matrix:** `reviews/requirement-test-matrix.md`
 **Map:** `reviews/test-plan.md`.
@@ -195,6 +197,7 @@ TP-TUI-01 asserts rules 3, 4, 5, and 7: three rows, the arc corners, full width,
 | 2026-10-01 | Active 1.1.7 | The session stays class `Tui`. The frame is class `MenuPainter`. Picture unchanged. `TP-OOP-03` is todo |
 | 2026-10-01 | Active 1.1.8 | `TP-OOP-03` has landed. The suite reads the glyph from `MenuPainter` |
 | 2026-10-01 | Active 1.1.9 | The live picture, file table, and painter row say `TP-OOP-03` has landed |
+| 2026-10-02 | Active 1.2.0 | Front row **8** is self-management. About moves to **83**. version-check and self-update call pip |
 
 **Last Updated**: 2026-10-01
 **Owner**: VideoSpeed project maintainers

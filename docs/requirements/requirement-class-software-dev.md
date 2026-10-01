@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.0.17 – VideoSpeed software-development class law + residual stack)  
+**Status**: Active (Version 1.0.18 – VideoSpeed software-development class law + residual stack)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -126,6 +126,7 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Interactive walk vs one job | `requirement-python-interactive-vs-noninteractive` | Mode matrix; do not duplicate |
 | Text menu look (default TUI style) | `requirement-python-tui` | Picture stays here. Session is class `Tui`. Frame is class `MenuPainter` (`requirement-python-oop`) |
 | About page (identity, host check, star box) | `requirement-python-about` | Line text stays here. Host-check functions are class `CheckSystem` |
+| Pyenv root and the python2, python3, and pyenv paths | `requirement-python-pyenv` | CheckSystem reads them. Labels stay on `requirement-python-about` |
 | OOP grouping (one class per file) | `requirement-python-oop` | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Domain surface (workflow, help framing) | `requirement-domain-videospeed` | Four pillars |
 | FFmpeg cut / speed / boomerang ops | `requirement-video-ffmpeg-pipeline` | Ops SSOT |
@@ -137,7 +138,8 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Control-C during a long child | `requirement-python-graceful-exit` | Stop the child, do not publish, exit 130. Do not duplicate |
 | Product version integers | `requirement-python-version` | `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`; do not duplicate |
 | Public product reviews / TP map | `reviews/` (git-tracked) | what-to-review · test-plan · lessons · reports |
-| Online install / self-update / Type O | **intentionally absent** | Not a shell channel product |
+| Shell online install / Type O `curl\|sh` | **intentionally absent** | Not a shell channel product |
+| Python self-management | `requirement-python-cli-interface` | `help` and `version` are in the set. `version-check` and `self-update` call pip. No `sudo`, no `curl` |
 | Type 1 sudoers / root elev | **intentionally absent** | No elevation law |
 | Dest actor / role / subject / approver | **this file** | **Considered — no dest approver** (see §2.8) |
 | Dest fence conditions | **this file** | **Considered — no dest fence conditions** (see §2.8) |
@@ -184,7 +186,7 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 3. Hard-code secrets, personal tokens, or production host FQDNs into core rules as universal law.  
 4. Duplicate full peer requirement bodies into this residual section.  
 5. Leave Implementation Notes as hollow stubs when Status claims Active.  
-6. Introduce Active **online-install** / remote **self-update** / shell **Type O** install-ensure law without explicit user order.  
+6. Introduce Active **shell online-install** / `curl\|sh` **self-update** / shell **Type O** install-ensure law without explicit user order. Python `version-check` and `self-update` that call pip are `requirement-python-cli-interface`.  
 7. Introduce Active **Type 1** sudoers / root elevation law without explicit user order and elev allowlist tables.  
 8. Treat this file as server-maintenance allowlist law, or register an Active server-maintenance class file in parallel.  
 9. Invent a second primary language SSOT that contradicts peer Python requirements.
@@ -225,6 +227,7 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | `requirement-python-build-script` | Maintainer `./build.sh` verbs |
 | `requirement-python-json-output` | `--json` object |
 | `requirement-python-about` | About page body |
+| `requirement-python-pyenv` | Pyenv root and the three location paths |
 | `requirement-python-oop` | One class per file. `def main` stays in `cli.py` |
 | `docs/requirements/index.md` | Registry |
 
@@ -255,9 +258,10 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | 2026-10-01 | Active 1.0.15 | Control-C during a long child points at `requirement-python-graceful-exit`. Do not duplicate |
 | 2026-10-01 | Active 1.0.16 | Thread create and thread operations stay on `requirement-python-cli-logging`. Do not duplicate |
 | 2026-10-01 | Active 1.0.17 | The logger is an `__init__` parameter on `requirement-python-oop`. Do not duplicate |
+| 2026-10-02 | Active 1.0.18 | Pyenv root and the python2, python3, and pyenv paths point at `requirement-python-pyenv`. Do not duplicate |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-02  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

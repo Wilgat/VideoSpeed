@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-version.md
-**Status**: Active (Version 1.0.2)
+**Status**: Active (Version 1.0.3)
 **Area**: python
 **Key**: `requirement-python-version`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -57,16 +57,16 @@ Sibling product **AnimeDlp** names the same three fields, `MAJOR_VERSION`, `MINO
 | **SSOT file** | `src/VideoSpeed/__init__.py` |
 | **MAJOR_VERSION** | `1` |
 | **MINOR_VERSION** | `0` |
-| **PATCH_VERSION** | `9` |
-| **`__version__`** | `1.0.9` |
-| **Manifest copy** | `pyproject.toml` `[project].version` = `1.0.9` |
+| **PATCH_VERSION** | `10` |
+| **`__version__`** | `1.0.10` |
+| **Manifest copy** | `pyproject.toml` `[project].version` = `1.0.10` |
 | **Who reads it** | `main` in `src/VideoSpeed/cli.py` (`requirement-python-cli-interface`) |
-| **Debug line shape** | `{appname} v1.0.9 ({file})` from the three integers |
+| **Debug line shape** | `{appname} v1.0.10 ({file})` from the three integers |
 
 ```python
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
-PATCH_VERSION = 9
+PATCH_VERSION = 10
 __version__ = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 ```
 
@@ -127,6 +127,7 @@ On Termux, Git Bash, Windows cmd, or the same class, the version is still the th
 | 2026-10-01 | Active 1.0.0 | Triple SSOT; AnimeDlp names; package wins |
 | 2026-10-01 | Active 1.0.1 | Patch 8. Package string `1.0.8` |
 | 2026-10-01 | Active 1.0.2 | Patch 9. Package string `1.0.9`. The non-TUI debug line still uses this triple |
+| 2026-10-02 | Active 1.0.3 | Patch 10. Package string `1.0.10` |
 
 ---
 

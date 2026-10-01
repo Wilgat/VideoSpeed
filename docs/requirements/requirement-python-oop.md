@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-oop.md
-**Status**: Active (Version 1.2.0)
+**Status**: Active (Version 1.2.3)
 **Area**: python
 **Key**: `requirement-python-oop`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,7 +8,7 @@
 
 Define when VideoSpeed uses a class, and name the file that holds each class. One class lives in one module. `def main` stays in `src/VideoSpeed/cli.py`. Every class in the map accepts the one status logger as an `__init__` parameter so that class can log. The line text stays on `requirement-python-cli-logging`.
 
-The menu picture stays on `requirement-python-tui`. The about-page lines stay on `requirement-python-about`. Encode order stays on `requirement-video-ffmpeg-pipeline`. The JSON object shape stays on `requirement-python-json-output`. This file decides the class and the file. It does not invent a second picture, a second line list, a second encode order, or a second JSON shape.
+The menu picture stays on `requirement-python-tui`. The about-page lines stay on `requirement-python-about`. The pyenv root and the python2, python3, and pyenv paths stay on `requirement-python-pyenv`. Encode order stays on `requirement-video-ffmpeg-pipeline`. The JSON object shape stays on `requirement-python-json-output`. This file decides the class and the file. It does not invent a second picture, a second line list, a second encode order, or a second JSON shape.
 
 `TP-OOP-01`, `TP-OOP-02`, `TP-OOP-03`, and `TP-OOP-04` have landed. The session has left `cli.py`. The painter, the screen types, and the other jobs are the classes in the map.
 
@@ -59,7 +59,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 7. `src/VideoSpeed/cli.py` **MUST** define class `Cli` and **MUST NOT** define another class.  
 8. `def main` **MUST** stay in `src/VideoSpeed/cli.py`. The signature stays `main(argv=None, log_basedir="", log_logdir="")`. `main` builds the objects in this file and runs one job.  
 9. The console script **MUST** stay `video-speed = "VideoSpeed.cli:main"`. `src/VideoSpeed/__main__.py` **MUST** keep `from .cli import main`.  
-10. `cli.py` **MUST NOT** define another class's methods. `Cli` owns `build_parser`, `_dispatch`, `_start_logger`, the five verb methods, `_unknown_verb`, `stdin_is_tty`, and `stdout_is_tty`.  
+10. `cli.py` **MUST NOT** define another class's methods. `Cli` owns `build_parser`, `_dispatch`, `_start_logger`, `_verb_help`, `_verb_page`, `_verb_about`, `_verb_hello`, `_verb_edit`, `_verb_list_mp4`, `_unknown_verb`, `stdin_is_tty`, and `stdout_is_tty`. Pip lifecycle verbs stay on `SelfManage`.  
 11. `Cli` constructs the other classes and calls them. Each class receives its collaborators through its constructor. A lazy `_host()` import of `cli` is not the end state.
 
 ### 2.2a The logger arrives through `__init__`
@@ -72,8 +72,8 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 
 ### 2.3 Text menu
 
-12. `src/VideoSpeed/tui.py` **MUST** define class `Tui` and no other class. `Tui` owns `open_text_menu`, `menu_lines`, `framework_hello`, `_edit_in_tui`, `_list_in_tui`, `_open_direct_screen`, `_visible_lines`, `_tui_read`, `_tui_notice`, `_tui_float`, `_tui_yes_no`, and `_tui_index`.  
-13. Class `MenuPainter` in `src/VideoSpeed/menu_painter.py` owns `paint`, `paint_prompt`, `format_rows`, `row_parts`, `rows_for`, `screen_can_hold_box`, `_put`, `_paint_box`, `_input_field`, `_status_line`, `_result_overflow`, and `_result_room`. The frame glyphs and `MENU_ROWS` live in that module. `FRAME_TOP_LEFT` **MUST NOT** appear in `cli.py`.  
+12. `src/VideoSpeed/tui.py` **MUST** define class `Tui` and no other class. `Tui` owns `open_text_menu`, `menu_lines`, `self_menu_lines`, `framework_help`, `framework_hello`, `_boards`, `_edit_in_tui`, `_list_in_tui`, `_open_direct_screen`, `_visible_lines`, `_tui_read`, `_tui_notice`, `_tui_float`, `_tui_yes_no`, and `_tui_index`.  
+13. Class `MenuPainter` in `src/VideoSpeed/menu_painter.py` owns `paint`, `paint_prompt`, `format_rows`, `row_parts`, `rows_for`, `screen_can_hold_box`, `_put`, `_paint_box`, `_input_field`, `_status_line`, `_result_overflow`, and `_result_room`. The frame glyphs, `MENU_ROWS`, and `SELF_ROWS` live in that module. `FRAME_TOP_LEFT` **MUST NOT** appear in `cli.py`.  
 14. Class `MenuModel` in `src/VideoSpeed/menu_model.py` owns the keystroke state and `edge_keys`.  
 15. Class `MenuSession` in `src/VideoSpeed/menu_session.py` owns `run` and raises `MenuScreenError`.  
 16. The menu picture (rows, box, hello, about page, fail-closed small screen) stays on `requirement-python-tui`. These classes implement that picture. They do not invent a second layout.  
@@ -82,8 +82,8 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 ### 2.4 Host check and about page
 
 18. Every host-check function **MUST** be a method of class `CheckSystem` in `src/VideoSpeed/check_system.py`.  
-19. That set is `check_system_lines`, `parse_sys_version`, `arch_label`, `libc_label`, `binary_type`, `current_user`, `shell_text`, `python_executable_name`, `command_location`, `os_text`, `inside_docker`, `cpython_soabi`, and `self_location`.  
-20. Class `AboutPage` in `src/VideoSpeed/about_page.py` owns `framework_about`, `about_box_lines`, `install_kind`, `install_sentence`, and `_is_source_checkout`. It **MUST** call `CheckSystem` for the check block and for `self_location`. The line text and the star box stay on `requirement-python-about`.  
+19. That set is `check_system_lines`, `parse_sys_version`, `arch_label`, `libc_label`, `binary_type`, `current_user`, `shell_text`, `python_executable_name`, `command_location`, `os_text`, `inside_docker`, `cpython_soabi`, `self_location`, `under_pyenv`, `pyenv_root`, `pyenv_location`, `pyenv_version_names`, `pyenv_interpreter`, and `about_tool_location`.  
+20. Class `AboutPage` in `src/VideoSpeed/about_page.py` owns `framework_about`, `about_box_lines`, `install_kind`, `install_sentence`, and `_is_source_checkout`. It **MUST** call `CheckSystem` for the check block and for `self_location`. The line text and the star box stay on `requirement-python-about`. The pyenv root and the python2, python3, and pyenv paths stay on `requirement-python-pyenv`.  
 21. `TP-OOP-02` has landed. `cli.py` **MUST NOT** hold the rule 19 functions. `TP-OOP-04` has landed. The about composer is `AboutPage`. `cli.py` **MUST NOT** keep that composer.
 
 ### 2.5 The other jobs
@@ -93,6 +93,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 24. Class `MediaInfo` in `src/VideoSpeed/media_info.py` owns `get_mp4_files`, `get_duration_cv2`, and `format_time`.  
 25. Class `FileStage` in `src/VideoSpeed/file_stage.py` owns `staging_dir_for`, `make_temp_path`, and `promote_file`. Publish stays `shutil.move` (`requirement-python-coding-style`).  
 26. Class `RunOutput` in `src/VideoSpeed/run_output.py` owns `out_info`, `out_err`, the message sink, `_call_sunk`, `_collect_lines`, and the JSON object (`_json_reset`, `_remember`, `_remember_job`, `_emit_json`). The object shape stays on `requirement-python-json-output`.  
+26a. Class `SelfManage` in `src/VideoSpeed/self_management.py` owns `local_version`, `argv_for`, `run_text`, `emit`, and `_subprocess_runner`. The verb names and the pip command strings stay on `requirement-python-cli-interface`. `cli.py` **MUST NOT** build those pip argument lists.  
 27. Version integers stay on `requirement-python-version` in `src/VideoSpeed/__init__.py`.  
 28. `TP-OOP-04` has landed. An edit that touches one of rules 22–26 **MUST** keep that class's whole set on its class. **MUST NOT** leave the set as module-level functions in `cli.py`.
 
@@ -111,6 +112,7 @@ The menu picture stays on `requirement-python-tui`. The about-page lines stay on
 | `MediaInfo` | `src/VideoSpeed/media_info.py` | MP4 list, duration, `format_time` |
 | `FileStage` | `src/VideoSpeed/file_stage.py` | Staging and `promote_file` |
 | `RunOutput` | `src/VideoSpeed/run_output.py` | Info, error, and the JSON object |
+| `SelfManage` | `src/VideoSpeed/self_management.py` | Local version and the pip commands for `version-check`, `self-update`, `self-install`, and `self-uninstall` |
 | `Cli` | `src/VideoSpeed/cli.py` | Parser, dispatch, verbs, tty checks. `def main` stays in this file |
 
 | Item | Value |
@@ -191,6 +193,7 @@ On Termux, Git Bash, Windows cmd, or the same class, each class still receives t
 | `requirement-python-interactive-vs-noninteractive` | Question order that `EditWalk` carries |
 | `requirement-video-ffmpeg-pipeline` | Encode order. `Encoder` carries it |
 | `requirement-python-json-output` | JSON object shape. `RunOutput` writes it |
+| `requirement-python-pyenv` | Pyenv root and the three location paths. `CheckSystem` reads them |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -202,8 +205,9 @@ On Termux, Git Bash, Windows cmd, or the same class, each class still receives t
 | TP-OOP-03 | `tests/test_tui.py` | have | `paint`, `format_rows`, and the frame glyphs are methods or constants of `MenuPainter`. `MenuModel` and `MenuSession` are their own modules. `tui.py` defines class `Tui` only |
 | TP-OOP-04 | `tests/test_cli.py` | have | `cli.py` defines class `Cli` and `def main`. Encoder, file stage, media info, about page, edit walk, and run output are not module-level functions there |
 | TP-LOG-05 | `tests/test_logging.py` | have | Constructors in this map accept the logger and store it. The instantiation line is owned by `requirement-python-cli-logging`. This file does not add `TP-OOP-05` |
-| TP-TUI-01..05 | `tests/test_tui.py` | have | Picture stays true |
-| TP-ABOUT-01..08 | `tests/test_about.py` | have | Host-check lines stay true |
+| TP-TUI-01..06 | `tests/test_tui.py` | have | Picture stays true. Row **8** opens self-management |
+| TP-ABOUT-01..08 | `tests/test_about.py` | have | Host-check lines stay true. `TP-ABOUT-08` is `tests/test_tui.py` |
+| TP-ABOUT-09 · TP-ABOUT-10 | `tests/test_about.py` | have | Pyenv paths. Owned by `requirement-python-pyenv` |
 
 ## 7. Status history
 
@@ -214,9 +218,12 @@ On Termux, Git Bash, Windows cmd, or the same class, each class still receives t
 | 2026-10-01 | Active 1.1.0 | One class per file. `def main` stays in `cli.py`. Painter, screen types, and the other jobs have their own classes. `TP-OOP-03` and `TP-OOP-04` are todo |
 | 2026-10-01 | Active 1.1.1 | `TP-OOP-03` and `TP-OOP-04` have landed. The suite asserts those homes |
 | 2026-10-01 | Active 1.2.0 | Every class in the map accepts the one logger in `__init__` and stores it. The instantiation line stays on `requirement-python-cli-logging`. Already on the ship unit (`TP-LOG-05` have) |
+| 2026-10-02 | Active 1.2.1 | Class `SelfManage` in `self_management.py` owns the pip lifecycle verbs |
+| 2026-10-02 | Active 1.2.2 | The host-check set includes the pyenv reads. The paths stay on `requirement-python-pyenv` |
+| 2026-10-02 | Active 1.2.3 | `Cli` names its verb methods. Pip lifecycle verbs stay on `SelfManage`. `Tui` owns `framework_help` and the self-management board. `MenuPainter` owns `SELF_ROWS` |
 
 ---
 
-**Last Updated**: 2026-10-01
+**Last Updated**: 2026-10-02
 **Owner**: project maintainers
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

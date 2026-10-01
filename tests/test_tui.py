@@ -113,10 +113,23 @@ class TestTui(unittest.TestCase):
         self.assertEqual(
             body,
             [
-                "1. edit : cut, speed, and optional boomerang",
-                "7. hello: show a hello message",
-                "8. about: version, FFmpeg, and OpenCV",
-                "9. Exit : leave",
+                "1. edit           : cut, speed, and optional boomerang",
+                "7. hello          : show a hello message",
+                "8. self-management: version, about, and pip lifecycle",
+                "9. Exit           : leave",
+            ],
+        )
+        self_body = format_rows(Tui().painter.SELF_ROWS)
+        self.assertEqual(
+            self_body,
+            [
+                "82. version       : show the installed version",
+                "83. about         : version, FFmpeg, and OpenCV",
+                "84. version-check : compare this install with pip",
+                "85. self-update   : upgrade this package with pip",
+                "86. self-uninstall: remove this package with pip",
+                "87. self-install  : install this package with pip",
+                " 0. Back          : return to the main menu",
             ],
         )
         self.assertEqual(lines[1:], body)
@@ -256,9 +269,11 @@ class TestTui(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(session.leave_kind, "edit")
         drawn = "\n".join(screen.drawn)
+        flat = "".join(screen.drawn)
         self.assertIn("╭", drawn)
         self.assertNotIn("Choice:", drawn)
-        self.assertNotIn("self-management", drawn)
+        self.assertIn("self-management", flat)
+        self.assertNotIn("version-check", flat)
 
         session = MenuSession(
             cli.APP_NAME,
@@ -304,7 +319,7 @@ class TestTui(unittest.TestCase):
         code, screen, out, err = self._run_menu([ord("7"), 10])
         self.assertEqual(code, 0, err + out)
         flat = "".join(screen.drawn)
-        self.assertIn("7. hello: show a hello message", flat)
+        self.assertIn("7. hello          : show a hello message", flat)
         self.assertIn("Hello.", flat)
         self.assertIn("Press a key to return to the main menu.", flat)
         self.assertNotIn("Hello.", out)
@@ -318,6 +333,36 @@ class TestTui(unittest.TestCase):
         self.assertIn("Hello.", hello)
         self.assertNotIn("╭", hello)
         self.assertIn("Press a key to return to the main menu.", hello)
+
+    def test_tp_tui_06_self_management_board(self):
+        """TP-TUI-06: row 8 opens self-management; version-check runs pip."""
+        from VideoSpeed.self_management import SelfManage
+
+        calls = []
+
+        def fake(self, argv):
+            calls.append(list(argv))
+            return 0, "pip-ok", ""
+
+        saved = SelfManage._subprocess_runner
+        SelfManage._subprocess_runner = fake
+        try:
+            code, screen, out, err = self._run_menu(
+                [ord("8"), 10, ord("8"), ord("4"), 10, -1]
+            )
+        finally:
+            SelfManage._subprocess_runner = saved
+        self.assertEqual(code, 0, err + out)
+        flat = "".join(screen.drawn)
+        self.assertIn("self-management", flat)
+        self.assertIn("version-check", flat)
+        self.assertIn("self-update", flat)
+        self.assertIn("self-uninstall", flat)
+        self.assertIn("self-install", flat)
+        self.assertIn("pip-ok", flat)
+        self.assertNotIn("curl", flat)
+        self.assertEqual(calls[0][1:], ["-m", "pip", "index", "versions", "VideoSpeed"])
+        self.assertNotIn("sudo", calls[0])
 
     def test_about_result_scrolls_when_the_page_is_long(self):
         """TP-ABOUT-08: a long about page scrolls; a one-line result still closes."""

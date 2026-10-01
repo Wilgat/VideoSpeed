@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.10] - 2026-10-02
+
+### Added
+- Front menu **8** is **self-management**. It opens **82** version, **83** about, **84** version-check, **85** self-update, **86** self-uninstall, **87** self-install, and **0** Back.
+- Product verbs `version`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `help` and `version` are self-management verbs in the shell sense and in this Python CLI and text menu. `help` is not a numbered row.
+- `version` prints the installed version and does not use the network. `version-check` runs `python -m pip index versions VideoSpeed`. `self-update` runs `python -m pip install --upgrade VideoSpeed`. `self-install` runs `python -m pip install VideoSpeed`. `self-uninstall` runs `python -m pip uninstall -y VideoSpeed` and, on the command line, requires `--force`. The text-menu row is the confirmation. These commands do not use `sudo` or `curl`.
+- When this login has pyenv, the about host check prints `python2` and `python3` inside that root, and `pyenv location` is `bin/pyenv`.
+
 ## [1.0.9] - 2026-10-01
 
 ### Changed

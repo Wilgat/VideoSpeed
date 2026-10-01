@@ -14,7 +14,8 @@ class MenuModel:
     """Keystroke state for the front board. The bottom frame is the input box.
 
     boards, when set, replaces the front rows for this session. Omit boards
-    and the model keeps VideoSpeed's edit / hello / about / Exit list.
+    and the model keeps VideoSpeed's edit / hello / self-management / Exit list,
+    plus the self-management board under 8.
     """
 
     def __init__(self, boards: dict | None = None, logger=None) -> None:
@@ -22,7 +23,10 @@ class MenuModel:
         log_instantiated(logger, "MenuModel")
         self.painter = MenuPainter(logger=logger)
         if boards is None:
-            boards = {"front": MenuPainter.MENU_ROWS}
+            boards = {
+                "front": MenuPainter.MENU_ROWS,
+                "self": MenuPainter.SELF_ROWS,
+            }
         self.boards = boards
         self.layer = "front"
         self.index = 0
@@ -186,6 +190,9 @@ class MenuModel:
         for number, short, _explain, kind in self.rows():
             if token == short:
                 return self._activate(number, kind)
+        kind = MenuPainter.ANY_BOARD.get(token)
+        if kind is not None:
+            return self._activate(0, kind)
         self._reject()
         return None
 
@@ -205,6 +212,13 @@ class MenuModel:
         if kind == "back":
             self.layer = "front"
             self.index = 0
+            return None
+        if kind == "self-management":
+            self.layer = "self"
+            self.index = 0
+            self.focus = "list"
+            self.buffer = ""
+            self.cursor = 0
             return None
         if kind in ("version", "about"):
             return kind

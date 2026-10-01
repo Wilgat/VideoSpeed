@@ -1,9 +1,12 @@
 # TP-ABOUT-01..07 — about page (requirement-python-about).
+# TP-ABOUT-09..10 — pyenv paths (requirement-python-pyenv).
 # TP-OOP-02 — class CheckSystem owns the host check (requirement-python-oop).
 from __future__ import print_function, unicode_literals
 
 import datetime
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -209,6 +212,163 @@ class TestAbout(unittest.TestCase):
         finally:
             check_mod.shutil.which = original
 
+    def _with_env(self, updates):
+        """Restore the named environment keys after the test body."""
+        saved = {}
+        for key in updates:
+            if key in os.environ:
+                saved[key] = os.environ[key]
+        class _Guard:
+            def __enter__(_self):
+                for key, value in updates.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
+                return _self
+
+            def __exit__(_self, exc_type, exc, tb):
+                for key in updates:
+                    os.environ.pop(key, None)
+                os.environ.update(saved)
+                return False
+
+        return _Guard()
+
+    def _write_exe(self, path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("#!/bin/sh\n")
+        os.chmod(path, 0o755)
+
+    def _pyenv_tree(self, root, version_text, versions, shims):
+        """A fake pyenv root. bin/pyenv is a symlink to libexec/pyenv."""
+        libexec = os.path.join(root, "libexec", "pyenv")
+        self._write_exe(libexec)
+        bindir = os.path.join(root, "bin")
+        os.makedirs(bindir, exist_ok=True)
+        os.symlink(os.path.join("..", "libexec", "pyenv"), os.path.join(bindir, "pyenv"))
+        with open(os.path.join(root, "version"), "w", encoding="utf-8") as handle:
+            handle.write(version_text)
+        for name in shims:
+            self._write_exe(os.path.join(root, "shims", name))
+        for version, binary in versions:
+            self._write_exe(os.path.join(root, "versions", version, "bin", binary))
+        return libexec
+
+    def _location_line(self, text, label):
+        prefix = "    {}:".format(label)
+        for row in text.splitlines():
+            if row.startswith(prefix):
+                return row.split(":", 1)[1].strip()
+        self.fail("missing {}".format(label))
+
+    def test_pyenv_paths_stay_inside_the_root(self):
+        """TP-ABOUT-09: under pyenv, bin/pyenv and interpreters inside the root."""
+        from VideoSpeed.check_system import CheckSystem
+
+        host = CheckSystem()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = os.path.join(tmp, "pyenv")
+            libexec = self._pyenv_tree(
+                root,
+                "system\n",
+                [("3.12.11", "python3"), ("2.7.18", "python2")],
+                ["python2", "python3"],
+            )
+            path = libexec.rsplit(os.sep, 1)[0] + os.pathsep + os.environ.get("PATH", "")
+            updates = {
+                "PYENV_ROOT": root,
+                "PYENV_VERSION": "3.12.11:2.7.18",
+                "PATH": path,
+            }
+            with self._with_env(updates):
+                self.assertTrue(host.under_pyenv())
+                self.assertEqual(host.pyenv_root(), os.path.abspath(root))
+                self.assertEqual(host.pyenv_location(), os.path.join(root, "bin", "pyenv"))
+                self.assertNotEqual(host.pyenv_location(), libexec)
+                self.assertEqual(shutil.which("pyenv"), libexec)
+                python3 = os.path.join(root, "versions", "3.12.11", "bin", "python3")
+                python2 = os.path.join(root, "versions", "2.7.18", "bin", "python2")
+                self.assertEqual(host.about_tool_location("python3"), python3)
+                self.assertEqual(host.about_tool_location("python2"), python2)
+                self.assertEqual(host.about_tool_location("pyenv"), os.path.join(root, "bin", "pyenv"))
+                spawned = []
+
+                def _refuse(*_args, **_kwargs):
+                    spawned.append(True)
+                    raise AssertionError("spawned")
+
+                original_run = subprocess.run
+                original_popen = subprocess.Popen
+                subprocess.run = _refuse
+                subprocess.Popen = _refuse
+                try:
+                    text = self._page().framework_about()
+                finally:
+                    subprocess.run = original_run
+                    subprocess.Popen = original_popen
+                self.assertEqual(spawned, [])
+                self.assertEqual(self._location_line(text, "python3 location"), python3)
+                self.assertEqual(self._location_line(text, "python2 location"), python2)
+                self.assertEqual(
+                    self._location_line(text, "pyenv location"),
+                    os.path.join(root, "bin", "pyenv"),
+                )
+
+            shim_root = os.path.join(tmp, "shims-only")
+            self._pyenv_tree(shim_root, "system\n", [], ["python2", "python3"])
+            with self._with_env({"PYENV_ROOT": shim_root, "PYENV_VERSION": None}):
+                self.assertTrue(host.under_pyenv())
+                self.assertEqual(
+                    host.about_tool_location("python3"),
+                    os.path.join(shim_root, "shims", "python3"),
+                )
+                self.assertEqual(
+                    host.about_tool_location("python2"),
+                    os.path.join(shim_root, "shims", "python2"),
+                )
+                self.assertEqual(
+                    host.pyenv_location(),
+                    os.path.join(shim_root, "bin", "pyenv"),
+                )
+
+    def test_named_root_without_launcher_is_not_under_pyenv(self):
+        """TP-ABOUT-10: a PYENV_ROOT with no bin/pyenv stays on shutil.which."""
+        import VideoSpeed.check_system as check_mod
+        from VideoSpeed.check_system import CheckSystem
+
+        host = CheckSystem()
+        found = {
+            "python2": "",
+            "python3": "/usr/bin/python3",
+            "pyenv": "/usr/bin/pyenv",
+        }
+        original = check_mod.shutil.which
+        check_mod.shutil.which = lambda name: found.get(name) or None
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                with self._with_env({"PYENV_ROOT": tmp, "PYENV_VERSION": None}):
+                    self.assertFalse(host.under_pyenv())
+                    self.assertEqual(host.pyenv_root(), "")
+                    self.assertEqual(host.pyenv_location(), "")
+                    self.assertEqual(host.pyenv_interpreter("python3"), "")
+                    rows = host.check_system_lines(
+                        now=datetime.datetime(2026, 10, 2, 1, 2, 3, 4)
+                    )
+                    text = "\n".join(rows)
+                    self.assertEqual(self._location_line(text, "python2 location"), "")
+                    self.assertEqual(
+                        self._location_line(text, "python3 location"),
+                        "/usr/bin/python3",
+                    )
+                    self.assertEqual(
+                        self._location_line(text, "pyenv location"),
+                        "/usr/bin/pyenv",
+                    )
+        finally:
+            check_mod.shutil.which = original
+
     def test_tp_oop_02_check_system_owns_the_host_check(self):
         """TP-OOP-02: CheckSystem in check_system.py; rule 11 functions are not in cli.py."""
         import inspect
@@ -231,6 +391,12 @@ class TestAbout(unittest.TestCase):
             "inside_docker",
             "cpython_soabi",
             "self_location",
+            "under_pyenv",
+            "pyenv_root",
+            "pyenv_location",
+            "pyenv_version_names",
+            "pyenv_interpreter",
+            "about_tool_location",
         )
         self.assertTrue(inspect.isclass(CheckSystem))
         self.assertEqual(

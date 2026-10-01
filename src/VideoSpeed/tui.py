@@ -50,6 +50,35 @@ class Tui:
         title = "{} ({}) — main menu".format(self._name(), self._ver())
         return [title] + self.painter.format_rows(MenuPainter.MENU_ROWS)
 
+    def self_menu_lines(self):
+        """General Purpose: Title and rows for the self-management board under 8."""
+        title = "{} ({}) — self-management".format(self._name(), self._ver())
+        return [title] + self.painter.format_rows(MenuPainter.SELF_ROWS)
+
+    def framework_help(self):
+        """
+        General Purpose: Help text for the typed help verb on the text screen.
+        requirement-python-tui: help is a self-management verb and is not a numbered row.
+        """
+        return (
+            "help: usage for VideoSpeed.\n"
+            "Verbs: help, version, about, hello, edit, list-mp4, "
+            "self-install, version-check, self-update, self-uninstall.\n"
+            "version shows the installed version.\n"
+            "version-check runs: python -m pip index versions VideoSpeed\n"
+            "self-update runs: python -m pip install --upgrade VideoSpeed\n"
+            "self-install runs: python -m pip install VideoSpeed\n"
+            "self-uninstall runs: python -m pip uninstall -y VideoSpeed\n"
+            "On the command line, self-uninstall also needs --force.\n"
+            "edit asks for a folder, then a file. list-mp4 lists and does not encode."
+        )
+
+    def _boards(self):
+        return {
+            "front": MenuPainter.MENU_ROWS,
+            "self": MenuPainter.SELF_ROWS,
+        }
+
     def framework_hello(self):
         """
         General Purpose: Hello text for menu item 7.
@@ -211,6 +240,16 @@ class Tui:
         def on_kind(kind):
             if kind == "hello":
                 return self.framework_hello()
+            if kind == "help":
+                return self.framework_help()
+            if kind in ("version-check", "self-update", "self-install", "self-uninstall"):
+                _code, text = app.self_manage.run_text(kind)
+                return text
+            if kind == "list-mp4":
+                screen = screen_box.get("screen")
+                if screen is not None:
+                    self._list_in_tui(screen, session.model)
+                return None
             if kind != "edit":
                 return None
             screen = screen_box.get("screen")
@@ -229,7 +268,7 @@ class Tui:
             app.version,
             on_version=lambda: "{} {}".format(app.app_name, app.version),
             on_about=app.about.framework_about,
-            boards={"front": MenuPainter.MENU_ROWS},
+            boards=self._boards(),
             on_kind=on_kind,
             logger=self.logger,
         )
@@ -340,7 +379,7 @@ class Tui:
             app.version,
             on_version=lambda: "{} {}".format(app.app_name, app.version),
             on_about=app.about.framework_about,
-            boards={"front": MenuPainter.MENU_ROWS},
+            boards=self._boards(),
             on_kind=lambda _kind: None,
             logger=self.logger,
         )

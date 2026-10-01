@@ -32,6 +32,7 @@ from .encoder import Encoder
 from .file_stage import FileStage
 from .media_info import MediaInfo
 from .run_output import RunOutput, log_instantiated
+from .self_management import SelfManage
 from .tui import Tui
 
 _PKG_VERSION = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
@@ -39,7 +40,25 @@ _PKG_VERSION = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 APP_NAME = "VideoSpeed"
 CONSOLE_NAME = "video-speed"
 # Positional product verbs. Exit and ./build.sh tokens are not in this list.
-PRODUCT_VERBS = ("help", "about", "hello", "edit", "list-mp4")
+PRODUCT_VERBS = (
+    "help",
+    "version",
+    "about",
+    "hello",
+    "edit",
+    "list-mp4",
+    "self-install",
+    "version-check",
+    "self-update",
+    "self-uninstall",
+)
+LIFECYCLE_VERBS = (
+    "version",
+    "self-install",
+    "version-check",
+    "self-update",
+    "self-uninstall",
+)
 AUTHOR_NAME = "Wilgat Wong"
 HOMEPAGE = "https://github.com/Wilgat/VideoSpeed"
 LAST_UPDATE = "2026-10-01"
@@ -53,7 +72,7 @@ RATIO_MAX = 200.0
 
 
 class Cli:
-    """Parser, dispatch, the five verbs, and the tty gates. One class in this file.
+    """Parser, dispatch, the product verbs, and the tty gates. One class in this file.
 
     Collaborators arrive through the constructor. def main stays beside this class.
     """
@@ -87,6 +106,7 @@ class Cli:
         self.edit = EditWalk(
             self.output, self.encoder, self.media, RATIO_MIN, RATIO_MAX, logger=logger
         )
+        self.self_manage = SelfManage(APP_NAME, _PKG_VERSION, logger=logger)
         self.tui = Tui(self, logger=logger)
 
     def stdin_is_tty(self):
@@ -227,11 +247,17 @@ class Cli:
             description=(
                 "{} — cut an MP4, change length/speed, optional boomerang.\n"
                 "With no arguments in a terminal, starts the interactive editor.\n"
-                "Product verbs: help, about, hello, edit, list-mp4.\n"
-                "help prints this usage. about and hello print a page and do not\n"
-                "ask for a folder or a file. edit asks for a folder, then a file,\n"
-                "when those are not already named. list-mp4 lists MP4 files and\n"
-                "does not encode.\n"
+                "Product verbs: help, version, about, hello, edit, list-mp4,\n"
+                "self-install, version-check, self-update, self-uninstall.\n"
+                "help prints this usage. version prints the installed version.\n"
+                "about and hello print a page and do not ask for a folder or a file.\n"
+                "edit asks for a folder, then a file, when those are not already named.\n"
+                "list-mp4 lists MP4 files and does not encode.\n"
+                "version-check runs: python -m pip index versions VideoSpeed\n"
+                "self-update runs: python -m pip install --upgrade VideoSpeed\n"
+                "self-install runs: python -m pip install VideoSpeed\n"
+                "self-uninstall runs: python -m pip uninstall -y VideoSpeed\n"
+                "and needs --force. Empty arguments do not install or update.\n"
                 "For scripts, pass --file, --start, and --end."
                 .format(APP_NAME)
             ),
@@ -241,7 +267,10 @@ class Cli:
             nargs="?",
             default=None,
             metavar="verb",
-            help="Product verb: help, about, hello, edit, or list-mp4",
+            help=(
+                "Product verb: help, version, about, hello, edit, list-mp4, "
+                "self-install, version-check, self-update, or self-uninstall"
+            ),
         )
         parser.add_argument(
             "--version",
@@ -284,6 +313,11 @@ class Cli:
                 "Quiet stdout and print one JSON object. "
                 "Does not open the text menu."
             ),
+        )
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            help="Confirm self-uninstall. Required on the command line.",
         )
         return parser
 
@@ -333,7 +367,7 @@ class Cli:
             elif not token.startswith("-") and verb is None:
                 verb = token
             index += 1
-        if verb in ("help", "about", "hello"):
+        if verb in ("help", "about", "hello") or verb in LIFECYCLE_VERBS:
             return False
         if verb == "edit":
             return not (has_file and has_start and has_end)
@@ -411,10 +445,34 @@ class Cli:
         edit are not rejected for a lone --percent. No verb keeps the job path.
         """
         verb = args.verb
+        if args.force and verb != "self-uninstall":
+            self.output._remember(
+                "--force is only for self-uninstall.",
+                "video-speed self-uninstall --force",
+            )
+            self.output.out_err("ERROR: --force is only for self-uninstall.")
+            self.output.out_err("   Next: video-speed self-uninstall --force")
+            return 1
         if verb == "about":
             return self._verb_about()
         if verb == "hello":
             return self._verb_hello()
+        if verb == "version":
+            return self._verb_page(self.self_manage.local_version())
+        if verb == "self-uninstall":
+            if not args.force:
+                self.output._remember(
+                    "self-uninstall removes this package with pip.",
+                    "video-speed self-uninstall --force",
+                )
+                self.output.out_err(
+                    "ERROR: self-uninstall removes this package with pip."
+                )
+                self.output.out_err("   Next: video-speed self-uninstall --force")
+                return 1
+            return self.self_manage.emit(verb, json_mode=self.output.json_mode)
+        if verb in ("version-check", "self-update", "self-install"):
+            return self.self_manage.emit(verb, json_mode=self.output.json_mode)
         if verb == "edit":
             return self._verb_edit(args, logger)
         if verb == "list-mp4":

@@ -35,6 +35,7 @@
 | Text menu | `requirement-python-tui.md` | Default TUI style; session is class `Tui`; frame is class `MenuPainter`; glyphs stay out of `cli.py`. `TP-OOP-03` have |
 | OOP grouping | `requirement-python-oop.md` | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger (`TP-LOG-05` have). `TP-OOP-01`, `TP-OOP-02`, `TP-OOP-03`, and `TP-OOP-04` have |
 | About page | `requirement-python-about.md` | Identity, host check, star box. Each line names its read. No curl line while the download URL is empty |
+| Pyenv paths | `requirement-python-pyenv.md` | Under pyenv, python2 and python3 are inside that root. pyenv location is `bin/pyenv`, not `libexec/pyenv` |
 | Coding style | `requirement-python-coding-style.md` | Temps; `shutil.move` for every file move; no `os.rename` or `os.replace` (removable media); one class per file |
 | Packaging | `requirement-python-packaging.md` | pyproject, entrypoint, version dual SSOT |
 | Maintainer build | `requirement-python-build-script.md` | `./build.sh` verbs. `test` is `tests/run.sh`. Empty argv does not upload |
@@ -95,7 +96,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.9` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.10` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---

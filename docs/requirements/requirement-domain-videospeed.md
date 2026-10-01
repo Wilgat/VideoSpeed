@@ -111,7 +111,7 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | Entry points | `video-speed`, `python -m VideoSpeed` |
 | Text menu | Default TUI style on a terminal (`requirement-python-tui`; session class `Tui`; frame class `MenuPainter`) |
 
-**About is not** a remote version-check and **must not** advertise a shell `curl|sh` install channel unless a future install requirement is Active.
+**About is not** a remote version-check and **must not** advertise a shell `curl|sh` install channel. `version-check` and `self-update` are the pip verbs on `requirement-python-cli-interface`.
 
 ### 2.5 Implementation Notes (this project)
 

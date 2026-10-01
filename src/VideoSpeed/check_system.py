@@ -2,6 +2,7 @@
 # Host check for the about page.
 # requirement-python-oop — class CheckSystem.
 # requirement-python-about — line text stays with the about composer.
+# requirement-python-pyenv — python2, python3, and pyenv paths when under pyenv.
 # =============================================================================
 from __future__ import print_function, unicode_literals
 
@@ -121,6 +122,107 @@ class CheckSystem:
         found = shutil.which(name)
         return found or ""
 
+    def _has_pyenv_launcher(self, root):
+        """True when bin/pyenv exists. The launcher may be a symlink."""
+        return os.path.lexists(os.path.join(root, "bin", "pyenv"))
+
+    def _pyenv_version_token(self, token):
+        """One version segment. system, blanks, and path tricks are skipped."""
+        if token in ("", "system", ".", ".."):
+            return False
+        if "/" in token or "\\" in token:
+            return False
+        return True
+
+    def _pyenv_version_file_lines(self, root):
+        path = os.path.join(root, "version")
+        if not os.path.isfile(path):
+            return []
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                text = handle.read()
+        except OSError:
+            return []
+        return text.splitlines()
+
+    def pyenv_root(self):
+        """
+        General Purpose: Pyenv root when bin/pyenv is present, else empty.
+        A non-empty PYENV_ROOT is the only candidate. Otherwise ~/.pyenv.
+        """
+        named = os.environ.get("PYENV_ROOT")
+        if named is not None and named.strip() != "":
+            root = os.path.abspath(os.path.expanduser(named.strip()))
+            if self._has_pyenv_launcher(root):
+                return root
+            return ""
+        home = os.path.expanduser("~")
+        if home == "" or home == "~":
+            return ""
+        root = os.path.abspath(os.path.join(home, ".pyenv"))
+        if self._has_pyenv_launcher(root):
+            return root
+        return ""
+
+    def under_pyenv(self):
+        """General Purpose: True when this check has a pyenv root."""
+        return self.pyenv_root() != ""
+
+    def pyenv_location(self):
+        """
+        General Purpose: The pyenv launcher at bin/pyenv.
+        This is not the libexec file that can appear first on PATH.
+        """
+        root = self.pyenv_root()
+        if root == "":
+            return ""
+        return os.path.join(root, "bin", "pyenv")
+
+    def pyenv_version_names(self, root):
+        """
+        General Purpose: Selected pyenv versions, skipping system and path tricks.
+        PYENV_VERSION wins over the root version file.
+        """
+        raw = os.environ.get("PYENV_VERSION")
+        if raw is not None and raw.strip() != "":
+            parts = raw.split(":")
+        else:
+            parts = self._pyenv_version_file_lines(root)
+        names = []
+        for part in parts:
+            token = part.strip()
+            if self._pyenv_version_token(token):
+                names.append(token)
+        return names
+
+    def pyenv_interpreter(self, name):
+        """
+        General Purpose: python2 or python3 inside the pyenv root, or empty.
+        A selected version bin wins. Otherwise the shim.
+        """
+        root = self.pyenv_root()
+        if root == "":
+            return ""
+        for version in self.pyenv_version_names(root):
+            candidate = os.path.join(root, "versions", version, "bin", name)
+            if os.path.lexists(candidate):
+                return candidate
+        shim = os.path.join(root, "shims", name)
+        if os.path.lexists(shim):
+            return shim
+        return ""
+
+    def about_tool_location(self, name):
+        """
+        General Purpose: Location line for python2, python3, or pyenv.
+        Under pyenv, python2 and python3 stay inside the root and pyenv is bin/pyenv.
+        """
+        if name == "pyenv" and self.under_pyenv():
+            return self.pyenv_location()
+        if name in ("python2", "python3") and self.under_pyenv():
+            return self.pyenv_interpreter(name)
+        return self.command_location(name)
+
     def os_text(self):
         """General Purpose: Pretty operating-system name, such as Ubuntu 24.04 LTS."""
         try:
@@ -188,10 +290,10 @@ class CheckSystem:
             "    Current User: {}".format(self.current_user()),
             "    Shell: {}".format(shell),
             "    Python Executable: {}".format(self.python_executable_name()),
-            "    python2 location: {}".format(self.command_location("python2")),
-            "    python3 location: {}".format(self.command_location("python3")),
+            "    python2 location: {}".format(self.about_tool_location("python2")),
+            "    python3 location: {}".format(self.about_tool_location("python3")),
             "    conda location: {}".format(self.command_location("conda")),
-            "    pyenv location: {}".format(self.command_location("pyenv")),
+            "    pyenv location: {}".format(self.about_tool_location("pyenv")),
             "    Inside docker container: {}".format(self.inside_docker()),
             "    Cython String: {}".format(self.cpython_soabi()),
             "    Binary Type: {}".format(self.binary_type(arch, libc)),

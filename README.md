@@ -1,19 +1,19 @@
 # VideoSpeed - Cut, speed, and boomerang MP4 clips from the CLI
 
-![Version](https://img.shields.io/badge/Version-1.0.9-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.10-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 [![Stars](https://img.shields.io/github/stars/Wilgat/VideoSpeed?style=flat-square)](https://github.com/Wilgat/VideoSpeed)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square)]()
 [![PyPI](https://img.shields.io/pypi/v/VideoSpeed?style=flat-square)](https://pypi.org/project/VideoSpeed/)
 
-VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent), and can append a reverse pass (boomerang). On a terminal, no arguments opens a text menu (edit, hello, about, Exit). Choosing edit walks through the prompts. Scripts pass `--file` / `--start` / `--end`. Encoding uses **FFmpeg**; duration probing uses **OpenCV**. The menu screen uses the default text-menu style: aligned number, verb, and note, and a rounded box along the bottom.
+VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent), and can append a reverse pass (boomerang). On a terminal, no arguments opens a text menu (edit, hello, self-management, Exit). Choosing edit walks through the prompts. Scripts pass `--file` / `--start` / `--end`. Encoding uses **FFmpeg**; duration probing uses **OpenCV**. The menu screen uses the default text-menu style: aligned number, verb, and note, and a rounded box along the bottom.
 
 | You | The other role | Not this |
 |-----|----------------|----------|
 | Editor at a terminal or a script | FFmpeg on `PATH` (does the encode) | A website, installer, or root/sudo tool |
 
-Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.9**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
+Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.10**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
 
 ## Features
 
@@ -22,8 +22,8 @@ Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERS
 - **Length/speed** change (**20–200%**) with A/V tempo kept in sync
 - Optional **boomerang** (forward then reverse)
 - **USB-safe** intermediate files (staged next to the output) and final publish via `shutil.move`
-- **Text menu** on a terminal (`edit`, `hello`, `about`, `Exit`): columns line up, and a three-row rounded input box sits on the bottom with a status line under it
-- **Product verbs** `help`, `about`, `hello`, `edit`, and `list-mp4`. `help` prints the same usage as `--help`. `about` and `hello` print a page and do not ask for a folder or a file. `edit` on a terminal asks for the folder, then the file. `list-mp4` lists MP4 files and does not encode. `Exit` stays on the menu. `./build.sh` verbs such as `setup` are not `video-speed` verbs
+- **Text menu** on a terminal (`edit`, `hello`, `self-management`, `Exit`): columns line up, and a three-row rounded input box sits on the bottom with a status line under it. **8 self-management** opens version, about, and the pip lifecycle rows
+- **Product verbs** `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `help` prints the same usage as `--help`. `version` prints the installed version. `about` and `hello` print a page and do not ask for a folder or a file. `edit` on a terminal asks for the folder, then the file. `list-mp4` lists MP4 files and does not encode. `version-check` runs `python -m pip index versions VideoSpeed`. `self-update` runs `python -m pip install --upgrade VideoSpeed`. `self-install` runs `python -m pip install VideoSpeed`. `self-uninstall` runs `python -m pip uninstall -y VideoSpeed` and needs `--force` on the command line. `Exit` stays on the menu. `./build.sh` verbs such as `setup` are not `video-speed` verbs
 - **`--help`** / **`--version`**; no arguments in a terminal opens that menu
 - Non-interactive job: `--file`, `--start`, `--end`, optional `--percent` / `--boomerang`, with or without `edit`. Any of those selectors with no product verb skips the menu
 - Fail-closed when **FFmpeg** is missing from `PATH`, when prompts are needed without a terminal, or when `--percent` or `--boomerang` is passed without a job
@@ -76,9 +76,9 @@ The console script is installed on the pyenv 3.14 prefix. `./setup.sh` changes t
 
 ```bash
 # after: python -m build   (or ./build.sh build)
-pip install dist/VideoSpeed-1.0.9-py3-none-any.whl
+pip install dist/VideoSpeed-1.0.10-py3-none-any.whl
 # or
-pip install dist/VideoSpeed-1.0.9.tar.gz
+pip install dist/VideoSpeed-1.0.10.tar.gz
 ```
 
 ### Verify
@@ -99,12 +99,13 @@ video-speed
 python -m VideoSpeed
 ```
 
-The screen shows a numbered menu and a rounded input box along the bottom, as wide as the terminal, with one line to type on and a status line under the box. **edit** continues the prompts. **hello** (7) shows `Hello.`. **about** shows the product. **Exit** leaves.
+The screen shows a numbered menu and a rounded input box along the bottom, as wide as the terminal, with one line to type on and a status line under the box. **edit** continues the prompts. **hello** (7) shows `Hello.`. **self-management** (8) opens version, about, version-check, self-update, self-uninstall, and self-install. **Exit** leaves.
 
-The same actions are verbs. `edit` starts at the folder question. `list-mp4` asks for the folder when it is omitted, prints the numbered list, and stops.
+The same actions are verbs. `edit` starts at the folder question. `list-mp4` asks for the folder when it is omitted, prints the numbered list, and stops. `version` prints the installed version and does not call pip. `version-check` and `self-update` call pip.
 
 ```bash
 video-speed help
+video-speed version
 video-speed about
 video-speed hello
 video-speed edit
@@ -112,6 +113,10 @@ video-speed edit --folder ./clips
 video-speed edit --file clip.mp4 --start 1 --end 5 --percent 100
 video-speed list-mp4
 video-speed list-mp4 --folder ./clips
+video-speed version-check
+video-speed self-update
+video-speed self-install
+video-speed self-uninstall --force
 ```
 
 1. Folder containing MP4s (Enter = current directory)
@@ -183,4 +188,4 @@ MIT License — see [`LICENSE.md`](LICENSE.md).
 
 ## Last Update
 
-2026-10-01 — **1.0.9**: a non-TUI, non-JSON run shows `debug mode` when `DEBUG` is already on, and each class logs `instantiated` on the one ChronicleLogger. `def main` stays in `src/VideoSpeed/cli.py`.
+2026-10-02 — **1.0.10**: front menu **8** is self-management. `version` prints the installed version. `version-check` and `self-update` call pip. `help` stays a verb and is not a numbered row.

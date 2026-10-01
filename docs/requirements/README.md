@@ -2,16 +2,17 @@
 
 Authoritative specialized product law for **VideoSpeed** lives here.
 
-**Current state (2026-10-01):** Specialized **software-development** product. Left genesis. Registry is populated (19 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
+**Current state (2026-10-02):** Specialized **software-development** product. Left genesis. Registry is populated (20 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
 | Product / package | `VideoSpeed` |
-| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 9 → `1.0.9` |
+| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 10 → `1.0.10` |
 | Text menu | `requirement-python-tui` — picture; session is class `Tui`; frame is class `MenuPainter` |
 | About page | `requirement-python-about` — identity, host check, star box |
+| Pyenv paths | `requirement-python-pyenv` — under pyenv, python2 and python3 stay inside the root, and pyenv location is `bin/pyenv` |
 | OOP grouping | `requirement-python-oop` — one class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Pip floors | `requirement-python-dependency-management` — `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
 | System status log | `requirement-python-cli-logging` — one ChronicleLogger, passed into every class. Each object logs `instantiated`. A major file operation logs the operation and the paths. Thread creation and thread operations log before the call that can block (`TP-LOG-07` todo; the ship unit creates no threads). A non-TUI, non-JSON run shows `debug mode` |

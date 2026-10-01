@@ -3,8 +3,8 @@
 Maps **TP-*** coverage to automated or documented checks.  
 **Suite entry:** `tests/run.sh` (`PYTHONPATH=src python3 -m unittest discover -s tests -v`)  
 **Ship unit:** `src/VideoSpeed/cli.py`  
-**Last update:** 2026-10-01  
-**Last suite run:** 2026-10-01 (`PYENV_VERSION=3.14.7 ./tests/run.sh`: 71 ok, TP-PRE-01 skipped because ffmpeg is on PATH)
+**Last update:** 2026-10-02  
+**Last suite run:** 2026-10-02 (`./tests/run.sh`: 79 tests, OK, skipped=1 because ffmpeg is on PATH)
 
 Status: **have** = automated today · **todo** = needed · **manual** = documented human procedure · **n/a** · **skip** (environment)
 
@@ -21,7 +21,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | `--version` / `--help` | **have** | `tests/test_cli.py` |
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
-| Product verbs `help`, `about`, `hello`, `edit`, `list-mp4` | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-MODE-05`..`TP-MODE-08`) |
+| Product verbs `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall` | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-SELF-01`, `TP-TUI-06`, `TP-MODE-05`..`TP-MODE-08`) |
 | Text menu frame and columns | **have** | `tests/test_tui.py` (`src/VideoSpeed/tui.py`, class `Tui`) |
 | FFmpeg preflight | **have** | `tests/test_prereq.py` (missing-binary path) |
 | Cut → speed (no boomerang) | **skip** | needs fixture + ffmpeg |
@@ -30,7 +30,8 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | Length % outside 20–200 rejected | **have** | `valid_percent` |
 | USB / cross-FS publish via `shutil.move` | **have** | `tests/test_fs.py` |
 | Source file not modified | **todo** | needs encode fixture |
-| Online install / Type 1 elev | **n/a** | product absent |
+| Shell online install / Type 1 elev | **n/a** | `curl\|sh` still absent |
+| Python self-management (pip) | **have** | `TP-SELF-01`, `TP-TUI-06` |
 
 ---
 
@@ -92,7 +93,8 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-CLI-04 | No MP4 in folder → clear message, non-success path | `tests/test_cli.py` | CLI · error-handling | **have** |
 | TP-CLI-05 | Invalid video index re-prompts (not crash) | `tests/test_cli.py` | error-handling | **todo** |
 | TP-CLI-06 | Batch `--file`/`--start`/`--end`; missing file / incomplete flags fail closed | `tests/test_cli.py` | CLI · domain | **have** |
-| TP-CLI-07 | `help` lists `help`, `about`, `hello`, `edit`, `list-mp4`; an unknown verb exits 1 and does not open the menu | `tests/test_cli.py` | requirement-python-cli-interface · requirement-python-interactive-vs-noninteractive | **have** |
+| TP-CLI-07 | `help` lists the ten product verbs and the word pip; an unknown verb exits 1 and does not open the menu | `tests/test_cli.py` | requirement-python-cli-interface · requirement-python-interactive-vs-noninteractive | **have** |
+| TP-SELF-01 | `version` is local. `version-check`, `self-update`, `self-install`, and `self-uninstall --force` call pip. No `sudo`. No network in the suite | `tests/test_cli.py` | requirement-python-cli-interface | **have** |
 
 ### TP-MODE (menu walk versus one job)
 
@@ -137,6 +139,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-TUI-03 | Too-small screen fails closed; product source does not import or declare an external menu package | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-04 | edit stays and asks the folder line inside the frame; Exit leaves; unknown token stays; about result omits the frame | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-05 | Menu 7 shows `Hello.` on the result page and that page omits the frame | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-06 | Row **8** opens self-management. **84** version-check runs `python -m pip index versions` with no `sudo` | `tests/test_tui.py` | requirement-python-tui | **have** |
 
 ### TP-ABOUT (about page)
 
@@ -150,6 +153,8 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-ABOUT-06 | Checkout is uninstalled; a home copy is local; `/usr` is global | `tests/test_about.py` | requirement-python-about | **have** |
 | TP-ABOUT-07 | Docker follows the marker file; a missing tool location stays blank | `tests/test_about.py` | requirement-python-about | **have** |
 | TP-ABOUT-08 | A long about page scrolls to Basic Usage; a one-line result still closes on Down | `tests/test_tui.py` | requirement-python-about · requirement-python-tui | **have** |
+| TP-ABOUT-09 | Under pyenv, `pyenv location` is `{root}/bin/pyenv`, and python2 and python3 are inside that root. The about page shows those paths. The check does not spawn | `tests/test_about.py` | requirement-python-pyenv · requirement-python-about | **have** |
+| TP-ABOUT-10 | A `PYENV_ROOT` with no `bin/pyenv` is not under pyenv. The three lines stay on `shutil.which` | `tests/test_about.py` | requirement-python-pyenv · requirement-python-about | **have** |
 
 ### TP-PRE (runtime prerequisites)
 

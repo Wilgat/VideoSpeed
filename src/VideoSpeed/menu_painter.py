@@ -40,12 +40,44 @@ class MenuPainter:
     MENU_ROWS = (
         (1, "edit", "cut, speed, and optional boomerang", "edit"),
         (7, "hello", "show a hello message", "hello"),
-        (8, "about", "version, FFmpeg, and OpenCV", "about"),
+        (8, "self-management", "version, about, and pip lifecycle", "self-management"),
         (9, "Exit", "leave", "exit"),
     )
+    SELF_ROWS = (
+        (82, "version", "show the installed version", "version"),
+        (83, "about", "version, FFmpeg, and OpenCV", "about"),
+        (84, "version-check", "compare this install with pip", "version-check"),
+        (85, "self-update", "upgrade this package with pip", "self-update"),
+        (86, "self-uninstall", "remove this package with pip", "self-uninstall"),
+        (87, "self-install", "install this package with pip", "self-install"),
+        (0, "Back", "return to the main menu", "back"),
+    )
+    ANY_BOARD = {
+        "help": "help",
+        "version": "version",
+        "about": "about",
+        "hello": "hello",
+        "edit": "edit",
+        "list-mp4": "list-mp4",
+        "self-install": "self-install",
+        "version-check": "version-check",
+        "self-update": "self-update",
+        "self-uninstall": "self-uninstall",
+        "self-management": "self-management",
+    }
 
     def rows_for(self, layer: str) -> tuple:
+        if layer == "self":
+            return self.SELF_ROWS
         return self.MENU_ROWS
+
+    def board_title(self, model) -> str:
+        """General Purpose: The title for this layer. A result page names itself."""
+        if getattr(model, "phase", "board") == "result":
+            return "result"
+        if getattr(model, "layer", "front") == "self":
+            return "self-management"
+        return "main menu"
 
     def row_parts(self, rows: tuple) -> list[tuple[str, str, str, str]]:
         """One board's columns. requirement-python-tui.md
@@ -160,7 +192,7 @@ class MenuPainter:
         """Draw one frame. This is the text-menu writer, not product logging."""
         screen.erase()
         italic = curses.A_ITALIC if hasattr(curses, "A_ITALIC") else curses.A_DIM
-        title = "result" if model.phase == "result" else "main menu"
+        title = self.board_title(model)
         self._put(screen, 0, 0, app_name, curses.A_BOLD)
         cursor = len(app_name)
         self._put(screen, 0, cursor, " (")

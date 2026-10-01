@@ -156,21 +156,26 @@ class TestCli(unittest.TestCase):
             cli.Cli.stdin_is_tty = saved_in
 
     def test_tp_cli_07_help_and_unknown_verb(self):
-        """TP-CLI-07: help lists the five verbs; an unknown verb exits 1."""
+        """TP-CLI-07: help lists the product verbs; an unknown verb exits 1."""
+        verbs = (
+            "help", "version", "about", "hello", "edit", "list-mp4",
+            "self-install", "version-check", "self-update", "self-uninstall",
+        )
         proc = _run(["help"])
         self.assertEqual(proc.returncode, 0, proc.stderr.decode("utf-8", "replace"))
         out = proc.stdout.decode("utf-8", "replace")
-        for name in ("help", "about", "hello", "edit", "list-mp4"):
+        for name in verbs:
             self.assertIn(name, out)
         self.assertIn("--file", out)
         self.assertIn("--start", out)
         self.assertIn("--end", out)
+        self.assertIn("pip", out)
         self.assertNotIn("Folder (Enter", out)
 
         flagged = _run(["--help"])
         help_out = flagged.stdout.decode("utf-8", "replace")
         self.assertEqual(flagged.returncode, 0, flagged.stderr.decode())
-        for name in ("help", "about", "hello", "edit", "list-mp4"):
+        for name in verbs:
             self.assertIn(name, help_out)
 
         # help stays human text even with --json.
@@ -189,13 +194,13 @@ class TestCli(unittest.TestCase):
         Tui.open_text_menu = lambda self: opened.append("open") or None
         cli.Cli.stdin_is_tty = lambda self: True
         try:
-            for token in ("setup", "Exit", "exit", "version", "test", "clean"):
+            for token in ("setup", "Exit", "exit", "test", "clean"):
                 proc = _run([token])
                 err = proc.stderr.decode("utf-8", "replace")
                 self.assertEqual(proc.returncode, 1, err)
                 self.assertIn("Unknown verb", err)
                 self.assertIn("Next:", err)
-                for name in ("help", "about", "hello", "edit", "list-mp4"):
+                for name in ("help", "about", "hello", "edit", "list-mp4", "version-check"):
                     self.assertIn(name, err, token)
                 self.assertNotIn("main menu", proc.stdout.decode("utf-8", "replace"))
                 err_buf = io.StringIO()
@@ -217,6 +222,72 @@ class TestCli(unittest.TestCase):
         self.assertIn("setup", doc["error"])
         self.assertIn("list-mp4", doc["next"])
         self.assertIn("Unknown verb", proc.stderr.decode("utf-8", "replace"))
+
+    def test_tp_self_01_pip_lifecycle_verbs(self):
+        """TP-SELF-01: version is local; version-check and self-update call pip."""
+        from VideoSpeed import cli
+        from VideoSpeed.self_management import SelfManage
+
+        calls = []
+
+        def fake(self, argv):
+            calls.append(list(argv))
+            return 0, "pip-ok", ""
+
+        saved = SelfManage._subprocess_runner
+        SelfManage._subprocess_runner = fake
+        try:
+            out = io.StringIO()
+            err = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                code = cli.main(["version"])
+            self.assertEqual(code, 0, err.getvalue())
+            self.assertIn("VideoSpeed", out.getvalue())
+            self.assertEqual(calls, [])
+            self.assertNotIn("pip", out.getvalue())
+
+            out = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(io.StringIO()):
+                code = cli.main(["version-check"])
+            self.assertEqual(code, 0)
+            self.assertEqual(
+                calls[-1][1:],
+                ["-m", "pip", "index", "versions", "VideoSpeed"],
+            )
+            self.assertNotIn("sudo", calls[-1])
+            self.assertNotIn("curl", calls[-1])
+            self.assertIn("VideoSpeed", out.getvalue())
+            self.assertIn("pip-ok", out.getvalue())
+
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = cli.main(["self-update"])
+            self.assertEqual(code, 0)
+            self.assertEqual(
+                calls[-1][1:],
+                ["-m", "pip", "install", "--upgrade", "VideoSpeed"],
+            )
+
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = cli.main(["self-install"])
+            self.assertEqual(code, 0)
+            self.assertEqual(calls[-1][1:], ["-m", "pip", "install", "VideoSpeed"])
+
+            err = io.StringIO()
+            with redirect_stdout(io.StringIO()), redirect_stderr(err):
+                code = cli.main(["self-uninstall"])
+            self.assertEqual(code, 1)
+            self.assertIn("--force", err.getvalue())
+            self.assertEqual(calls[-1][1:], ["-m", "pip", "install", "VideoSpeed"])
+
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                code = cli.main(["self-uninstall", "--force"])
+            self.assertEqual(code, 0)
+            self.assertEqual(
+                calls[-1][1:],
+                ["-m", "pip", "uninstall", "-y", "VideoSpeed"],
+            )
+        finally:
+            SelfManage._subprocess_runner = saved
 
     def test_tp_mode_06_edit_without_terminal_does_not_prompt(self):
         """TP-MODE-06: edit with no terminal and no full job exits 1 and does not prompt."""
@@ -396,6 +467,7 @@ class TestCli(unittest.TestCase):
         from VideoSpeed.file_stage import FileStage
         from VideoSpeed.media_info import MediaInfo
         from VideoSpeed.run_output import RunOutput
+        from VideoSpeed.self_management import SelfManage
 
         self.assertTrue(inspect.isclass(Cli))
         self.assertTrue(inspect.isfunction(main))
@@ -428,6 +500,9 @@ class TestCli(unittest.TestCase):
             (RunOutput, "run_output.py", (
                 "out_info", "out_err", "_json_reset", "_remember", "_remember_job",
                 "_emit_json", "_call_sunk", "_collect_lines",
+            )),
+            (SelfManage, "self_management.py", (
+                "local_version", "argv_for", "run_text", "emit", "_subprocess_runner",
             )),
         )
         for cls, filename, names in homes:

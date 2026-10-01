@@ -240,6 +240,7 @@ class TestLogging(unittest.TestCase):
             "EditWalk",
             "Tui",
             "MenuPainter",
+            "SelfManage",
         ):
             line = "@{0} :] instantiated".format(name)
             self.assertIn(line, logged, name)
@@ -257,6 +258,7 @@ class TestLogging(unittest.TestCase):
         self.assertIs(app.media.logger, logger)
         self.assertIs(app.output.logger, logger)
         self.assertIs(app.stage.logger, logger)
+        self.assertIs(app.self_manage.logger, logger)
         session = MenuSession(
             "VideoSpeed",
             "0",
