@@ -88,12 +88,12 @@ class TestJson(unittest.TestCase):
         opened = []
         from VideoSpeed.tui import Tui
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
         from VideoSpeed.encoder import Encoder
         saved_ff = Encoder.ensure_ffmpeg
         saved_stdin = sys.stdin
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         Encoder.ensure_ffmpeg = lambda self: True
         sys.stdin = io.StringIO("")
         out = io.StringIO()

@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import curses
+import os
+import time
 
-from .run_output import log_instantiated
+
 
 
 class MenuPainter:
@@ -15,7 +17,8 @@ class MenuPainter:
 
     def __init__(self, logger=None):
         self.logger = logger
-        log_instantiated(logger, "MenuPainter")
+        if logger is not None:
+            logger.log_message("instantiated", component="MenuPainter")
 
     # =============================================================================
     # CIAO-Lite Protection Zone
@@ -24,6 +27,9 @@ class MenuPainter:
     # =============================================================================
     INPUT_MARK = "> "
     INPUT_HINT = "Up/Down  •  Enter"
+    # The path word is requirement-python-cli-language. This painter does not
+    # detect a language. The caller sets the word. English is the default.
+    PATH_LABEL_EN = "Path"
     FRAME_TOP_LEFT = "╭"
     FRAME_TOP_RIGHT = "╮"
     FRAME_BOTTOM_LEFT = "╰"
@@ -39,7 +45,8 @@ class MenuPainter:
     MIN_PLACEABLE = 2 + len(" " + INPUT_MARK) + 1
     MENU_ROWS = (
         (1, "edit", "cut, speed, and optional boomerang", "edit"),
-        (7, "hello", "show a hello message", "hello"),
+        (4, "language", "display language for this menu", "language"),
+        (6, "system-log", "view, clear, and the log folder", "system-log"),
         (8, "self-management", "version, about, and pip lifecycle", "self-management"),
         (9, "Exit", "leave", "exit"),
     )
@@ -52,11 +59,32 @@ class MenuPainter:
         (87, "self-install", "install this package with pip", "self-install"),
         (0, "Back", "return to the main menu", "back"),
     )
+    LOG_ROWS = (
+        (61, "view-log", "list a log file and show it", "view-log"),
+        (62, "clear-log", "empty one log file", "clear-log"),
+        (63, "log-folder", "show the log folder", "log-folder"),
+        (0, "Back", "return to the main menu", "back"),
+    )
+    LANG_ROWS = (
+        (41, "English", "use English for this menu", "en"),
+        (42, "简体中文", "use Simplified Chinese for this menu", "zh-Hans"),
+        (43, "繁體中文", "use Traditional Chinese for this menu", "zh-Hant"),
+        (44, "Español", "use Spanish for this menu", "es"),
+        (45, "العربية", "use Arabic for this menu", "ar"),
+        (46, "Français", "use French for this menu", "fr"),
+        (47, "Português", "use Portuguese for this menu", "pt"),
+        (48, "Русский", "use Russian for this menu", "ru"),
+        (49, "Deutsch", "use German for this menu", "de"),
+        (50, "日本語", "use Japanese for this menu", "ja"),
+        (51, "한국어", "use Korean for this menu", "ko"),
+        (52, "Nederlands", "use Dutch for this menu", "nl"),
+        (53, "Ελληνικά", "use Greek for this menu", "el"),
+        (0, "Back", "return to the main menu", "back"),
+    )
     ANY_BOARD = {
         "help": "help",
         "version": "version",
         "about": "about",
-        "hello": "hello",
         "edit": "edit",
         "list-mp4": "list-mp4",
         "self-install": "self-install",
@@ -64,19 +92,70 @@ class MenuPainter:
         "self-update": "self-update",
         "self-uninstall": "self-uninstall",
         "self-management": "self-management",
+        "system-log": "system-log",
+        "language": "language",
+        "view-log": "view-log",
+        "clear-log": "clear-log",
+        "log-folder": "log-folder",
     }
 
     def rows_for(self, layer: str) -> tuple:
         if layer == "self":
             return self.SELF_ROWS
+        if layer == "log":
+            return self.LOG_ROWS
+        if layer == "lang":
+            return self.LANG_ROWS
         return self.MENU_ROWS
+
+    def set_path_label(self, label: str) -> None:
+        """Store the path word the caller already chose. This method does not detect a language."""
+        self._path_label = label
+
+    def path_label(self) -> str:
+        """The path-line word. English until the caller sets another."""
+        return getattr(self, "_path_label", None) or self.PATH_LABEL_EN
+
+    def clock_text(self) -> str:
+        """Local clock HH:MM:SS. requirement-python-tui rule 13. Not translated."""
+        return time.strftime("%H:%M:%S", time.localtime())
+
+    def path_line(self, placeable: int | None = None) -> str:
+        """First menu row: path on the left, local clock on the right when it fits.
+
+        A placeable width keeps the path label and shortens the directory from the left.
+        The clock is omitted when both fields do not fit. requirement-python-tui rule 13.
+        The path and the clock are not translated.
+        """
+        prefix = self.path_label() + ": "
+        current = os.path.abspath(os.getcwd())
+        left = prefix + current
+        right = self.clock_text()
+        gap = 2
+        if placeable is None:
+            return left + (" " * gap) + right
+        if placeable >= len(left) + gap + len(right):
+            return left + (" " * (placeable - len(left) - len(right))) + right
+        if placeable >= len(left):
+            return left
+        if placeable <= len(prefix):
+            return prefix[: max(0, placeable)]
+        return prefix + current[-(placeable - len(prefix)) :]
 
     def board_title(self, model) -> str:
         """General Purpose: The title for this layer. A result page names itself."""
+        titles = getattr(model, "titles", None) or {}
         if getattr(model, "phase", "board") == "result":
-            return "result"
-        if getattr(model, "layer", "front") == "self":
+            return titles.get("result", "result")
+        layer = getattr(model, "layer", "front")
+        if layer in titles:
+            return titles[layer]
+        if layer == "self":
             return "self-management"
+        if layer == "log":
+            return "system-log"
+        if layer == "lang":
+            return "language"
         return "main menu"
 
     def row_parts(self, rows: tuple) -> list[tuple[str, str, str, str]]:
@@ -129,7 +208,7 @@ class MenuPainter:
         return max(1, height - 3)
 
     def screen_can_hold_box(self, height: int, width: int) -> bool:
-        """True when the title, one menu row, the three-row frame, and the status line fit."""
+        """True when the path line, one menu row, the three-row frame, and the status line fit."""
         return height >= self.MIN_HEIGHT and width - 1 >= self.MIN_PLACEABLE
 
     def _input_field(self, model, inner: int) -> tuple[str, int | None]:
@@ -193,13 +272,17 @@ class MenuPainter:
         screen.erase()
         italic = curses.A_ITALIC if hasattr(curses, "A_ITALIC") else curses.A_DIM
         title = self.board_title(model)
-        self._put(screen, 0, 0, app_name, curses.A_BOLD)
-        cursor = len(app_name)
-        self._put(screen, 0, cursor, " (")
-        cursor += 2
-        self._put(screen, 0, cursor, version, italic)
-        cursor += len(version)
-        self._put(screen, 0, cursor, f") — {title}")
+        if model.phase == "result":
+            self._put(screen, 0, 0, app_name, curses.A_BOLD)
+            cursor = len(app_name)
+            self._put(screen, 0, cursor, " (")
+            cursor += 2
+            self._put(screen, 0, cursor, version, italic)
+            cursor += len(version)
+            self._put(screen, 0, cursor, f") — {title}")
+        else:
+            _height, width = screen.getmaxyx()
+            self._put(screen, 0, 0, self.path_line(max(0, width - 1)))
         if model.phase == "result":
             lines = model.result_text.splitlines() or [""]
             height, _width = screen.getmaxyx()

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-pyenv.md
-**Status**: Active (Version 1.0.0)
+**Status**: Active (Version 1.0.2)
 **Area**: python
 **Key**: `requirement-python-pyenv`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -10,7 +10,7 @@ This file is how the host check decides that pyenv is present, and which paths t
 
 ### 1.1 Human-facing
 
-**In one sentence:** On `video-speed about`, when this login has pyenv, the python2 and python3 lines are paths inside that pyenv root, and the pyenv line is `bin/pyenv`.
+**In one sentence:** On `video-speed about`, when this login has pyenv and is not under conda, the python2 and python3 lines are paths inside that pyenv root, and the pyenv line is `bin/pyenv`.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -30,20 +30,20 @@ This file is how the host check decides that pyenv is present, and which paths t
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Open about | The page still has the same labels. When pyenv is present, `pyenv location` is `{root}/bin/pyenv`. It is not `{root}/libexec/pyenv`, even when `libexec` is earlier on `PATH`. `python2 location` and `python3 location` are inside that same root, or blank when that interpreter is not there. | `video-speed about` |
+| Open about | The page still has the same labels. When pyenv is present, `pyenv location` is `{root}/bin/pyenv`. It is not `{root}/libexec/pyenv`, even when `libexec` is earlier on `PATH`. When the check is not under conda, `python2 location` and `python3 location` are inside that same root, or blank when that interpreter is not there. Under conda, those two lines are `requirement-python-conda`. | `video-speed about` |
 
 ## 2. Core Rules (Mandatory)
 
-1. **One owner.** The three reads in this file are the only definition of “under pyenv” and of the `python2`, `python3`, and `pyenv` location values. `requirement-python-about` keeps the labels, the order, and the rest of the page. This file **MUST NOT** add or drop a host-check label.
-2. **No spawn.** The reads **MUST NOT** spawn `python2`, `python3`, `conda`, or `pyenv`. Reading environment variables, the version file, and path existence is allowed. `conda location` stays `shutil.which("conda")` on `requirement-python-about`.
+1. **One owner.** This file is the only definition of “under pyenv” and of `pyenv location`. It owns `python2 location` and `python3 location` only when the check is not under conda. Under conda, those two lines and `conda location` are `requirement-python-conda`. `requirement-python-about` keeps the labels, the order, and the rest of the page. This file **MUST NOT** add or drop a host-check label.
+2. **No spawn.** The reads **MUST NOT** spawn `python2`, `python3`, `conda`, or `pyenv`. Reading environment variables, the version file, and path existence is allowed.
 3. **Pyenv root.** When `PYENV_ROOT` is set and is not blank, that directory is the only candidate. The root qualifies when `{candidate}/bin/pyenv` exists. The launcher **MAY** be a symlink. When `PYENV_ROOT` is unset or blank, the candidate is the login’s `.pyenv` directory, and it qualifies on the same test. A set `PYENV_ROOT` that does not contain `bin/pyenv` is not under pyenv. The check **MUST NOT** then search the login `.pyenv`.
-4. **Under pyenv.** The check is under pyenv only when rule 3 finds a root. `under_pyenv` **MUST** be true in that case and false otherwise. The running `sys.executable` **MAY** sit outside `versions/`. That does not by itself clear the flag, and a system interpreter **MUST NOT** set the flag when no root qualifies.
+4. **Under pyenv.** The check is under pyenv only when rule 3 finds a root. `under_pyenv` **MUST** be true in that case and false otherwise. The running `sys.executable` **MAY** sit outside `versions/`. That does not by itself clear the flag, and a system interpreter **MUST NOT** set the flag when no root qualifies. The logger read `in_pyenv` is `requirement-python-cli-logging`. It **MUST NOT** replace this flag, and it **MUST NOT** choose the three location lines.
 5. **pyenv location.** When under pyenv, the value **MUST** be `{root}/bin/pyenv`. The check **MUST NOT** realpath that launcher into `{root}/libexec/pyenv`. The check **MUST NOT** use `shutil.which("pyenv")` for this line while under pyenv. When not under pyenv, the value **MUST** be `shutil.which("pyenv")`, else empty.
 6. **Version names.** When `PYENV_VERSION` is set and is not blank, split it on `:`. Otherwise read `{root}/version` and use its lines. Skip a blank token, the token `system`, the tokens `.` and `..`, and any token that contains `/` or `\`. Keep the remaining tokens in order.
-7. **python2 and python3.** When under pyenv, each value **MUST** be chosen in this order, and **MUST** be empty when none match. The value **MUST** be a path inside the root. The check **MUST NOT** substitute a `PATH` hit outside the root.
+7. **python2 and python3.** When under pyenv and not under conda, each value **MUST** be chosen in this order, and **MUST** be empty when none match. The value **MUST** be a path inside the root. The check **MUST NOT** substitute a `PATH` hit outside the root. When under conda, `requirement-python-conda` owns these two lines.
    - For each version name from rule 6, `{root}/versions/{name}/bin/python2` or `{root}/versions/{name}/bin/python3` when that path exists.
    - Otherwise `{root}/shims/python2` or `{root}/shims/python3` when that path exists.
-8. **Not under pyenv.** `python2 location` and `python3 location` **MUST** stay `shutil.which("python2")` and `shutil.which("python3")`, else empty.
+8. **Not under pyenv.** When the check is also not under conda, `python2 location` and `python3 location` **MUST** stay `shutil.which("python2")` and `shutil.which("python3")`, else empty.
 9. Actor / role / subject / approver: **considered**. No dest machine. No approver. The table stays on `requirement-class-software-dev.md`.
 10. Dest fence conditions: **considered — none**. Do not invent one.
 
@@ -79,14 +79,14 @@ Invocation: `video-speed about`.
 | **Launcher path** | `pyenv_location` returns `{root}/bin/pyenv` and does not resolve the symlink into `libexec` |
 | **Version names** | `pyenv_version_names` |
 | **Interpreter path** | `pyenv_interpreter("python2")` and `pyenv_interpreter("python3")` |
-| **Line value** | `about_tool_location` for `python2`, `python3`, and `pyenv`. `check_system_lines` calls it. `conda` stays `command_location` |
+| **Line value** | `about_tool_location` for `python2`, `python3`, and `pyenv` when not under conda. `check_system_lines` calls it. Under conda, `python2` and `python3` are `requirement-python-conda` |
 | **Labels** | Unchanged. Owned by `requirement-python-about` |
 | **Page** | `video-speed about` and menu **about** print `AboutPage.framework_about`, which calls `check_system_lines` |
 | **Privilege** | normal user privilege |
 
 ### 2.3 Why This Requirement Exists (Direct CIAO Alignment)
 
-- **CIAO Principle 5 – SSOT** (https://github.com/cloudgen/ciao): one file owns the pyenv root and the three paths. The about page keeps the labels.
+- **CIAO Principle 5 – SSOT** (https://github.com/cloudgen/ciao): one file owns the pyenv root and `pyenv location`. Interpreter lines move to `requirement-python-conda` while under conda.
 - **CIAO Principle 2 – Intentional** (https://github.com/cloudgen/ciao): `bin/pyenv` is the launcher. `libexec/pyenv` is not that line.
 - **CIAO Principle 1 – Caution** (https://github.com/cloudgen/ciao): a missing interpreter stays blank. The check does not run pyenv.
 - **CIAO Principle 3 – Anti-fragile** (https://github.com/cloudgen/ciao): a named `PYENV_ROOT` that is not a pyenv root does not fall through to another directory.
@@ -112,6 +112,7 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 - Fall back to the login `.pyenv` when `PYENV_ROOT` is set and does not contain `bin/pyenv`.
 - Accept a version token that contains a slash, a backslash, `.`, or `..`.
 - Spawn `python2`, `python3`, `conda`, or `pyenv` to fill these lines.
+- Replace `under_pyenv` with the logger read `inPyenv`. That read is `in_pyenv` on `requirement-python-cli-logging`. The location lines stay on this file’s root test.
 - Add a host-check label for this rule, or drop `python2 location`, `python3 location`, or `pyenv location`.
 - Freeze a Unix login or a `/home/<login>/…` path into this requirement.
 
@@ -133,6 +134,7 @@ TP-ABOUT-09 builds a pyenv root whose `bin/pyenv` is a symlink to `libexec/pyenv
 |----------|------|
 | `docs/requirements/index.md` | Registry |
 | `docs/requirements/requirement-python-about.md` | Labels, order, and the rest of the about page |
+| `docs/requirements/requirement-python-conda.md` | Interpreter lines and `conda location` when under conda |
 | `docs/requirements/requirement-python-oop.md` | Class `CheckSystem` owns these methods |
 | `docs/requirements/requirement-class-software-dev.md` | Approver none; no dest fence |
 | `src/VideoSpeed/check_system.py` | The reads |
@@ -143,6 +145,8 @@ TP-ABOUT-09 builds a pyenv root whose `bin/pyenv` is a symlink to `libexec/pyenv
 | Date | Status | Note |
 |------|--------|------|
 | 2026-10-02 | Active 1.0.0 | Under pyenv, about shows python2 and python3 inside the root, and pyenv location is `bin/pyenv` |
+| 2026-10-02 | Active 1.0.1 | Under conda, python2 and python3 move to `requirement-python-conda`. This file still owns `pyenv location` |
+| 2026-10-02 | Active 1.0.2 | `in_pyenv` stays on `requirement-python-cli-logging`. It does not replace `under_pyenv` and does not choose these location lines |
 
 **Last Updated**: 2026-10-02
 **Owner**: project maintainers

@@ -3,6 +3,8 @@
 # requirement-python-oop — class CheckSystem.
 # requirement-python-about — line text stays with the about composer.
 # requirement-python-pyenv — python2, python3, and pyenv paths when under pyenv.
+# requirement-python-conda — python2, python3, and conda paths when under conda.
+# requirement-python-cli-logging — in_venv, in_pyenv, and in_conda read the one logger.
 # =============================================================================
 from __future__ import print_function, unicode_literals
 
@@ -13,7 +15,7 @@ import shutil
 import sys
 import sysconfig
 
-from .run_output import log_instantiated
+
 
 
 class CheckSystem:
@@ -22,9 +24,13 @@ class CheckSystem:
     The about composer calls this object. It does not own the star box.
     """
 
-    def __init__(self, logger=None):
+    def __init__(self, logger=None, app_name="", version="", console_name=""):
         self.logger = logger
-        log_instantiated(logger, "CheckSystem")
+        if logger is not None:
+            logger.log_message("instantiated", component="CheckSystem")
+        self.app_name = app_name
+        self.version = version
+        self.console_name = console_name
 
     def parse_sys_version(self, version_text, python_version):
         """
@@ -164,6 +170,24 @@ class CheckSystem:
             return root
         return ""
 
+    def in_venv(self):
+        """General Purpose: True when the process logger reports a venv."""
+        if self.logger is None:
+            return False
+        return self.logger.inVenv()
+
+    def in_pyenv(self):
+        """General Purpose: True when the process logger reports pyenv."""
+        if self.logger is None:
+            return False
+        return self.logger.inPyenv()
+
+    def in_conda(self):
+        """General Purpose: True when the process logger reports conda."""
+        if self.logger is None:
+            return False
+        return self.logger.inConda()
+
     def under_pyenv(self):
         """General Purpose: True when this check has a pyenv root."""
         return self.pyenv_root() != ""
@@ -212,13 +236,134 @@ class CheckSystem:
             return shim
         return ""
 
+    def _conda_name_token(self, token):
+        """One environment segment. Blanks and path tricks are skipped."""
+        if token in ("", ".", ".."):
+            return False
+        if "/" in token or "\\" in token:
+            return False
+        return True
+
+    def _has_conda_launcher(self, root):
+        """True when bin/conda exists. The launcher may be a symlink."""
+        return os.path.lexists(os.path.join(root, "bin", "conda"))
+
+    def _root_from_conda_exe(self, exe):
+        """Root when CONDA_EXE lives in bin or condabin. Otherwise empty."""
+        path = os.path.abspath(os.path.expanduser(exe.strip()))
+        parent = os.path.dirname(path)
+        if os.path.basename(parent) not in ("bin", "condabin"):
+            return ""
+        root = os.path.dirname(parent)
+        if self._has_conda_launcher(root):
+            return root
+        return ""
+
+    def _root_from_conda_prefix(self, prefix):
+        """Root when the prefix is the base or one envs segment. Otherwise empty."""
+        path = os.path.abspath(os.path.expanduser(prefix.strip()))
+        if self._has_conda_launcher(path):
+            return path
+        name = os.path.basename(path)
+        envs = os.path.dirname(path)
+        if os.path.basename(envs) != "envs":
+            return ""
+        if not self._conda_name_token(name):
+            return ""
+        root = os.path.dirname(envs)
+        if self._has_conda_launcher(root):
+            return root
+        return ""
+
+    def _prefix_inside_conda(self, root, prefix):
+        """The prefix when it is the root or root/envs/<name>. Otherwise empty."""
+        path = os.path.abspath(os.path.expanduser(prefix.strip()))
+        root_abs = os.path.abspath(root)
+        if path == root_abs:
+            return path
+        envs = os.path.join(root_abs, "envs")
+        marker = envs + os.sep
+        if not path.startswith(marker):
+            return ""
+        if not self._conda_name_token(path[len(marker):]):
+            return ""
+        return path
+
+    def conda_root(self):
+        """
+        General Purpose: Conda root when bin/conda is present, else empty.
+        A non-empty CONDA_EXE is the only candidate. Otherwise a non-empty
+        CONDA_PREFIX. Otherwise the first login install that has bin/conda.
+        """
+        exe = os.environ.get("CONDA_EXE")
+        if exe is not None and exe.strip() != "":
+            return self._root_from_conda_exe(exe)
+        prefix = os.environ.get("CONDA_PREFIX")
+        if prefix is not None and prefix.strip() != "":
+            return self._root_from_conda_prefix(prefix)
+        home = os.path.expanduser("~")
+        if home == "" or home == "~":
+            return ""
+        for name in ("miniconda3", "anaconda3", "miniforge3", "mambaforge"):
+            root = os.path.abspath(os.path.join(home, name))
+            if self._has_conda_launcher(root):
+                return root
+        return ""
+
+    def under_conda(self):
+        """General Purpose: True when this check has a conda root."""
+        return self.conda_root() != ""
+
+    def conda_location(self):
+        """
+        General Purpose: The conda launcher at bin/conda.
+        This is not the condabin file that can appear first on PATH.
+        """
+        root = self.conda_root()
+        if root == "":
+            return ""
+        return os.path.join(root, "bin", "conda")
+
+    def conda_prefix(self):
+        """
+        General Purpose: Active conda prefix inside the root, else the root.
+        Empty when the check is not under conda.
+        """
+        root = self.conda_root()
+        if root == "":
+            return ""
+        named = os.environ.get("CONDA_PREFIX")
+        if named is not None and named.strip() != "":
+            inside = self._prefix_inside_conda(root, named)
+            if inside != "":
+                return inside
+        return root
+
+    def conda_interpreter(self, name):
+        """
+        General Purpose: python2 or python3 inside the conda prefix, or empty.
+        An active prefix does not borrow the base interpreter.
+        """
+        prefix = self.conda_prefix()
+        if prefix == "":
+            return ""
+        candidate = os.path.join(prefix, "bin", name)
+        if os.path.lexists(candidate):
+            return candidate
+        return ""
+
     def about_tool_location(self, name):
         """
-        General Purpose: Location line for python2, python3, or pyenv.
-        Under pyenv, python2 and python3 stay inside the root and pyenv is bin/pyenv.
+        General Purpose: Location line for python2, python3, conda, or pyenv.
+        Under conda, python2 and python3 stay inside the prefix and conda is bin/conda.
+        Otherwise under pyenv, those interpreters stay inside the pyenv root.
         """
+        if name == "conda" and self.under_conda():
+            return self.conda_location()
         if name == "pyenv" and self.under_pyenv():
             return self.pyenv_location()
+        if name in ("python2", "python3") and self.under_conda():
+            return self.conda_interpreter(name)
         if name in ("python2", "python3") and self.under_pyenv():
             return self.pyenv_interpreter(name)
         return self.command_location(name)
@@ -243,21 +388,88 @@ class CheckSystem:
         value = sysconfig.get_config_var("SOABI") or ""
         return value
 
+    def process_id(self):
+        """General Purpose: This process id as decimal text."""
+        return str(os.getpid())
+
+    def _home_dir(self):
+        """HOME when set. Otherwise an absolute expanduser result. Else empty."""
+        home = os.environ.get("HOME") or ""
+        if home.strip():
+            return home
+        try:
+            expanded = os.path.expanduser("~")
+        except Exception:
+            return ""
+        if expanded and os.path.isabs(expanded):
+            return expanded
+        return ""
+
+    def _cache_leaf(self, username, pid_text):
+        """Preferred leaf. No empty username segment."""
+        if username:
+            return "cache-{}-{}-{}".format(self.app_name, username, pid_text)
+        return "cache-{}-{}".format(self.app_name, pid_text)
+
+    def cache_folder_preferred(self):
+        """General Purpose: RAM cache candidate under /dev/shm/cache."""
+        leaf = self._cache_leaf(self.current_user(), self.process_id())
+        return os.path.join("/dev/shm", "cache", leaf)
+
+    def cache_folder_first_fallback(self):
+        """General Purpose: First cache fallback under /tmp/cache."""
+        leaf = self._cache_leaf(self.current_user(), self.process_id())
+        return os.path.join("/tmp", "cache", leaf)
+
+    def cache_folder_second_fallback(self):
+        """General Purpose: Second cache fallback. The leaf has no username."""
+        home = self._home_dir()
+        if not home:
+            return ""
+        leaf = "cache-{}-{}".format(self.app_name, self.process_id())
+        return os.path.join(home, ".cache", leaf)
+
+    def cache_folder_used(self):
+        """
+        General Purpose: Which cache candidate this run would use.
+        Directory existence only. This read does not create the folder.
+        """
+        if os.path.isdir("/dev/shm"):
+            return self.cache_folder_preferred()
+        if os.path.isdir("/tmp"):
+            return self.cache_folder_first_fallback()
+        return self.cache_folder_second_fallback()
+
+    def persistence_storage(self):
+        """General Purpose: Durable data directory under the login home."""
+        home = self._home_dir()
+        if not home:
+            return ""
+        return os.path.join(home, ".local", self.app_name)
+
+    def tty_interactive(self, stream=None):
+        """General Purpose: yes when stdout is a terminal, otherwise no."""
+        target = sys.stdout if stream is None else stream
+        try:
+            interactive = bool(target.isatty())
+        except Exception:
+            interactive = False
+        return "yes" if interactive else "no"
+
     def self_location(self):
         """
         General Purpose: Path of the running program.
         A console-script argv wins. Otherwise the CLI module file.
         The about page names that program file, so this read stays on it.
         """
-        from .cli import APP_NAME, CONSOLE_NAME
-        from . import cli as cli_mod
-
-        here = os.path.realpath(cli_mod.__file__)
+        here = os.path.realpath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "cli.py")
+        )
         argv0 = sys.argv[0] if sys.argv else ""
         if argv0 and os.path.isfile(argv0):
             argv_real = os.path.realpath(argv0)
             base = os.path.basename(argv_real)
-            if base in (CONSOLE_NAME, APP_NAME):
+            if base in (self.console_name, self.app_name):
                 return argv_real
             same_dir = os.path.dirname(argv_real) == os.path.dirname(here)
             if same_dir and base in ("cli.py", "__main__.py"):
@@ -269,8 +481,6 @@ class CheckSystem:
         General Purpose: Host check block for the about page.
         The stamp is local time with microseconds.
         """
-        from .cli import APP_NAME, _PKG_VERSION
-
         when = now if now is not None else datetime.datetime.now()
         stamp = when.strftime("%Y-%m-%d %H:%M:%S.%f")
         version_text = sys.version
@@ -281,7 +491,7 @@ class CheckSystem:
         shell = self.shell_text()
         libc = self.libc_label(version_text, shell)
         rows = [
-            "{} {}(v{})  [CHECK SYSTEM]:".format(stamp, APP_NAME, _PKG_VERSION),
+            "{} {}(v{})  [CHECK SYSTEM]:".format(stamp, self.app_name, self.version),
             "  Now checking your operation system!",
             "    Python: {}".format(py_text),
             "    C Library: {}".format(c_library),
@@ -292,11 +502,22 @@ class CheckSystem:
             "    Python Executable: {}".format(self.python_executable_name()),
             "    python2 location: {}".format(self.about_tool_location("python2")),
             "    python3 location: {}".format(self.about_tool_location("python3")),
-            "    conda location: {}".format(self.command_location("conda")),
+            "    conda location: {}".format(self.about_tool_location("conda")),
             "    pyenv location: {}".format(self.about_tool_location("pyenv")),
             "    Inside docker container: {}".format(self.inside_docker()),
             "    Cython String: {}".format(self.cpython_soabi()),
             "    Binary Type: {}".format(self.binary_type(arch, libc)),
             "    Location: {}".format(self.self_location()),
+            "    PID: {}".format(self.process_id()),
+            "    Cache folder used: {}".format(self.cache_folder_used()),
+            "    Cache folder (preferred): {}".format(self.cache_folder_preferred()),
+            "    Cache folder (1st fallback): {}".format(
+                self.cache_folder_first_fallback()
+            ),
+            "    Cache folder (2nd fallback): {}".format(
+                self.cache_folder_second_fallback()
+            ),
+            "    Persistence storage: {}".format(self.persistence_storage()),
+            "    TTY / Interactive: {}".format(self.tty_interactive()),
         ]
         return rows

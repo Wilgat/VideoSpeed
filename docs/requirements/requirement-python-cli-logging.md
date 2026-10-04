@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-logging.md
-**Status**: Active (Version 1.0.7)
+**Status**: Active (Version 1.0.16)
 **Area**: python
 **Key**: `requirement-python-cli-logging`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,11 +8,13 @@
 
 ## 1. Purpose
 
-VideoSpeed records **system status** through one **ChronicleLogger** instance: process start, debug identity, menu and edit steps, duration probe, encode stages, major file operations, thread creation and thread operations, and failures. The pip name and version floor live in `requirement-python-dependency-management`. User-visible failure sentences stay owned by `requirement-python-error-handling`. Stopping on Control-C stays owned by `requirement-python-graceful-exit`. The text menu stays owned by `requirement-python-tui`. This file does not name a thread-wait timeout.
+**Very important.** `def main` instantiates ChronicleLogger. The instantiation is the statement `ChronicleLogger(...)` written in that function, before the argument parser and before any product object.
+
+VideoSpeed records **system status** through that one **ChronicleLogger** instance: process start, debug identity, menu and edit steps, duration probe, encode stages, major file operations, thread creation and thread operations, and failures. Class `CheckSystem` reads whether this process is in a venv, in pyenv, and in conda from that same object. The pip name and version floor live in `requirement-python-dependency-management`. User-visible failure sentences stay owned by `requirement-python-error-handling`. Stopping on Control-C stays owned by `requirement-python-graceful-exit`. The text menu stays owned by `requirement-python-tui`. This file does not name a thread-wait timeout.
 
 ### 1.1 Human-facing
 
-**In one sentence:** When VideoSpeed runs, it writes a dated status file with ChronicleLogger, and it does not paint those lines onto the text menu.
+**In one sentence:** `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)`, VideoSpeed writes a dated status file through that object, and it does not paint those lines onto the text menu, onto the about page, or onto standard output when `--json` is set.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -22,20 +24,22 @@ VideoSpeed records **system status** through one **ChronicleLogger** instance: p
 
 | Includes | Excludes |
 |----------|----------|
-| One logger, read-back of name and folders, debug gate, `log_message` level and component, thread create and thread operations | Rewriting ChronicleLogger; a second `logging` setup; painting the menu with log lines; a thread pool |
+| One logger, read-back of name and folders, debug gate, `log_message` level and component, thread create and thread operations, and the host check’s in-venv, in-pyenv, and in-conda reads | Rewriting ChronicleLogger; a second `logging` setup; painting the menu with log lines; a thread pool; copying those three detectors into this program |
 
 | Surface | What you open | What for |
 |---------|---------------|----------|
-| `src/VideoSpeed/cli.py` | `main` | Construct the logger and pass that one instance |
+| `src/VideoSpeed/cli.py` | `def main` | Instantiates ChronicleLogger by writing `ChronicleLogger(...)`, then passes that one instance |
 | `video-speed` | console script | Writes status while it runs |
 | Resolved `logDir()` | daily `.log` file | History after the process exits |
 
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
-| Start the program | It builds one logger named VideoSpeed, reads the resolved name and base folder back, and logs status with a component tag. | `video-speed --version` |
-| Ask for the debug lines | Set `DEBUG` before the process starts. On a non-TUI, non-JSON run, `main` displays the resolved name, the version triple, `ChronicleLogger.class_version()`, and a line that says `debug mode`, before the argument parser. `--json` and the text screen keep that mirror off the console. When debug mode is off, those lines stay off. | `DEBUG=1 video-speed --version` |
+| Start the program | `def main` instantiates one logger by writing `ChronicleLogger(...)` with logname `VideoSpeed`, reads the resolved name and base folder back, and logs status with a component tag. | `video-speed --version` |
+| Ask for the debug lines | Set `DEBUG` before the process starts. On a non-TUI, non-JSON run, `main` displays the resolved name, the version triple, `ChronicleLogger.class_version()`, and a line that says `debug mode`, before the argument parser. `--json` and the text screen keep that mirror off the console. `video-speed about --json` keeps it off both streams. The about page on the error stream is not this mirror. When debug mode is off, those lines stay off. | `DEBUG=1 video-speed --version` |
 
 ## 2. Core Rules (Mandatory)
+
+**Very important — construct site.** `def main` instantiates the one ChronicleLogger. The instantiation is the statement `ChronicleLogger(...)` written in that function, before the argument parser and before any product object. Rule 5 is this law.
 
 ### 2.0 When this law applies
 
@@ -46,7 +50,7 @@ VideoSpeed records **system status** through one **ChronicleLogger** instance: p
 ### 2.1 One logger
 
 4. **MUST** import `ChronicleLogger` from `ChronicleLogger` at the use site. Tests that freeze the clock **MUST** import `TimeProvider` from the same package. **MUST NOT** import `_Suroot`. **MUST NOT** import `FakeTimeProvider` from the package (it is not exported).  
-5. **MUST** construct **one** instance per process inside `main`, with `logname` set to the product name. Helpers receive that instance. **MUST NOT** construct a second logger “for convenience.”  
+5. **MUST** construct **one** instance per process by writing `ChronicleLogger(...)` inside `def main`, with `logname` set to the product name. That statement is the construct. **MUST NOT** put the construct in a function or a method. **MUST NOT** call `Cli.__new__` in order to build the logger. Helpers receive that instance. **MUST NOT** construct a second logger “for convenience.”  
 6. **MUST** read back `logName()`, `baseDir()`, and `logDir()` immediately after construct, and again after any path setter. The constructor string is not the resolved name: Python mode turns CamelCase into kebab-case (`VideoSpeed` becomes `video-speed`).  
 7. **MUST NOT** re-export `ChronicleLogger` from the `VideoSpeed` package.  
 8. If the import fails, **MUST** fail closed on the console with a next step to install the floor named by `requirement-python-dependency-management`, and **MUST** exit non-zero. That one line cannot go through `log_message`.
@@ -56,7 +60,8 @@ VideoSpeed records **system status** through one **ChronicleLogger** instance: p
 9. **MUST** ask `logger.isDebug()` for whether debug status is on. **MUST NOT** read `DEBUG` again in product code.  
 10. `isDebug()` remembers the first answer. `DEBUG` or `debug` **MUST** already be `1`, `true`, or `show` (any letter case) **before** `ChronicleLogger(...)`.  
 11. The startup identity lines **MUST** run only inside `if logger.isDebug():`, and `main` **MUST** run that block before the argument parser. The block is the resolved app name, the version triple, this file’s path, `ChronicleLogger.class_version()`, the resolved base folder, and one line whose message is `debug mode`. When `isDebug()` is false, those lines **MUST NOT** be displayed.  
-11a. **Console mirror.** Before that block, `main` **MUST** call `quiet(True)` when `--json` is set or when this run will open the text screen. A non-TUI run that is not `--json` **MUST** leave quiet off, so the operator sees `debug mode` on the console. `--json` and the text screen **MUST** keep that mirror off the console. The same lines still go to the daily file.
+11a. **Console mirror.** When `--json` is set, or this run will open the text screen, and that fact is known before construct, `main` **MUST** pass `is_quiet=True` into `ChronicleLogger(...)`. The library stores that flag before it resolves the name and the folders and before it creates the log directory. That constructor can call `prn`, including the line `Created directory:`. A call to `quiet(True)` after the constructor returns **MUST NOT** be the only quiet for those runs. It does not hide a line the constructor already printed. A non-TUI run that is not `--json` **MUST** leave `is_quiet` false, so the operator sees `debug mode` on the console. `--json` and the text screen **MUST** keep that mirror off the console. The same lines still go to the daily file. `logger.quiet(True)` remains the setter when a screen opens later and was not known at construct. It is not a substitute for `is_quiet=True` on a `--json` construct. `is_quiet=True` is not the JSON encoder.
+11b. **About page is not this mirror.** The host-check block that contains `[CHECK SYSTEM]:` is page text owned by `requirement-python-about`. `log_message` **MUST NOT** emit that block, and **MUST NOT** insert a status line into the page. `video-speed about --json` is a `--json` run, so rule 11a has already constructed the logger with `is_quiet=True`. The console mirror **MUST NOT** write a status line onto standard output, and **MUST NOT** write one onto the error stream beside that page. That includes `Created directory:`. The daily file still receives the status lines. `is_quiet=True` **MUST NOT** suppress the about page. A terminal that shows the page and then the JSON object is the two streams of one terminal. It is not a logger line joining the object. `TTY / Interactive` on that page is `requirement-python-about`. It is not `isDebug()`, and it is not JSON `mode`.
 
 ### 2.3 `log_message` level and component
 
@@ -78,9 +83,9 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 
 13a. `main` **MUST** decide quiet and run the debug block before it constructs class `Cli`.  
 13b. Every product class **MUST** accept that same logger as an `__init__` parameter and store it on `self.logger`. The constructor home is `requirement-python-oop`.  
-13c. When the logger is present, `__init__` **MUST** call `log_message("instantiated", component="<ClassName>")`. The level is INFO. The call **MUST NOT** sit inside `if logger.isDebug():`.  
-13d. A class that constructs another product class **MUST** pass that same logger.  
-13e. **MUST NOT** construct a ChronicleLogger inside a class.  
+13c. When the logger is present, `__init__` **MUST** call `log_message("instantiated", component="<ClassName>")` in that method. The level is INFO. The call **MUST NOT** sit inside `if logger.isDebug():`. **MUST NOT** call a module function to write that line.  
+13d. A class that constructs another product class **MUST** write `OtherClass(...)` at that site and pass that same logger.  
+13e. **MUST NOT** construct a ChronicleLogger inside a class. **MUST NOT** construct it from a method of `Cli`.  
 13f. A caller that has no logger may omit it. `main` has the logger and **MUST** pass it.  
 13g. `--json` and the text screen **MUST** already be quiet, so these lines stay off that console. The daily file still receives them. A non-TUI, non-JSON run **MUST** leave quiet off, so the operator sees each `instantiated` line.
 
@@ -88,7 +93,7 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 
 13h. A major file operation **MUST** call `log_message` with the operation and the paths. The operations are: write a temp, publish through `FileStage.promote_file`, and discard an unfinished temp.  
 13i. The `component` **MUST** come from the table in rule 13. Encode temps and publish use `ffmpeg`. The level is `INFO`. The call **MUST NOT** sit inside `if logger.isDebug():`. **MUST NOT** use `print`. **MUST NOT** construct a second logger.  
-13j. Control-C stop, the exit code, and the decision not to publish are owned by `requirement-python-graceful-exit`. This file owns the logger and the `component` for those lines.  
+13j. Control-C stop, the confirm question, the exit code, and the decision not to publish are owned by `requirement-python-graceful-exit`. This file owns the logger and the `component` for those lines. The interrupted-wait line uses `ffmpeg`. The exit-decision line uses `menu` when a text screen is open and `main` when it is not. Both are in the table in rule 13. This file does not own the question words.  
 13k. Quiet from rule 11a still applies. The daily file still receives the line.
 
 ### 2.3c Thread creation and thread operations
@@ -114,6 +119,8 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 ### 2.5 Folder and line
 
 21. **MUST** use the folders from `baseDir()` and `logDir()`. **MUST NOT** copy the library’s environment ladder into this program.  
+21a. **Environment checks.** Class `CheckSystem` **MUST** take in-venv, in-pyenv, and in-conda from the one ChronicleLogger stored on that instance. `in_venv` **MUST** return that object’s `inVenv()`. `in_pyenv` **MUST** return `inPyenv()`. `in_conda` **MUST** return `inConda()`. When the logger is absent, each value **MUST** be false. The check **MUST NOT** construct a ChronicleLogger to answer them, and **MUST NOT** copy those three detectors into this program. The check **MUST NOT** call a logger method that runs `pyenv` or `conda`. These three booleans **MUST NOT** select `python2 location`, `python3 location`, `conda location`, or `pyenv location`. Those lines stay on `under_pyenv` and `under_conda` (`requirement-python-pyenv`, `requirement-python-conda`). The about page **MUST NOT** gain a label for these booleans.  
+21b. **Resolved log folder.** ChronicleLogger already chooses `baseDir()` and `logDir()`. The catalog in section 2.7 is that result for resolved name `video-speed`. This program **MUST** keep calling those methods. **MUST NOT** type a catalog path into product code. The library order is an active conda environment, else an active pyenv or pyenv-virtualenv directory, else `VIRTUAL_ENV`, else the login home. Root changes only that last case. `logDir()` is `baseDir()` + `/log` on every row. Purpose and Best for explain the environment. They **MUST NOT** be read as a requirement to install pyenv, pyenv-virtualenv, Miniconda, or Anaconda. The catalog **MUST NOT** select the about location lines. That split stays rule 21a.  
 22. The daily file basename **MUST** stay the library’s `{kebab-app}-{YYYYMMDD}.log` under `logDir()`.  
 23. A file line has this shape (the library writes it; this product does not format it by hand):
 
@@ -132,49 +139,56 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 |-------|--------|
 | **Library** | ChronicleLogger |
 | **Floor** | `ChronicleLogger>=1.3.1`, owned by `requirement-python-dependency-management` |
-| **Construct site** | `main` in `src/VideoSpeed/cli.py` |
+| **Construct site** | `def main` in `src/VideoSpeed/cli.py` instantiates ChronicleLogger by writing `ChronicleLogger(...)` in that function. Rule 5. |
 | **logname** | `VideoSpeed` |
 | **Resolved name** | `video-speed` from `logName()` |
-| **Call order** | Same order as the sibling product AnimeDlp: construct with `logname`, then `logName()`, then `baseDir()`, then `logDir()`, then quiet for `--json` or the text screen, then `isDebug()`, then `log_message`, including `debug mode` |
-| **Quiet** | `quiet(True)` before the debug mirror when `--json` is set or the text screen will open; also before the frame. A non-TUI, non-JSON run stays audible |
-| **Ship unit** | `main` constructs one ChronicleLogger, decides quiet, then builds `Cli` with that logger. Each class stores it and logs `instantiated` with `component` set to the class name. A non-TUI, non-JSON run shows those lines. Edit, probe, and ffmpeg stage lines remain `TP-LOG-03`. A temp write, a publish, and a discard of an unfinished temp are not logged yet (`TP-LOG-06`). The ship unit creates no threads and takes no log lock (`TP-LOG-07`) |
+| **Call order** | Inside `def main`, write `ChronicleLogger(...)` with `logname` and, when `--json` or the text screen is already known, `is_quiet=True`. Then read `logName()`, `baseDir()`, and `logDir()`. Then `isDebug()`, then `log_message`, including `debug mode`. Then `Cli(logger)`. `quiet(True)` after the constructor returns does not replace `is_quiet=True` |
+| **Quiet** | `is_quiet=True` on the constructor for `--json` and for a text screen already known from argv. That hides `Created directory:` and the later mirror. `video-speed about --json` uses that flag. The about page on the error stream is not a mirror line. `logger.quiet(True)` still runs before a frame that was not known at construct. A non-TUI, non-JSON run stays audible |
+| **Ship unit** | `def main` writes `ChronicleLogger(...)` with `is_quiet=True` when `--json` is set or the text screen is already known, then writes `Cli(logger)`. Each `__init__` calls `log_message("instantiated", ...)` itself. A non-TUI, non-JSON run shows those lines. `--json`, including `about --json`, keeps them off the console, including `Created directory:` when the log folder is new. The about page is still printed to the error stream by `requirement-python-about`. Edit, probe, and ffmpeg stage lines remain `TP-LOG-03`. A temp write, a publish, and a discard of an unfinished temp are not logged yet (`TP-LOG-06`). The ship unit creates no threads and takes no log lock (`TP-LOG-07`). `TP-LOG-08` and `TP-ABOUT-15` have (`./tests/run.sh` 2026-10-02: 86 tests, OK, skipped=1) |
 | **Debug switch** | Environment `DEBUG` only. There is no `--debug` flag |
+| **Environment checks** | `CheckSystem.in_venv`, `in_pyenv`, and `in_conda` return the stored logger’s `inVenv()`, `inPyenv()`, and `inConda()`. An absent logger is false. Those booleans do not select the location lines |
+| **Resolved log folder** | ChronicleLogger already returns it from `logDir()`. Order: conda, else pyenv (including pyenv-virtualenv), else venv (`VIRTUAL_ENV`), else `~/.app/video-speed` for a non-root login or `/var/video-speed` for root. The log folder is that base plus `/log`. Root with none of those environments is `/var/video-speed/log`, not `/var/log/video-speed/`. Miniconda and Anaconda are the one conda branch when the active environment lives under that prefix. The pyenv row’s `3.12` is an example of the active version directory. The program does not copy the ladder. No new proof is marked have. The program is unchanged |
 
-Construct, read-back, and the debug gate:
+### Sample code
+
+`def main` instantiates ChronicleLogger, reads the resolved names back, runs the debug gate, and then writes `Cli(logger)`.
 
 ```python
-from ChronicleLogger import ChronicleLogger
-from VideoSpeed import MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION
+def main(argv=None):
+    """This function instantiates ChronicleLogger. The statement below is the construct."""
+    from ChronicleLogger import ChronicleLogger
+    from VideoSpeed import MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION
 
-appname = "VideoSpeed"
-logger = ChronicleLogger(logname=appname)
-appname = logger.logName()
-basedir = logger.baseDir()
-logdir = logger.logDir()
+    appname = "VideoSpeed"
+    logger = ChronicleLogger(logname=appname, is_quiet=json_or_text_screen)
+    appname = logger.logName()
+    basedir = logger.baseDir()
+    logdir = logger.logDir()
 
-if logger.isDebug():
-    logger.log_message(
-        "{0} v{1}.{2}.{3} ({4})".format(
-            appname, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, __file__
-        ),
-        component="main",
-    )
-    logger.log_message(
-        "Using {0}".format(ChronicleLogger.class_version()),
-        component="main",
-    )
-    logger.log_message(
-        "Base {0}".format(basedir),
-        level="DEBUG",
-        component="main",
-    )
-    logger.log_message(
-        "debug mode",
-        component="main",
-    )
+    if logger.isDebug():
+        logger.log_message(
+            "{0} v{1}.{2}.{3} ({4})".format(
+                appname, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, __file__
+            ),
+            component="main",
+        )
+        logger.log_message(
+            "Using {0}".format(ChronicleLogger.class_version()),
+            component="main",
+        )
+        logger.log_message(
+            "Base {0}".format(basedir),
+            level="DEBUG",
+            component="main",
+        )
+        logger.log_message(
+            "debug mode",
+            component="main",
+        )
+    app = Cli(logger)
 ```
 
-Quiet the mirror before that block when `--json` is set or the text screen will open. A non-TUI, non-JSON run does not.
+That function is `def main`. The statement `ChronicleLogger(...)` instantiates the logger there. `json_or_text_screen` is true when `--json` is set or the text screen is already known. That flag is `is_quiet` on the constructor. A non-TUI, non-JSON run passes false. `quiet(True)` after this constructor returns does not hide `Created directory:`. Rule 5 keeps this statement in `def main`.
 
 `log_message` levels. `component` is always a keyword:
 
@@ -207,10 +221,21 @@ Before the text menu:
 logger.quiet(True)
 ```
 
+ChronicleLogger already resolves the log folder. This program reads it from `logDir()` and does not type it. `baseDir()` is the parent of that folder. `logDir()` is `baseDir()` + `/log` on every row below, including root. The library tries an active conda environment first, then an active pyenv or pyenv-virtualenv directory, then `VIRTUAL_ENV`, then the login home. Root changes only that last case: `baseDir()` is `/var/video-speed` instead of `~/.app/video-speed`. While conda, pyenv, or venv is active, root keeps that environment’s path and does not switch to `/var`. `~` is the login home. `<venv>` is `VIRTUAL_ENV`. Miniconda and Anaconda are that one conda branch when the active environment lives under the named prefix. The library does not special-case the prefix names `miniconda3` and `anaconda3`. The pyenv directory is the active interpreter’s version directory. `3.12` in the table is an example of that directory name, such as `3.12` or `3.12.11`. The library does not look up the literal string `3.12`. A pyenv-virtualenv row uses `<env-name>` under `versions/`. The `/root/...` cells are that same shape when the active environment lives under root’s home. Purpose and Best for explain the environment. They do not require VideoSpeed to install it. These rows do not choose the about location lines (rule 21a).
+
+| Environment | Purpose | Log location (non-root) | Log location (root) | Best for |
+|-------------|---------|-------------------------|---------------------|----------|
+| N/A | Built-in, lightweight, project-specific isolation | `~/.app/video-speed/log/` | `/var/video-speed/log/` | Quick projects, CI/CD, simple teams |
+| venv | Built-in, lightweight, project-specific isolation | `<venv>/.app/video-speed/log/` | `<venv>/.app/video-speed/log/` | Quick projects, CI/CD, simple teams |
+| pyenv | Manage multiple Python versions easily on one system | `~/.pyenv/versions/3.12/.app/video-speed/log/` | `/root/.pyenv/versions/3.12/.app/video-speed/log/` | Developers switching Python versions |
+| pyenv + virtualenv | Best of both worlds: version + project isolation | `~/.pyenv/versions/<env-name>/.app/video-speed/log/` | `/root/.pyenv/versions/<env-name>/.app/video-speed/log/` | Recommended for most developers |
+| Miniconda | Lightweight Conda distribution — fast, minimal, scientific-friendly | `~/miniconda3/envs/<name>/.app/video-speed/log/` | `/root/miniconda3/envs/<name>/.app/video-speed/log/` | Data science, ML, reproducible envs |
+| Anaconda | Full-featured Conda with hundreds of preinstalled packages | `~/anaconda3/envs/<name>/.app/video-speed/log/` | `/root/anaconda3/envs/<name>/.app/video-speed/log/` | Beginners in data/science, heavy deps |
+
+When no conda environment, pyenv directory, or venv is active, root `baseDir()` is `/var/video-speed` and root `logDir()` is `/var/video-speed/log`. A picture of that folder as `/var/log/video-speed/` is not what this ChronicleLogger returns.
+
 | Sample | Value |
 |--------|--------|
-| **Resolved base (non-root, no conda / pyenv-virtualenv / venv)** | `~/.app/video-speed` via `baseDir()`, not a path typed in this program |
-| **Log folder** | `baseDir()` + `/log` via `logDir()` |
 | **Daily file** | `video-speed-20261001.log` |
 | **Line** | `[2026-10-01 12:00:00] pid:12345 [INFO] @menu :] menu open` |
 
@@ -229,7 +254,7 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 
 - **Caution:** Quiet the console mirror before the text menu. Do not crash when the log folder is unwritable.  
 - **Intentional:** One instance. Workflow components stay `main`, `menu`, `edit`, `probe`, and `ffmpeg`. Each class also logs under its own name. A thread line names the action, the thread name, and the wait target.  
-- **Anti-fragile:** Folder choice stays inside ChronicleLogger.  
+- **Anti-fragile:** Folder choice stays inside ChronicleLogger. The six-row catalog is what that library already returns.  
 - **Over-protect:** No second logger and no package re-export of ChronicleLogger.
 
 ## 4. Protection Rule (Sacred)
@@ -243,13 +268,15 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 5. Write log lines onto the text menu.  
 6. Import `FakeTimeProvider` or `_Suroot`.  
 7. Re-export `ChronicleLogger` from `VideoSpeed`.  
-8. Hard-code `~/.app/video-speed` in product code.  
-9. Treat `quiet(True)` as a JSON encoder. `--json` is `requirement-python-json-output`. While that switch is set, the console mirror **MUST** stay quiet so status lines do not join the one JSON object.  
-10. Build the product objects before the logger exists, or drop the `instantiated` line, or keep a class from storing and passing that logger.  
+8. Hard-code a resolved log folder in product code. That includes `~/.app/video-speed`, `/var/video-speed`, `/var/log/video-speed`, a venv prefix, a pyenv version directory, and a conda environment prefix.  
+9. Treat `quiet(True)` or `is_quiet=True` as a JSON encoder. `--json` is `requirement-python-json-output`. While that switch is set, the constructor **MUST** receive `is_quiet=True` so status lines, including `Created directory:`, do not join the one JSON object. Calling `quiet(True)` only after the constructor returns does not do that. `is_quiet=True` **MUST NOT** be used to drop the about page.  
+10. Build the product objects before the logger exists, or drop the `instantiated` line, or keep a class from storing and passing that logger. Instantiate ChronicleLogger from a function or a method, or call `Cli.__new__` to reach that construct. Write the instantiation line from a module function instead of from `__init__`.  
 11. Write a temp, publish, or discard an unfinished temp without a `log_message` that names the operation and the paths.  
 12. Put the Control-C stop procedure in this file. That outcome is `requirement-python-graceful-exit`.  
 13. Create or operate a thread (start, join, wait, lock acquire, lock release, or a pool hand-off) without a before-line on the one logger that names the action, the thread name, and the wait target.  
 14. Call `log_message` while a work lock is held, hold the log lock across a join or another lock, or join a thread while holding a lock that thread must take.
+15. Emit the about page's `[CHECK SYSTEM]:` block through `log_message`, insert a mirrored status line into that page, or treat a terminal that shows the page and then the JSON object as proof the mirror joined standard output.  
+16. Reimplement `inVenv`, `inPyenv`, or `inConda` inside this program, call a logger method that runs `pyenv` or `conda` for those booleans, or let `in_venv`, `in_pyenv`, or `in_conda` choose the about location lines. Those lines stay on `requirement-python-pyenv` and `requirement-python-conda`.
 
 **Violating this rule is a status-log and menu-integrity regression.**
 
@@ -264,6 +291,8 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | `TP-LOG-05` | Each constructed class stores the one logger and logs `instantiated` under its class name. `--json` keeps that mirror off stdout | have | `tests/test_logging.py` |
 | `TP-LOG-06` | A publish or a temp write logs the operation and the paths on the one logger | todo | `reviews/test-plan.md` |
 | `TP-LOG-07` | A thread create, start, or wait writes the action, the thread name, and the wait target on the one logger before the call that can block. The log call is not made while a work lock is held | todo | `reviews/test-plan.md` |
+| `TP-LOG-08` | `video-speed about --json` writes `ChronicleLogger(...)` inside `def main` with `is_quiet=True`. A new log folder does not print `Created directory:` on either stream. The about page on the error stream contains `[CHECK SYSTEM]:` and contains no ChronicleLogger line. The daily file still records status. Standard output is only the JSON object | have | `tests/test_logging.py` |
+| `TP-ABOUT-16` | `CheckSystem.in_venv`, `in_pyenv`, and `in_conda` return the stored logger’s `inVenv()`, `inPyenv()`, and `inConda()`. An absent logger is false. A logger boolean does not replace `under_pyenv` or `under_conda`, and it does not select the location lines. The check does not copy those detectors and does not run `pyenv` or `conda` | have | `tests/test_about.py` |
 
 ## 6. Related artifacts (versioned surface only)
 
@@ -272,11 +301,15 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | `docs/requirements/index.md` | Registry |
 | `docs/requirements/requirement-python-dependency-management.md` | Pip floor `ChronicleLogger>=1.3.1` |
 | `docs/requirements/requirement-python-error-handling.md` | Console failure sentence |
-| `docs/requirements/requirement-python-graceful-exit.md` | Control-C stop and exit 130. This file owns the logger line only |
+| `docs/requirements/requirement-python-graceful-exit.md` | Control-C question, exit line, and child stop. This file owns the logger and the component only |
 | `docs/requirements/requirement-python-tui.md` | Text menu; not a second logger |
+| `docs/requirements/requirement-python-about.md` | The about page, including `[CHECK SYSTEM]:`. Not a logger line |
+| `docs/requirements/requirement-python-json-output.md` | The one JSON object. `quiet(True)` is not that encoder |
 | `docs/requirements/requirement-python-cli-interface.md` | Entry that must construct this logger |
 | `docs/requirements/requirement-python-coding-style.md` | Points here for status lines |
-| `docs/requirements/requirement-python-oop.md` | The logger is an `__init__` parameter. This file owns the instantiation line |
+| `docs/requirements/requirement-python-oop.md` | The logger is an `__init__` parameter. This file owns the instantiation line. `CheckSystem` owns `in_venv`, `in_pyenv`, and `in_conda` |
+| `docs/requirements/requirement-python-pyenv.md` | `under_pyenv` and the pyenv location lines. Not `in_pyenv` |
+| `docs/requirements/requirement-python-conda.md` | `under_conda` and the conda location lines. Not `in_conda` |
 | `docs/requirements/requirement-class-software-dev.md` | Class residual pointer |
 | `src/VideoSpeed/cli.py` | Construct site |
 | `reviews/test-plan.md` | TP map |
@@ -293,9 +326,18 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | 2026-10-01 | Active 1.0.5 | A major file operation logs the operation and the paths. Control-C stop and exit 130 stay on `requirement-python-graceful-exit`. `TP-LOG-06` is todo |
 | 2026-10-01 | Active 1.0.6 | Thread creation and thread operations log on the one ChronicleLogger before the call that can block. The log call is not made while a work lock is held. No wait timeout is named here. `TP-LOG-07` is todo. The ship unit creates no threads |
 | 2026-10-01 | Active 1.0.7 | The logger arrives through `__init__`. That constructor rule's home is `requirement-python-oop`. The instantiation line stays here |
+| 2026-10-02 | Active 1.0.8 | `about --json` keeps the console mirror off both streams. `[CHECK SYSTEM]:` stays the about page. `quiet(True)` does not drop that page. `TP-LOG-08` is todo |
+| 2026-10-02 | Active 1.0.9 | `--json` passes `is_quiet=True` into the ChronicleLogger constructor. `quiet(True)` after return does not hide `Created directory:`. `TP-LOG-08` was marked have before the suite asserted it |
+| 2026-10-02 | Active 1.0.10 | `def main` writes `ChronicleLogger(...)`. A method does not instantiate the logger. `Cli.__new__` is not the construct. Each `__init__` writes its own instantiation line. `TP-LOG-08` is todo |
+| 2026-10-02 | Active 1.0.11 | `./tests/run.sh`: 86 tests, OK, skipped=1. `TP-LOG-08` has. `about --json` passes `is_quiet=True` on that constructor |
+| 2026-10-02 | Active 1.0.12 | Very important: `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)` in that function. The purpose, the human sentence, and the sample lead with that statement |
+| 2026-10-02 | Active 1.0.13 | `CheckSystem` reads in-venv, in-pyenv, and in-conda from that logger (`inVenv`, `inPyenv`, `inConda`). Those booleans do not select the location lines. `TP-ABOUT-16` has. `./tests/run.sh`: 89 tests, OK, skipped=1 |
+| 2026-10-02 | Active 1.0.14 | ChronicleLogger already resolves the log folder for no extra environment, venv, pyenv, pyenv-virtualenv, Miniconda, and Anaconda. This file records those `logDir()` results for `video-speed`. The program still calls `baseDir()` and `logDir()` and does not copy the ladder. Root with none of those environments is `/var/video-speed/log`, not `/var/log/video-speed/`. No new proof is marked have. The program was not changed |
+| 2026-10-02 | Active 1.0.15 | The Control-C exit line uses `menu` on a text screen and `main` otherwise. The interrupted-wait line stays `ffmpeg`. The question words stay on `requirement-python-graceful-exit`. No new proof is marked have. The program was not changed |
+| 2026-10-02 | Active 1.0.16 | Sample code shows `ChronicleLogger(...)` inside `def main`, then `Cli(logger)`. The program was not changed |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-02  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

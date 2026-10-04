@@ -31,92 +31,111 @@ from .edit_walk import EditWalk
 from .encoder import Encoder
 from .file_stage import FileStage
 from .media_info import MediaInfo
-from .run_output import RunOutput, log_instantiated
+from .run_output import RunOutput
 from .self_management import SelfManage
 from .tui import Tui
-
-_PKG_VERSION = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
-
-APP_NAME = "VideoSpeed"
-CONSOLE_NAME = "video-speed"
-# Positional product verbs. Exit and ./build.sh tokens are not in this list.
-PRODUCT_VERBS = (
-    "help",
-    "version",
-    "about",
-    "hello",
-    "edit",
-    "list-mp4",
-    "self-install",
-    "version-check",
-    "self-update",
-    "self-uninstall",
-)
-LIFECYCLE_VERBS = (
-    "version",
-    "self-install",
-    "version-check",
-    "self-update",
-    "self-uninstall",
-)
-AUTHOR_NAME = "Wilgat Wong"
-HOMEPAGE = "https://github.com/Wilgat/VideoSpeed"
-LAST_UPDATE = "2026-10-01"
-# requirement-domain-videospeed: about must not advertise a curl|sh channel.
-DOWNLOAD_URL = ""
-BASIC_USAGE = "video-speed --file clip.mp4 --start 0 --end 5"
-
-# Length percent bounds (domain / pipeline guidance made fail-closed)
-RATIO_MIN = 20.0
-RATIO_MAX = 200.0
 
 
 class Cli:
     """Parser, dispatch, the product verbs, and the tty gates. One class in this file.
 
+    Identity, verb lists, and length bounds are attributes of this class.
     Collaborators arrive through the constructor. def main stays beside this class.
     """
 
+    # Formatted triple. Equality with __version__ is a suite check
+    # (requirement-python-coding-style). Do not raise it here.
+    _PKG_VERSION = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
+    APP_NAME = "VideoSpeed"
+    CONSOLE_NAME = "video-speed"
+    # Positional product verbs. Exit and ./build.sh tokens are not in this list.
+    PRODUCT_VERBS = (
+        "help",
+        "version",
+        "about",
+        "hello",
+        "edit",
+        "list-mp4",
+        "self-install",
+        "version-check",
+        "self-update",
+        "self-uninstall",
+    )
+    LIFECYCLE_VERBS = (
+        "version",
+        "self-install",
+        "version-check",
+        "self-update",
+        "self-uninstall",
+    )
+    AUTHOR_NAME = "Wilgat Wong"
+    HOMEPAGE = "https://github.com/Wilgat/VideoSpeed"
+    LAST_UPDATE = "2026-10-01"
+    # requirement-domain-videospeed: about must not advertise a curl|sh channel.
+    DOWNLOAD_URL = ""
+    BASIC_USAGE = "video-speed --file clip.mp4 --start 0 --end 5"
+    # Length percent bounds (domain / pipeline guidance made fail-closed)
+    RATIO_MIN = 20.0
+    RATIO_MAX = 200.0
+
     def __init__(self, logger=None):
         self.logger = logger
-        log_instantiated(logger, "Cli")
-        self.app_name = APP_NAME
-        self.version = _PKG_VERSION
-        self.output = RunOutput(APP_NAME, _PKG_VERSION, logger=logger)
+        if logger is not None:
+            logger.log_message("instantiated", component="Cli")
+        self.app_name = Cli.APP_NAME
+        self.version = Cli._PKG_VERSION
+        self.output = RunOutput(Cli.APP_NAME, Cli._PKG_VERSION, logger=logger)
         self.stage = FileStage(logger=logger)
         self.media = MediaInfo(self.output, logger=logger)
         self.encoder = Encoder(
-            self.output, self.media, self.stage, RATIO_MIN, RATIO_MAX, logger=logger
+            self.output,
+            self.media,
+            self.stage,
+            Cli.RATIO_MIN,
+            Cli.RATIO_MAX,
+            logger=logger,
         )
         self.about = AboutPage(
-            CheckSystem(logger=logger),
-            APP_NAME,
-            _PKG_VERSION,
+            CheckSystem(
+                logger=logger,
+                app_name=Cli.APP_NAME,
+                version=Cli._PKG_VERSION,
+                console_name=Cli.CONSOLE_NAME,
+            ),
+            Cli.APP_NAME,
+            Cli._PKG_VERSION,
             MAJOR_VERSION,
             MINOR_VERSION,
             PATCH_VERSION,
-            AUTHOR_NAME,
-            LAST_UPDATE,
-            HOMEPAGE,
-            DOWNLOAD_URL,
-            BASIC_USAGE,
-            CONSOLE_NAME,
+            Cli.AUTHOR_NAME,
+            Cli.LAST_UPDATE,
+            Cli.HOMEPAGE,
+            Cli.DOWNLOAD_URL,
+            Cli.BASIC_USAGE,
+            Cli.CONSOLE_NAME,
             logger=logger,
         )
         self.edit = EditWalk(
-            self.output, self.encoder, self.media, RATIO_MIN, RATIO_MAX, logger=logger
+            self.output,
+            self.encoder,
+            self.media,
+            Cli.RATIO_MIN,
+            Cli.RATIO_MAX,
+            logger=logger,
         )
-        self.self_manage = SelfManage(APP_NAME, _PKG_VERSION, logger=logger)
+        self.self_manage = SelfManage(Cli.APP_NAME, Cli._PKG_VERSION, logger=logger)
         self.tui = Tui(self, logger=logger)
 
-    def stdin_is_tty(self):
+    @staticmethod
+    def stdin_is_tty():
         """General Purpose: Whether stdin can take interactive prompts."""
         try:
             return sys.stdin.isatty()
         except Exception:
             return False
 
-    def stdout_is_tty(self):
+    @staticmethod
+    def stdout_is_tty():
         """General Purpose: Whether the text screen can be drawn on this stdout."""
         try:
             return sys.stdout.isatty()
@@ -161,7 +180,7 @@ class Cli:
         General Purpose: Reject a positional token that is not a product verb.
         Last updated: 2026-10-01
         """
-        names = ", ".join(PRODUCT_VERBS)
+        names = ", ".join(Cli.PRODUCT_VERBS)
         message = "Unknown verb '{}'.".format(token)
         nxt = "video-speed help — verbs: {}".format(names)
         self.output._remember(message, nxt)
@@ -242,7 +261,7 @@ class Cli:
         Last updated: 2026-10-01
         """
         parser = argparse.ArgumentParser(
-            prog=CONSOLE_NAME,
+            prog=Cli.CONSOLE_NAME,
             formatter_class=argparse.RawDescriptionHelpFormatter,
             description=(
                 "{} — cut an MP4, change length/speed, optional boomerang.\n"
@@ -259,7 +278,7 @@ class Cli:
                 "self-uninstall runs: python -m pip uninstall -y VideoSpeed\n"
                 "and needs --force. Empty arguments do not install or update.\n"
                 "For scripts, pass --file, --start, and --end."
-                .format(APP_NAME)
+                .format(Cli.APP_NAME)
             ),
         )
         parser.add_argument(
@@ -275,7 +294,7 @@ class Cli:
         parser.add_argument(
             "--version",
             action="version",
-            version="{} {}".format(APP_NAME, _PKG_VERSION),
+            version="{} {}".format(Cli.APP_NAME, Cli._PKG_VERSION),
         )
         parser.add_argument(
             "--file",
@@ -321,7 +340,8 @@ class Cli:
         )
         return parser
 
-    def _opens_text_screen(self, argv):
+    @staticmethod
+    def _opens_text_screen(argv):
         """
         General Purpose: Whether this argv draws the text screen.
         Last updated: 2026-10-01
@@ -330,7 +350,7 @@ class Cli:
         """
         if "--json" in argv or "--help" in argv or "-h" in argv or "--version" in argv:
             return False
-        if not self.stdin_is_tty() or not self.stdout_is_tty():
+        if not Cli.stdin_is_tty() or not Cli.stdout_is_tty():
             return False
         verb = None
         has_file = False
@@ -367,7 +387,7 @@ class Cli:
             elif not token.startswith("-") and verb is None:
                 verb = token
             index += 1
-        if verb in ("help", "about", "hello") or verb in LIFECYCLE_VERBS:
+        if verb in ("help", "about", "hello") or verb in Cli.LIFECYCLE_VERBS:
             return False
         if verb == "edit":
             return not (has_file and has_start and has_end)
@@ -380,62 +400,6 @@ class Cli:
         if has_percent or has_boomerang:
             return False
         return True
-
-    def _start_logger(self, argv, log_basedir="", log_logdir=""):
-        """
-        General Purpose: One ChronicleLogger for this process, then the debug identity.
-
-        requirement-python-cli-logging: construct with logname, read logName, baseDir,
-        and logDir, then display the identity only when isDebug() is already true.
-        The console mirror stays on for a non-TUI, non-JSON run, so that run shows
-        the line "debug mode". --json and the text screen quiet the mirror first.
-        The daily file still receives the lines. Empty basedir and logdir leave
-        the folder choice to ChronicleLogger. A missing library returns None.
-        That line cannot go through log_message.
-        """
-        try:
-            from ChronicleLogger import ChronicleLogger
-        except ImportError:
-            # This line cannot go through log_message. No product object exists yet.
-            print("ERROR: ChronicleLogger is not installed.", file=sys.stderr)
-            print("   Next: pip install 'ChronicleLogger>=1.3.1'", file=sys.stderr)
-            return None
-
-        logger = ChronicleLogger(
-            logname="VideoSpeed",
-            basedir=log_basedir or "",
-            logdir=log_logdir or "",
-        )
-        appname = logger.logName()
-        basedir = logger.baseDir()
-        logger.logDir()
-        if "--json" in argv or self._opens_text_screen(argv):
-            logger.quiet(True)
-        if logger.isDebug():
-            logger.log_message(
-                "{0} v{1}.{2}.{3} ({4})".format(
-                    appname,
-                    MAJOR_VERSION,
-                    MINOR_VERSION,
-                    PATCH_VERSION,
-                    __file__,
-                ),
-                component="main",
-            )
-            logger.log_message(
-                "Using {0}".format(ChronicleLogger.class_version()),
-                component="main",
-            )
-            logger.log_message(
-                "Base {0}".format(basedir),
-                level="DEBUG",
-                component="main",
-            )
-            logger.log_message(
-                "debug mode",
-                component="main",
-            )
-        return logger
 
     def _dispatch(self, args, logger):
         """
@@ -557,15 +521,13 @@ class Cli:
         return 0
 
     def run(self, argv=None, log_basedir="", log_logdir="", logger=None):
-        """One job. main builds the logger, then calls run with that instance."""
+        """One job. def main already wrote ChronicleLogger(...) and passed it in."""
         self.output._json_reset()
         if argv is None:
             argv = sys.argv[1:]
         argv = list(argv)
         if logger is None:
-            logger = self._start_logger(argv, log_basedir, log_logdir)
-            if logger is None:
-                return 1
+            logger = self.logger
 
         parser = self.build_parser()
         args = parser.parse_args(argv)
@@ -591,22 +553,59 @@ def main(argv=None, log_basedir="", log_logdir=""):
     No arguments without a terminal → fail closed (ask for --file/--start/--end).
 
     requirement-python-cli-interface and requirement-python-cli-logging:
-    one ChronicleLogger, the AnimeDlp read-back, then the debug identity,
-    then the product objects, then the argument parser. Quiet is decided
-    before any class is constructed, so each object can log instantiated
-    on that same logger. A non-TUI, non-JSON run leaves the console mirror
-    on. The text screen and --json quiet that mirror first.
-    log_basedir and log_logdir stay empty in normal use so ChronicleLogger
-    chooses the folder. Tests pass a temporary folder.
+    def main writes ChronicleLogger(...). is_quiet=True when --json or the
+    text screen is already known. The library stores that flag before it
+    creates the log folder. Then logName, baseDir, and logDir, then the
+    debug identity, then Cli(logger), then the argument parser. A non-TUI,
+    non-JSON run leaves the console mirror on. The text screen and --json
+    keep that mirror off. log_basedir and log_logdir stay empty in normal
+    use so ChronicleLogger chooses the folder. Tests pass a temporary folder.
     """
     if argv is None:
         argv = sys.argv[1:]
     argv = list(argv)
-    # Logger and quiet come first. Cli.__init__ is what logs each object.
-    gate = Cli.__new__(Cli)
-    logger = gate._start_logger(argv, log_basedir, log_logdir)
-    if logger is None:
+    try:
+        from ChronicleLogger import ChronicleLogger
+    except ImportError:
+        # This line cannot go through log_message. No product object exists yet.
+        print("ERROR: ChronicleLogger is not installed.", file=sys.stderr)
+        print("   Next: pip install 'ChronicleLogger>=1.3.1'", file=sys.stderr)
         return 1
+
+    json_or_screen = "--json" in argv or Cli._opens_text_screen(argv)
+    logger = ChronicleLogger(
+        logname="VideoSpeed",
+        basedir=log_basedir or "",
+        logdir=log_logdir or "",
+        is_quiet=json_or_screen,
+    )
+    appname = logger.logName()
+    basedir = logger.baseDir()
+    logger.logDir()
+    if logger.isDebug():
+        logger.log_message(
+            "{0} v{1}.{2}.{3} ({4})".format(
+                appname,
+                MAJOR_VERSION,
+                MINOR_VERSION,
+                PATCH_VERSION,
+                __file__,
+            ),
+            component="main",
+        )
+        logger.log_message(
+            "Using {0}".format(ChronicleLogger.class_version()),
+            component="main",
+        )
+        logger.log_message(
+            "Base {0}".format(basedir),
+            level="DEBUG",
+            component="main",
+        )
+        logger.log_message(
+            "debug mode",
+            component="main",
+        )
     app = Cli(logger)
     return app.run(argv, logger=logger)
 

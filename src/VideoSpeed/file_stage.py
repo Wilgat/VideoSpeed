@@ -10,7 +10,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from .run_output import log_instantiated
+
 
 
 class FileStage:
@@ -28,7 +28,8 @@ class FileStage:
 
     def __init__(self, logger=None):
         self.logger = logger
-        log_instantiated(logger, "FileStage")
+        if logger is not None:
+            logger.log_message("instantiated", component="FileStage")
 
     def staging_dir_for(self, dest_path):
         """

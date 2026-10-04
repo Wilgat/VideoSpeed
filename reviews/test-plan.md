@@ -4,7 +4,7 @@ Maps **TP-*** coverage to automated or documented checks.
 **Suite entry:** `tests/run.sh` (`PYTHONPATH=src python3 -m unittest discover -s tests -v`)  
 **Ship unit:** `src/VideoSpeed/cli.py`  
 **Last update:** 2026-10-02  
-**Last suite run:** 2026-10-02 (`./tests/run.sh`: 79 tests, OK, skipped=1 because ffmpeg is on PATH)
+**Last suite run:** 2026-10-02 (`./tests/run.sh`: 90 tests, OK, skipped=1 because ffmpeg is on PATH)
 
 Status: **have** = automated today · **todo** = needed · **manual** = documented human procedure · **n/a** · **skip** (environment)
 
@@ -16,13 +16,14 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 |------|--------|----------|
 | Package import / version without OpenCV | **have** | `tests/test_package.py` |
 | Pip dependency floors (OpenCV headless, ChronicleLogger) | **have** | `tests/test_dependencies.py` |
-| ChronicleLogger system-status wiring | **partial** | `requirement-python-cli-logging` (`TP-LOG-01`, `TP-LOG-02`, `TP-LOG-04`, `TP-LOG-05` have; `TP-LOG-03`, `TP-LOG-06`, `TP-LOG-07` todo) |
-| Control-C during a long child | **todo** | `requirement-python-graceful-exit` (`TP-EXIT-01`, `TP-EXIT-02` todo) |
+| ChronicleLogger system-status wiring | **partial** | `requirement-python-cli-logging` (`TP-LOG-01`, `TP-LOG-02`, `TP-LOG-04`, `TP-LOG-05`, `TP-LOG-08` have; `TP-LOG-03`, `TP-LOG-06`, `TP-LOG-07` todo) |
+| Control-C confirm and child stop | **todo** | `requirement-python-graceful-exit` (`TP-EXIT-01` through `TP-EXIT-07` todo) |
 | `--version` / `--help` | **have** | `tests/test_cli.py` |
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
 | Product verbs `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall` | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-SELF-01`, `TP-TUI-06`, `TP-MODE-05`..`TP-MODE-08`) |
 | Text menu frame and columns | **have** | `tests/test_tui.py` (`src/VideoSpeed/tui.py`, class `Tui`) |
+| Text menu top line keeps the path on the left and a local clock on the right | **have** | `TP-TUI-07`, `TP-TUI-08`, `TP-TUI-09`, `TP-TUI-10`. Front and self-management boards paint `Path:` and the absolute working directory. The clock `HH:MM:SS` sits on the right when the row has room and is drawn again each second |
 | FFmpeg preflight | **have** | `tests/test_prereq.py` (missing-binary path) |
 | Cut → speed (no boomerang) | **skip** | needs fixture + ffmpeg |
 | Boomerang | **skip** | needs fixture + ffmpeg |
@@ -75,13 +76,19 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-LOG-05 | Each constructed class stores the one logger and logs `instantiated`. `--json` keeps that line off stdout | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
 | TP-LOG-06 | A publish or a temp write logs the operation and the paths | — | requirement-python-cli-logging | **todo** |
 | TP-LOG-07 | A thread create, start, or wait writes the action, the thread name, and the wait target before the call that can block. The log call is not made while a work lock is held | — | requirement-python-cli-logging | **todo** |
+| TP-LOG-08 | `video-speed about --json` writes `ChronicleLogger(...)` inside `def main` with `is_quiet=True`. A new log folder does not print `Created directory:` on either stream. The about page on the error stream has `[CHECK SYSTEM]:` and no ChronicleLogger line. Standard output is only the JSON object | `tests/test_logging.py` | requirement-python-cli-logging · requirement-python-about | **have** |
 
-### TP-EXIT (Control-C during a long child)
+### TP-EXIT (Control-C confirm and child stop)
 
 | TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
 |-------|--------|-----------------|------------------------|--------|
-| TP-EXIT-01 | Control-C during the child stops the group, does not publish, the log contains interrupted, the process exits 130, and there is no traceback | — | requirement-python-graceful-exit | **todo** |
-| TP-EXIT-02 | A second Control-C during cleanup still exits 130 and the child is gone | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-01 | Control-C during the child, with no text screen, stops the group, does not publish, the log contains interrupted and `confirmed=unavailable`, the process exits 130, and there is no traceback | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-02 | A second Control-C during cleanup still exits 130, the child is gone, and the question is not shown | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-03 | Control-C on the open text menu draws `Exit? (y/n)`. `y` exits 130, the log contains `confirmed=yes` with component `menu`, and there is no traceback | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-04 | `n`, `no`, or Enter stays on the same board. The log contains `confirmed=no`. The process does not exit | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-05 | Control-C during FFmpeg while the text screen is open stops the child and does not publish, then asks. `n` returns to the screen. `y` exits 130 | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-06 | A second Control-C while the question is showing exits 130, logs `confirmed=yes`, and does not print a traceback | — | requirement-python-graceful-exit | **todo** |
+| TP-EXIT-07 | `--json` and a non-interactive job do not ask and do not hang. Control-C exits 130 and logs `confirmed=unavailable` | — | requirement-python-graceful-exit | **todo** |
 
 ### TP-CLI (CLI surface)
 
@@ -138,8 +145,20 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-TUI-02 | This board’s number / verb / explain pads, plus two-digit and three-digit pads from `VideoSpeed.tui` | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-03 | Too-small screen fails closed; product source does not import or declare an external menu package | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-04 | edit stays and asks the folder line inside the frame; Exit leaves; unknown token stays; about result omits the frame | `tests/test_tui.py` | requirement-python-tui | **have** |
-| TP-TUI-05 | Menu 7 shows `Hello.` on the result page and that page omits the frame | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-05 | The front board does not list hello, and choosing 7 stays on that board | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-06 | Row **8** opens self-management. **84** version-check runs `python -m pip index versions` with no `sudo` | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-07 | First menu row starts with `Path:` plus the absolute current working directory. Traditional Chinese label is `路徑` from the menu-language requirement. The row does not show the product name or version | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-08 | The 1.2.4 login field is withdrawn. The path line does not draw `Current:` and does not read the Current User ladder | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-09 | When the first row has room, the local clock `HH:MM:SS` ends on the last placeable column. A row that cannot hold both keeps the path and omits the clock. Result pages and edit questions keep the product title on row 0 | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-10 | While the front board is showing, one second with no key draws the clock again and does not leave. A key that arrives is still delivered. A result page does not use that wait. The session does not start a thread | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-11 | Row **6** opens system-log. **61** lists a `.log` file and shows it. **62** asks `Clear <name>? (y/n)` and empties that file. **63** shows `logDir()`. The read and the empty log `component` `menu` | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-12 | The view-log file list and the clear-log questions clear the one-second clock wait. A no-key from that wait does not return to the system-log board. The chosen file is still shown. Esc is still a real key | `tests/test_tui.py` | requirement-python-tui | **have** |
+
+### TP-LANG (menu language)
+
+| TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
+|-------|--------|-----------------|------------------------|--------|
+| TP-LANG-01 | Front **4** opens the language board (**41**–**53**). Reserved **40** and **54**–**59** do not write. The file is mode **0600**. A bad line stays English and is not rewritten. `VIDEOSPEED_LANG` overrides without writing. **0** Back does not write. A failed write leaves the previous language | `tests/test_tui.py` | requirement-python-cli-language | **have** |
 
 ### TP-ABOUT (about page)
 
@@ -155,6 +174,12 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-ABOUT-08 | A long about page scrolls to Basic Usage; a one-line result still closes on Down | `tests/test_tui.py` | requirement-python-about · requirement-python-tui | **have** |
 | TP-ABOUT-09 | Under pyenv, `pyenv location` is `{root}/bin/pyenv`, and python2 and python3 are inside that root. The about page shows those paths. The check does not spawn | `tests/test_about.py` | requirement-python-pyenv · requirement-python-about | **have** |
 | TP-ABOUT-10 | A `PYENV_ROOT` with no `bin/pyenv` is not under pyenv. The three lines stay on `shutil.which` | `tests/test_about.py` | requirement-python-pyenv · requirement-python-about | **have** |
+| TP-ABOUT-11 | Under conda, `conda location` is `{root}/bin/conda`, and python2 and python3 are inside the active prefix. Conda wins those two lines over pyenv. The about page shows those paths. The check does not spawn | `tests/test_about.py` | requirement-python-conda · requirement-python-about | **have** |
+| TP-ABOUT-12 | A `CONDA_EXE` that is not `bin/conda` or `condabin/conda` is not under conda, even when a login install exists. The lines stay on `shutil.which` | `tests/test_about.py` | requirement-python-conda · requirement-python-about | **have** |
+| TP-ABOUT-13 | `PID`, the four cache lines, persistence, and `TTY / Interactive` appear after `Location`. Building the check does not create those directories | `tests/test_about.py` | requirement-python-about | **have** |
+| TP-ABOUT-14 | Cache folder used follows `/dev/shm`, then `/tmp`, then the 2nd fallback. The 2nd leaf has no username | `tests/test_about.py` | requirement-python-about | **have** |
+| TP-ABOUT-15 | `video-speed about --json` writes the three blocks to the error stream only. Standard output is one JSON object, `jobs` empty, `mode` `noninteractive`, with no `[CHECK SYSTEM]:`. On a terminal stdout, `TTY / Interactive` is `yes` | `tests/test_about.py` | requirement-python-about · requirement-python-json-output | **have** |
+| TP-ABOUT-16 | `CheckSystem.in_venv`, `in_pyenv`, and `in_conda` return the stored logger’s `inVenv()`, `inPyenv()`, and `inConda()`. An absent logger is false. Those booleans do not replace `under_pyenv` or `under_conda` | `tests/test_about.py` | requirement-python-cli-logging · requirement-python-oop | **have** |
 
 ### TP-PRE (runtime prerequisites)
 
@@ -180,7 +205,8 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-FS-03 | Non-boomerang job: final appears on “other mount” simulation (two temp roots) | `tests/test_fs.py` | pipeline AC-7 | **todo** |
 | TP-FS-04 | After promote, intermediate source gone or not left as sole copy | `tests/test_fs.py` | pipeline | **have** |
 | TP-FS-05 | Ship modules do not call `os.rename` or `os.replace` (archive excluded) | `tests/test_fs.py` | coding-style · pipeline · L-XDEV-01 | **have** |
-| TP-STYLE-01 | Identity block (`APP_NAME`, `CONSOLE_NAME`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `_MESSAGE_SINK`, `RATIO_MIN`, `RATIO_MAX`) is assigned inside `main()` | `tests/test_docs.py` | coding-style | **todo** |
+| TP-STYLE-01 | Identity, formatted version, verb lists, and bounds (`_PKG_VERSION`, `APP_NAME`, `CONSOLE_NAME`, `PRODUCT_VERBS`, `LIFECYCLE_VERBS`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `RATIO_MIN`, `RATIO_MAX`) are attributes of class `Cli`, not module assignments. The message sink is `RunOutput` | `tests/test_docs.py` | coding-style · requirement-python-oop | **have** |
+| TP-STYLE-02 | Ship modules and the suite read and write attributes by name. They do not use `__dict__` unless the user ordered that access for that edit | `tests/test_docs.py` | coding-style | **have** |
 | TP-OOP-01 | Class `Tui` lives in `src/VideoSpeed/tui.py` and owns the text-menu session. Those functions are not defined in `cli.py`. The painter split is TP-OOP-03 | `tests/test_tui.py` | requirement-python-oop | **have** |
 | TP-OOP-02 | Class `CheckSystem` lives in `src/VideoSpeed/check_system.py` and owns the host-check functions. Those functions are not defined in `cli.py` | `tests/test_about.py` | requirement-python-oop | **have** |
 | TP-OOP-03 | `paint`, `format_rows`, and the frame glyphs are methods or constants of `MenuPainter`. `MenuModel` and `MenuSession` are their own modules. `tui.py` defines class `Tui` only | `tests/test_tui.py` | requirement-python-oop | **have** |
@@ -211,6 +237,7 @@ The logger parameter on each class `__init__` is `TP-LOG-05` (**have**). `requir
 |-------|--------|-----------------|------------------------|--------|
 | TP-STRUCT-01 | Ship SSOT is `src/VideoSpeed/cli.py` not bootstrap-old alone | `tests/test_docs.py` | structure · L-DUAL-01 | **have** |
 | TP-DOC-01 | README version/install claims vs pyproject | `tests/test_docs.py` | packaging · L-DOCS-01 | **have** |
+| TP-DOC-03 | README section headings, screenshot links, each catalog paragraph and alt, path-row clock sentence, named setup script exists, wheel example matches the built distribution name | `tests/test_docs.py` | requirement-python-readme | **todo** |
 
 ### Intentionally n/a
 

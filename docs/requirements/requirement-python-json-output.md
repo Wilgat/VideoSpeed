@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-json-output.md
-**Status**: Active (Version 1.0.3)
+**Status**: Active (Version 1.0.5)
 **Area**: python
 **Key**: `requirement-python-json-output`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -46,7 +46,7 @@ The path decision stays on the mode requirement. The screen picture stays on `re
 4. **Same shape.** The object **MUST** use the keys below, in this order. `mode` **MUST** be `interactive` only when the question walk was entered. Every other `--json` run **MUST** use `noninteractive`, including a fail-closed stop. `jobs` **MUST** be an array. A job path has at most one element. A walk may have one element per finished encode. `ok` **MUST** be true only when the process exit is 0.
 5. **Errors.** A terminal failure **MUST** set `error` to the failure sentence and `ok` to false, and **MUST** exit non-zero. `next` **MUST** be the next-step sentence when the failure has one, otherwise null. The human sentence **MAY** also be written to the error stream. It **MUST NOT** be written to standard output outside the object. A re-ask during the walk **MUST NOT** freeze `error`.
 6. **Help and version.** `--help` and `--version` **MUST** still finish inside the parser as human text, even if `--json` is also present. They **MUST** exit 0. They are not this object.
-7. **Not a logger.** ChronicleLogger **MUST NOT** encode this object. `quiet(True)` on that logger is not this switch. While `--json` is set, a future console mirror **MUST** stay quiet so status lines do not join standard output.
+7. **Not a logger.** ChronicleLogger **MUST NOT** encode this object. `is_quiet=True` and `quiet(True)` are not this switch. While `--json` is set, the logger **MUST** be constructed with `is_quiet=True`, as `requirement-python-cli-logging` names, so a constructor line such as `Created directory:` does not join standard output. Calling `quiet(True)` only after that constructor returns does not hide a line it already printed. The about page stays on the error stream.
 8. Actor / role / subject / approver: **considered**. No dest machine. No approver. The table stays on `requirement-class-software-dev.md`.
 9. Dest fence conditions: **considered — none**. Do not invent one.
 
@@ -84,7 +84,7 @@ Failure, modifier alone:
   "ok": false,
   "mode": "noninteractive",
   "app": "VideoSpeed",
-  "version": "1.0.7",
+  "version": "1.0.11",
   "error": "--percent and --boomerang need --file, --start, and --end.",
   "next": "video-speed --file clip.mp4 --start 0 --end 5",
   "jobs": []
@@ -98,7 +98,7 @@ Success, one job (paths are the paths the run used):
   "ok": true,
   "mode": "noninteractive",
   "app": "VideoSpeed",
-  "version": "1.0.7",
+  "version": "1.0.11",
   "error": null,
   "next": null,
   "jobs": [
@@ -121,7 +121,7 @@ Walk entered, then end of input before a folder:
   "ok": true,
   "mode": "interactive",
   "app": "VideoSpeed",
-  "version": "1.0.7",
+  "version": "1.0.11",
   "error": null,
   "next": null,
   "jobs": []
@@ -236,7 +236,9 @@ TP-JSON-01 asserts `--json --percent 80` exits 1, does not open the menu, and wr
 | 2026-10-01 | Active 1.0.1 | `edit` under `--json` asks missing targets on the error stream, folder then file. `about`, `hello`, and `list-mp4` do not enter that walk |
 | 2026-10-01 | Active 1.0.2 | The writer is class `RunOutput`. The walk is class `EditWalk`. The object shape is unchanged. `TP-OOP-04` is todo |
 | 2026-10-01 | Active 1.0.3 | `RunOutput` and `EditWalk` are on disk. `TP-OOP-04` has landed. The object shape is unchanged |
+| 2026-10-02 | Active 1.0.4 | `--json` quiet is `is_quiet=True` on the ChronicleLogger constructor. `quiet(True)` after return does not hide `Created directory:` |
+| 2026-10-04 | Active 1.0.5 | Sample `version` field is package string `1.0.11` |
 
-**Last Updated**: 2026-10-01
+**Last Updated**: 2026-10-04
 **Owner**: VideoSpeed project maintainers
 **Alignment**: Registry `docs/requirements/index.md`; CIAO (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

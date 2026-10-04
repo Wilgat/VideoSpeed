@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.11] - 2026-10-04
+
+### Added
+- Front menu **4** is **language**. It opens **41** English through **53** Ελληνικά, and **0** Back. The choice is one line in this login’s persistence directory and is kept for the next run. English is the default. **0** does not write. `VIDEOSPEED_LANG` wins for this process and does not write. Front **6** is **system-log**. It opens **61** view-log, **62** clear-log, **63** log-folder, and **0** Back. **view-log** lists the `.log` files and shows the chosen file. **clear-log** empties the chosen file after `Clear <name>? (y/n)` and does not delete it. **log-folder** shows the folder `logDir()` returns.
+- The first menu row keeps `Path` and the current directory on the left and a local clock (`HH:MM:SS`) on the right when the row has room. The clock is drawn again each second.
+- The about page, after Location, prints PID, the cache folder chain, persistence storage, and TTY / Interactive. Under conda, `python2` and `python3` stay inside that prefix, and conda location is `bin/conda`. `about --json` writes that page to the error stream. Standard output stays the JSON object.
+
 ## [1.0.10] - 2026-10-02
 
 ### Added

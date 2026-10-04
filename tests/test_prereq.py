@@ -29,9 +29,9 @@ class TestPrereq(unittest.TestCase):
         old = sys.stderr
         try:
             sys.stderr = buf
-            output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+            output = RunOutput(cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
             encoder = Encoder(
-                output, MediaInfo(output), FileStage(), cli.RATIO_MIN, cli.RATIO_MAX
+                output, MediaInfo(output), FileStage(), cli.Cli.RATIO_MIN, cli.Cli.RATIO_MAX
             )
             ok = encoder.ensure_ffmpeg()
         finally:
@@ -49,7 +49,7 @@ class TestPrereq(unittest.TestCase):
         old = sys.stderr
         try:
             sys.stderr = buf
-            output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+            output = RunOutput(cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
             dur = MediaInfo(output).get_duration_cv2(Path("/tmp/no-such-videospeed.mp4"))
         finally:
             sys.stderr = old

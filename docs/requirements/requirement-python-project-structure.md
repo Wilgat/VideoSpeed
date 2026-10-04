@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-project-structure.md  
-**Status**: Active (Version 1.1.7)  
+**Status**: Active (Version 1.1.10)  
 **Area**: python  
 **Key**: `requirement-python-project-structure`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -44,7 +44,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 ### 2.2 Project root layout
 
 4. **MUST** keep `pyproject.toml` at repository root.  
-5. **MUST** keep product user docs at root **`README.md`**.  
+5. **MUST** keep product user docs at root **`README.md`**. Sections, badges, and pictures of that file are `requirement-python-readme`.  
 6. **MUST** keep specialized product law under **`docs/requirements/`** with `requirement-` prefix and registry `index.md`.  
 7. Product design notes **MAY** live under `docs/` (e.g. design specs, changelog) without becoming requirement law unless registered.  
 7b. **MUST** keep executable tests under **`tests/`** (runner `tests/run.sh`) — never under `docs/`.
@@ -68,6 +68,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | `src/VideoSpeed/` | Installable package |
 | `src/VideoSpeed/cli.py` | Class `Cli` and `def main`. Console script `VideoSpeed.cli:main` |
 | `src/VideoSpeed/tui.py` | Class `Tui`. Text-menu session (`requirement-python-tui`, `requirement-python-oop`) |
+| `src/VideoSpeed/language_menu.py` | Class `LanguageMenu`. Menu language file and words (`requirement-python-cli-language`, `requirement-python-oop`) |
 | `src/VideoSpeed/check_system.py` | Class `CheckSystem`. Host check (`requirement-python-oop`) |
 | `src/VideoSpeed/menu_painter.py` | Class `MenuPainter`. `TP-OOP-03` have |
 | `src/VideoSpeed/menu_model.py` | Class `MenuModel`. `TP-OOP-03` have |
@@ -90,7 +91,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | `docs/VideoClip-spec.md` | Design notes (not substitute for requirements) |
 | `tests/` | Executable suite (`run.sh`) |
 | `cli-new.py` | Extra draft — **not** layout SSOT |
-| `README.md` | User documentation |
+| `README.md` | User documentation (`requirement-python-readme`) |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -99,6 +100,22 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 - **Principle 17 – Storage**: Generated dirs not confused with source.
 
 ---
+
+## Sample code
+
+```text
+src/VideoSpeed/__init__.py
+src/VideoSpeed/__main__.py
+src/VideoSpeed/cli.py
+```
+
+```python
+from .cli import main
+
+raise SystemExit(main())
+```
+
+`cli.py` holds class `Cli` and `def main`. Each other class is its own module, as `requirement-python-oop` names.
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
@@ -143,6 +160,7 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | `requirement-python-cli-interface` | Entry modules |
 | `requirement-class-software-dev` | Class residual |
 | `requirement-python-oop` | Class map. `def main` stays in `cli.py` |
+| `requirement-python-readme` | User document sections, badges, and pictures |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -164,9 +182,12 @@ Define the **repository layout** and package structure for VideoSpeed as a Pytho
 | 2026-10-01 | Active 1.1.5 | `TP-OOP-01` and `TP-OOP-02` landed. `tui.py` is the painter. `check_system.py` is the host check |
 | 2026-10-01 | Active 1.1.6 | `cli.py` is class `Cli` and `def main`. The other class files are ordered by `requirement-python-oop`. `TP-OOP-03` and `TP-OOP-04` are todo |
 | 2026-10-01 | Active 1.1.7 | `TP-OOP-03` and `TP-OOP-04` have landed. Those class modules are in the package |
+| 2026-10-02 | Active 1.1.8 | Sample code shows `__main__` calling `main`, and `cli.py` beside it |
+| 2026-10-04 | Active 1.1.9 | `language_menu.py` is class `LanguageMenu` |
+| 2026-10-04 | Active 1.1.10 | Root `README.md` sections and pictures point at `requirement-python-readme` |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

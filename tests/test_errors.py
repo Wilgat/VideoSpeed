@@ -20,9 +20,9 @@ from VideoSpeed.run_output import RunOutput  # noqa: E402
 class TestErrors(unittest.TestCase):
     def test_tp_err_01_invalid_cut_range(self):
         """TP-ERR-01: invalid cut range is rejected without encode."""
-        output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+        output = RunOutput(cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
         encoder = Encoder(
-            output, MediaInfo(output), FileStage(), cli.RATIO_MIN, cli.RATIO_MAX
+            output, MediaInfo(output), FileStage(), cli.Cli.RATIO_MIN, cli.Cli.RATIO_MAX
         )
         self.assertFalse(encoder.valid_cut_range(5, 1, 10))
         self.assertFalse(encoder.valid_cut_range(-1, 2, 10))
@@ -33,9 +33,9 @@ class TestErrors(unittest.TestCase):
 
     def test_tp_err_02_percent_outside_bounds(self):
         """TP-ERR-02: length % outside 20–200 rejected."""
-        output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+        output = RunOutput(cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
         encoder = Encoder(
-            output, MediaInfo(output), FileStage(), cli.RATIO_MIN, cli.RATIO_MAX
+            output, MediaInfo(output), FileStage(), cli.Cli.RATIO_MIN, cli.Cli.RATIO_MAX
         )
         self.assertFalse(encoder.valid_percent(19.9))
         self.assertFalse(encoder.valid_percent(200.1))

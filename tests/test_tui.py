@@ -58,7 +58,45 @@ class FakeScreen:
         return self.keys.pop(0)
 
 
+def _freeze_clock(case, stamp="14:05:09"):
+    """Pin time.localtime so a path line can name one clock reading."""
+    import time
+    from unittest.mock import patch
+
+    hour, minute, second = (int(part) for part in stamp.split(":"))
+    fixed = time.struct_time((2026, 10, 2, hour, minute, second, 4, 275, 0))
+    patcher = patch("time.localtime", return_value=fixed)
+    patcher.start()
+    case.addCleanup(patcher.stop)
+    return stamp
+
+
 class TestTui(unittest.TestCase):
+    def setUp(self):
+        """Point HOME at a temp directory so a menu pick cannot touch this login's language file."""
+        import os
+        import tempfile
+
+        self._saved_home = os.environ.get("HOME")
+        self._saved_lang = os.environ.get("VIDEOSPEED_LANG")
+        self._home = tempfile.mkdtemp(prefix="videospeed_menu_home_")
+        os.environ["HOME"] = self._home
+        os.environ.pop("VIDEOSPEED_LANG", None)
+
+    def tearDown(self):
+        import os
+        import shutil
+
+        if self._saved_home is None:
+            os.environ.pop("HOME", None)
+        else:
+            os.environ["HOME"] = self._saved_home
+        if self._saved_lang is None:
+            os.environ.pop("VIDEOSPEED_LANG", None)
+        else:
+            os.environ["VIDEOSPEED_LANG"] = self._saved_lang
+        shutil.rmtree(self._home, ignore_errors=True)
+
     def _menu(self):
         from VideoSpeed.menu_model import MenuModel
         from VideoSpeed.menu_painter import MenuPainter
@@ -75,7 +113,7 @@ class TestTui(unittest.TestCase):
         model = MenuModel(boards={"front": _menu_rows()})
         model.focus = "input"
         screen = FakeScreen([])
-        paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
+        paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
         _height, width = screen.getmaxyx()
         placeable = width - 1
         inner = placeable - 2
@@ -94,7 +132,7 @@ class TestTui(unittest.TestCase):
         self.assertNotIn("+", top)
         flat = "".join(screen.drawn)
         status = "  {} {}  │  main menu  │  Up/Down  •  Enter".format(
-            cli.APP_NAME, cli._PKG_VERSION
+            cli.Cli.APP_NAME, cli.Cli._PKG_VERSION
         )
         self.assertIn(status, flat)
         self.assertNotIn("Choice:", flat)
@@ -107,14 +145,15 @@ class TestTui(unittest.TestCase):
         from VideoSpeed.tui import Tui
 
         lines = Tui().menu_lines()
-        self.assertTrue(lines[0].startswith("VideoSpeed ("))
-        self.assertIn("main menu", lines[0])
+        self.assertTrue(lines[0].startswith("Path: "))
+        self.assertNotIn("main menu", lines[0])
         body = format_rows(_menu_rows())
         self.assertEqual(
             body,
             [
                 "1. edit           : cut, speed, and optional boomerang",
-                "7. hello          : show a hello message",
+                "4. language       : display language for this menu",
+                "6. system-log     : view, clear, and the log folder",
                 "8. self-management: version, about, and pip lifecycle",
                 "9. Exit           : leave",
             ],
@@ -184,9 +223,9 @@ class TestTui(unittest.TestCase):
                 return -1
 
         saved_wrapper = curses.wrapper
-        saved_tty = cli.Cli.stdout_is_tty
+        saved_tty = staticmethod(cli.Cli.stdout_is_tty)
         curses.wrapper = lambda fn: fn(Tiny())
-        cli.Cli.stdout_is_tty = lambda self: True
+        cli.Cli.stdout_is_tty = lambda *args: True
         try:
             err = io.StringIO()
             with redirect_stderr(err):
@@ -220,8 +259,8 @@ class TestTui(unittest.TestCase):
 
         screen = FakeScreen(keys)
         saved_wrapper = curses.wrapper
-        saved_out = cli.Cli.stdout_is_tty
-        saved_in = cli.Cli.stdin_is_tty
+        saved_out = staticmethod(cli.Cli.stdout_is_tty)
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
         saved_ff = Encoder.ensure_ffmpeg
         saved_input = builtins.input
 
@@ -229,8 +268,8 @@ class TestTui(unittest.TestCase):
             raise AssertionError("input() left the text screen")
 
         curses.wrapper = lambda fn: fn(screen)
-        cli.Cli.stdout_is_tty = lambda self: True
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdout_is_tty = lambda *args: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         Encoder.ensure_ffmpeg = lambda self: True
         builtins.input = refuse_input
         out = io.StringIO()
@@ -257,9 +296,9 @@ class TestTui(unittest.TestCase):
             return None
 
         session = MenuSession(
-            cli.APP_NAME,
-            cli._PKG_VERSION,
-            on_version=lambda: "{} {}".format(cli.APP_NAME, cli._PKG_VERSION),
+            cli.Cli.APP_NAME,
+            cli.Cli._PKG_VERSION,
+            on_version=lambda: "{} {}".format(cli.Cli.APP_NAME, cli.Cli._PKG_VERSION),
             on_about=_about_text,
             boards={"front": _menu_rows()},
             on_kind=on_kind,
@@ -276,9 +315,9 @@ class TestTui(unittest.TestCase):
         self.assertNotIn("version-check", flat)
 
         session = MenuSession(
-            cli.APP_NAME,
-            cli._PKG_VERSION,
-            on_version=lambda: cli._PKG_VERSION,
+            cli.Cli.APP_NAME,
+            cli.Cli._PKG_VERSION,
+            on_version=lambda: cli.Cli._PKG_VERSION,
             on_about=_about_text,
             boards={"front": _menu_rows()},
             on_kind=on_kind,
@@ -298,7 +337,7 @@ class TestTui(unittest.TestCase):
         model = MenuModel(boards={"front": _menu_rows()})
         model.show_result(_about_text())
         screen = FakeScreen([])
-        paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
+        paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
         about = "\n".join(screen.drawn)
         self.assertIn("VideoSpeed", about)
         self.assertIn("Domain:", about)
@@ -308,31 +347,23 @@ class TestTui(unittest.TestCase):
         self.assertNotIn("╭", about)
         self.assertIn("Press a key to return to the main menu.", about)
 
-    def test_tp_tui_05_hello_shows_the_message(self):
-        """TP-TUI-05: menu 7 shows Hello. on the result page and omits the frame."""
-        MenuModel, _err, _session, _format_rows, paint = self._menu()
-        from VideoSpeed import cli
+    def test_tp_tui_05_front_board_has_no_hello(self):
+        """TP-TUI-05: the front board does not list hello, and 7 stays on that board."""
+        MenuModel, _err, _session, _format_rows, _paint = self._menu()
 
-        from VideoSpeed.tui import Tui
-
-        self.assertEqual(Tui().framework_hello(), "Hello.")
-        code, screen, out, err = self._run_menu([ord("7"), 10])
+        code, screen, out, err = self._run_menu([ord("7"), 10, -1])
         self.assertEqual(code, 0, err + out)
         flat = "".join(screen.drawn)
-        self.assertIn("7. hello          : show a hello message", flat)
-        self.assertIn("Hello.", flat)
-        self.assertIn("Press a key to return to the main menu.", flat)
-        self.assertNotIn("Hello.", out)
+        self.assertNotIn("hello", flat)
+        self.assertNotIn("Hello.", flat)
+        self.assertIn("self-management", flat)
         self.assertNotIn("Choice:", flat)
-
         model = MenuModel(boards={"front": _menu_rows()})
-        model.show_result(Tui().framework_hello())
-        page = FakeScreen([])
-        paint(page, model, cli.APP_NAME, cli._PKG_VERSION)
-        hello = "\n".join(page.drawn)
-        self.assertIn("Hello.", hello)
-        self.assertNotIn("╭", hello)
-        self.assertIn("Press a key to return to the main menu.", hello)
+        model.handle_key(ord("7"))
+        stayed = model.handle_key(10)
+        self.assertIsNone(stayed)
+        self.assertTrue(model.error)
+        self.assertEqual(model.layer, "front")
 
     def test_tp_tui_06_self_management_board(self):
         """TP-TUI-06: row 8 opens self-management; version-check runs pip."""
@@ -364,6 +395,655 @@ class TestTui(unittest.TestCase):
         self.assertEqual(calls[0][1:], ["-m", "pip", "index", "versions", "VideoSpeed"])
         self.assertNotIn("sudo", calls[0])
 
+    def test_tp_tui_11_system_log_board(self):
+        """TP-TUI-11: row 6 opens system-log; 61 shows a file; 62 empties one; 63 shows logDir()."""
+        import os
+        import tempfile
+
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter
+        from VideoSpeed.system_log import SystemLog
+        from VideoSpeed.tui import Tui
+
+        log_body = MenuPainter().format_rows(MenuPainter.LOG_ROWS)
+        self.assertEqual(
+            log_body,
+            [
+                "61. view-log  : list a log file and show it",
+                "62. clear-log : empty one log file",
+                "63. log-folder: show the log folder",
+                " 0. Back      : return to the main menu",
+            ],
+        )
+        self.assertTrue(Tui().log_menu_lines()[0].startswith("Path: "))
+        front = "\n".join(Tui().menu_lines())
+        self.assertIn("4. language", front)
+        self.assertIn("6. system-log", front)
+        self.assertNotIn("view-log", front)
+
+        model = MenuModel()
+        model.handle_key(ord("6"))
+        self.assertIsNone(model.handle_key(10))
+        self.assertEqual(model.layer, "log")
+        self.assertEqual(model.rows()[0][1], "view-log")
+        model.handle_key(ord("0"))
+        self.assertIsNone(model.handle_key(10))
+        self.assertEqual(model.layer, "front")
+
+        blocked = MenuModel()
+        blocked.handle_key(ord("4"))
+        blocked.handle_key(ord("1"))
+        self.assertIsNone(blocked.handle_key(10))
+        self.assertTrue(blocked.error)
+        self.assertEqual(blocked.layer, "front")
+
+        code, screen, out, err = self._run_menu(
+            [ord("6"), 10, ord("6"), ord("3"), 10, -1, -1]
+        )
+        flat = "".join(screen.drawn)
+        self.assertEqual(code, 0, err + out)
+        self.assertIn("system-log", flat)
+        self.assertIn("view-log", flat)
+        self.assertIn("Log folder:", flat)
+
+        class FolderLogger:
+            def __init__(self, folder):
+                self.folder = folder
+                self.messages = []
+
+            def logDir(self):
+                return self.folder
+
+            def log_message(self, message, level="INFO", component=""):
+                self.messages.append((message, component))
+
+        with tempfile.TemporaryDirectory() as folder:
+            kept = os.path.join(folder, "kept.log")
+            shown = os.path.join(folder, "shown.log")
+            with open(kept, "w", encoding="utf-8") as handle:
+                handle.write("keep-me\n")
+            with open(shown, "w", encoding="utf-8") as handle:
+                handle.write("show-me\n")
+            outside = os.path.join(folder, "notes.txt")
+            with open(outside, "w", encoding="utf-8") as handle:
+                handle.write("not-a-log\n")
+            logger = FolderLogger(folder)
+            logs = SystemLog(logger=logger)
+            names = [path.name for path in logs.log_files()]
+            self.assertEqual(names, ["kept.log", "shown.log"])
+            tui = Tui(logger=logger)
+            page = tui._view_log(FakeScreen([ord("2"), 10]), MenuModel())
+            self.assertEqual(page, "shown.log\n\nshow-me\n")
+            shown_path = str(Path(shown).resolve())
+            kept_path = str(Path(kept).resolve())
+            self.assertIn(("read log path={0}".format(shown_path), "menu"), logger.messages)
+            declined = tui._clear_log(FakeScreen([ord("1"), 10, ord("n"), 10]), MenuModel())
+            self.assertIsNone(declined)
+            with open(kept, encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "keep-me\n")
+            self.assertFalse(any(message.startswith("clear log ") for message, _component in logger.messages))
+            cleared = tui._clear_log(FakeScreen([ord("1"), 10, ord("y"), 10]), MenuModel())
+            self.assertEqual(cleared, "Cleared kept.log.")
+            with open(kept, encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "")
+            self.assertTrue(os.path.isfile(kept))
+            self.assertIn(("clear log path={0}".format(kept_path), "menu"), logger.messages)
+            self.assertIsNone(tui._clear_log(FakeScreen([ord("2"), 10, 10]), MenuModel()))
+            self.assertEqual(tui._log_folder(), "Log folder: {0}".format(folder))
+            self.assertIsNone(logs.read_log(outside))
+            self.assertFalse(logs.clear_log(outside))
+            empty = os.path.join(folder, "blank.log")
+            with open(empty, "w", encoding="utf-8"):
+                pass
+            blank = tui._view_log(FakeScreen([ord("1"), 10]), MenuModel())
+            self.assertEqual(blank, "blank.log\n\n(empty)")
+
+    def test_tp_lang_01_language_menu(self):
+        """TP-LANG-01: front 4 is language; the file is 0600; reserved numbers and a bad line do not write."""
+        import os
+        import stat
+
+        from VideoSpeed.language_menu import LanguageMenu
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter
+        from VideoSpeed.tui import Tui
+
+        self.assertEqual([row[0] for row in MenuPainter.MENU_ROWS], [1, 4, 6, 8, 9])
+        self.assertNotIn(5, [row[0] for row in MenuPainter.MENU_ROWS])
+        self.assertEqual(
+            [row[0] for row in MenuPainter.LANG_ROWS if row[0]],
+            list(range(41, 54)),
+        )
+        self.assertEqual(LanguageMenu.RESERVED, (40, 54, 55, 56, 57, 58, 59))
+        self.assertEqual(len(LanguageMenu.CODES), 13)
+        self.assertEqual(len(LanguageMenu.LANG_LONG), 12)
+        for code, pack in LanguageMenu.LANG_LONG.items():
+            self.assertEqual(len(pack), 13, code)
+
+        side = os.path.join(self._home, "side")
+        english = LanguageMenu(home=side)
+        self.assertEqual(english.code, "en")
+        self.assertEqual(english.boards()["front"], MenuPainter.MENU_ROWS)
+        self.assertEqual(english.boards()["self"], MenuPainter.SELF_ROWS)
+        self.assertEqual(english.boards()["log"], MenuPainter.LOG_ROWS)
+        self.assertEqual(english.boards()["lang"], MenuPainter.LANG_ROWS)
+        self.assertFalse(os.path.exists(english.path()))
+        painter = MenuPainter()
+        self.assertEqual(
+            painter.format_rows(MenuPainter.LANG_ROWS),
+            [
+                "41. English   : use English for this menu",
+                "42. 简体中文      : use Simplified Chinese for this menu",
+                "43. 繁體中文      : use Traditional Chinese for this menu",
+                "44. Español   : use Spanish for this menu",
+                "45. العربية   : use Arabic for this menu",
+                "46. Français  : use French for this menu",
+                "47. Português : use Portuguese for this menu",
+                "48. Русский   : use Russian for this menu",
+                "49. Deutsch   : use German for this menu",
+                "50. 日本語       : use Japanese for this menu",
+                "51. 한국어       : use Korean for this menu",
+                "52. Nederlands: use Dutch for this menu",
+                "53. Ελληνικά  : use Greek for this menu",
+                " 0. Back      : return to the main menu",
+            ],
+        )
+
+        os.makedirs(english.directory, mode=0o700)
+        with open(english.path(), "w", encoding="utf-8") as handle:
+            handle.write("nope\n")
+        with open(english.path(), encoding="utf-8") as handle:
+            bad_bytes = handle.read()
+        loaded = LanguageMenu(home=side)
+        self.assertEqual(loaded.code, "en")
+        with open(english.path(), encoding="utf-8") as handle:
+            self.assertEqual(handle.read(), bad_bytes)
+
+        with open(english.path(), "w", encoding="utf-8", newline="") as handle:
+            handle.write("de\r\nfr\n")
+        cr = LanguageMenu(home=side)
+        self.assertEqual(cr.code, "de")
+        with open(english.path(), "rb") as handle:
+            stored = handle.read()
+        self.assertEqual(stored, b"de\r\nfr\n")
+
+        os.environ["VIDEOSPEED_LANG"] = "es"
+        try:
+            forced = LanguageMenu(home=side)
+            self.assertEqual(forced.code, "es")
+            with open(english.path(), "rb") as handle:
+                self.assertEqual(handle.read(), stored)
+        finally:
+            os.environ.pop("VIDEOSPEED_LANG", None)
+        os.environ["VIDEOSPEED_LANG"] = "nope"
+        try:
+            ignored = LanguageMenu(home=side)
+            self.assertEqual(ignored.code, "de")
+        finally:
+            os.environ.pop("VIDEOSPEED_LANG", None)
+
+        menu_file = os.path.join(self._home, ".local", "VideoSpeed", "language")
+        code, screen, out, err = self._run_menu([ord("4"), 10, ord("0"), 10, -1])
+        self.assertEqual(code, 0, err + out)
+        self.assertFalse(os.path.exists(menu_file))
+        self.assertIn("English", "".join(screen.drawn))
+
+        code, screen, out, err = self._run_menu(
+            [ord(ch) for ch in "en"] + [10, -1]
+        )
+        self.assertEqual(code, 0, err + out)
+        self.assertFalse(os.path.exists(menu_file))
+        self.assertIn("That choice is not on this list", "".join(screen.drawn))
+
+        code, screen, out, err = self._run_menu(
+            [ord(ch) for ch in "language"] + [10, -1, -1]
+        )
+        self.assertEqual(code, 0, err + out)
+        self.assertFalse(os.path.exists(menu_file))
+        self.assertIn("use English for this menu", "".join(screen.drawn))
+
+        for keys in (
+            [ord("4"), 10, ord("4"), ord("0"), 10, -1, -1],
+            [ord("4"), 10, ord("5"), ord("9"), 10, -1, -1],
+        ):
+            code, screen, out, err = self._run_menu(keys)
+            self.assertEqual(code, 0, err + out)
+            self.assertFalse(os.path.exists(menu_file))
+            self.assertIn("That choice is not on this list", "".join(screen.drawn))
+
+        code, screen, out, err = self._run_menu(
+            [ord("4"), 10, ord("4"), ord("3"), 10, -1]
+        )
+        self.assertEqual(code, 0, err + out)
+        with open(menu_file, encoding="utf-8") as handle:
+            self.assertEqual(handle.read(), "zh-Hant\n")
+        self.assertEqual(stat.S_IMODE(os.stat(menu_file).st_mode), 0o600)
+        flat = "".join(screen.drawn)
+        self.assertIn("選單語言是繁體中文", flat)
+        self.assertIn("路徑:", flat)
+
+        fresh = os.path.join(self._home, "fresh")
+        made = LanguageMenu(home=fresh)
+        self.assertTrue(made.save("en"))
+        self.assertEqual(stat.S_IMODE(os.stat(made.directory).st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(os.stat(made.path()).st_mode), 0o600)
+
+        class Note:
+            def __init__(self):
+                self.messages = []
+
+            def log_message(self, message, level="INFO", component=""):
+                self.messages.append((message, component))
+
+        note = Note()
+        logged = LanguageMenu(logger=note, home=fresh)
+        self.assertTrue(logged.save("ja"))
+        self.assertIn(("instantiated", "LanguageMenu"), note.messages)
+        self.assertIn(
+            ("save language path={0}".format(logged.path()), "menu"),
+            note.messages,
+        )
+
+        keep = os.path.join(self._home, "keep")
+        kept = LanguageMenu(home=keep)
+        os.makedirs(kept.directory, mode=0o755)
+        os.chmod(kept.directory, 0o755)
+        self.assertTrue(kept.save("de"))
+        self.assertEqual(stat.S_IMODE(os.stat(kept.directory).st_mode), 0o755)
+        self.assertEqual(kept.code, "de")
+        self.assertFalse(kept.save("nope"))
+        self.assertEqual(kept.code, "de")
+        with open(kept.path(), encoding="utf-8") as handle:
+            self.assertEqual(handle.read(), "de\n")
+
+        fail_home = os.path.join(self._home, "fail")
+        os.makedirs(fail_home)
+        with open(os.path.join(fail_home, ".local"), "w", encoding="utf-8") as handle:
+            handle.write("not-a-directory\n")
+        failed = LanguageMenu(home=fail_home)
+        self.assertFalse(failed.save("fr"))
+        self.assertEqual(failed.code, "en")
+        self.assertEqual(failed.failed_line(), "Could not save the menu language")
+
+        class Bag:
+            def __init__(self):
+                self.model = MenuModel()
+                self.painter = MenuPainter()
+
+        bag = Bag()
+        tui = Tui(home=fail_home)
+        self.assertIsNone(tui._pick_language(bag, "fr"))
+        self.assertEqual(tui.language.code, "en")
+        self.assertEqual(bag.model.layer, "front")
+        self.assertEqual(bag.model.error, "Could not save the menu language")
+        zh = LanguageMenu(home=side)
+        zh.save("zh-Hant")
+        self.assertEqual(
+            painter.format_rows(zh.boards()["front"]),
+            [
+                "1. edit: cut, speed, and optional boomerang",
+                "4. 語言  : 這個選單的顯示語言",
+                "6. 系統日誌: 檢視、清空，以及日誌資料夾",
+                "8. 自我管理: 版本、關於，以及 pip 生命週期",
+                "9. 離開  : 離開",
+            ],
+        )
+
+    def test_tp_tui_12_view_log_stays_through_the_clock_wait(self):
+        """TP-TUI-12: the one-second clock wait does not close the log-file question."""
+        import os
+        import tempfile
+
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.system_log import SystemLog
+        from VideoSpeed.tui import Tui
+
+        class ClockQuestionScreen(FakeScreen):
+            """The board left timeout(1000) armed. A positive wait returns -1 and keeps the key."""
+
+            def __init__(self, keys):
+                super().__init__(keys)
+                self.delay = 1000
+                self.timeouts = [1000]
+
+            def timeout(self, ms):
+                self.delay = ms
+                self.timeouts.append(ms)
+
+            def getch(self):
+                if self.delay is not None and self.delay >= 0:
+                    return -1
+                key = super().getch()
+                self.delay = 1000
+                return key
+
+        class FolderLogger:
+            def __init__(self, folder):
+                self.folder = folder
+
+            def logDir(self):
+                return self.folder
+
+            def log_message(self, message, level="INFO", component=""):
+                return None
+
+        with tempfile.TemporaryDirectory() as folder:
+            kept = os.path.join(folder, "kept.log")
+            shown = os.path.join(folder, "shown.log")
+            with open(kept, "w", encoding="utf-8") as handle:
+                handle.write("keep-me\n")
+            with open(shown, "w", encoding="utf-8") as handle:
+                handle.write("show-me\n")
+            logger = FolderLogger(folder)
+            tui = Tui(logger=logger)
+            self.assertEqual(
+                [path.name for path in SystemLog(logger=logger).log_files()],
+                ["kept.log", "shown.log"],
+            )
+
+            listed = ClockQuestionScreen([ord("2"), 10])
+            page = tui._view_log(listed, MenuModel())
+            self.assertEqual(page, "shown.log\n\nshow-me\n")
+            self.assertEqual(listed.keys, [])
+            self.assertEqual(listed.timeouts[0], 1000)
+            self.assertIn(-1, listed.timeouts)
+            self.assertLess(listed.timeouts.index(1000), listed.timeouts.index(-1))
+
+            escaped = ClockQuestionScreen([27])
+            self.assertIsNone(tui._view_log(escaped, MenuModel()))
+            self.assertEqual(escaped.keys, [])
+            self.assertIn(-1, escaped.timeouts)
+
+            cleared = ClockQuestionScreen([ord("1"), 10, ord("y"), 10])
+            self.assertEqual(
+                tui._clear_log(cleared, MenuModel()),
+                "Cleared kept.log.",
+            )
+            self.assertEqual(cleared.keys, [])
+            with open(kept, encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "")
+
+            notice = ClockQuestionScreen([10])
+            tui._tui_notice(notice, MenuModel(), ["still here"])
+            self.assertEqual(notice.keys, [])
+            self.assertIn(-1, notice.timeouts)
+
+    def test_tp_tui_07_path_line(self):
+        """TP-TUI-07: the first menu row is Path and the absolute working directory."""
+        import os
+        import tempfile
+
+        from VideoSpeed import cli
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter
+        from VideoSpeed.tui import Tui
+
+        from VideoSpeed.language_menu import LanguageMenu
+
+        right = _freeze_clock(self)
+        self.assertFalse(hasattr(MenuPainter, "PATH_LABEL_ZH_HANT"))
+        self.assertEqual(MenuPainter.PATH_LABEL_EN, "Path")
+        painter = MenuPainter()
+        self.assertEqual(painter.path_label(), "Path")
+        label = LanguageMenu(home=os.path.join(self._home, "label"))
+        self.assertEqual(label.path_label(), "Path")
+        self.assertTrue(label.save("zh-Hant"))
+        self.assertEqual(label.path_label(), "路徑")
+        painter.set_path_label(label.path_label())
+        self.assertEqual(painter.path_label(), "路徑")
+        painter.set_path_label("Path")
+        folder = tempfile.mkdtemp(prefix="clips_", dir="/tmp")
+        nested = tempfile.mkdtemp(prefix="later_", dir="/tmp")
+        previous = os.getcwd()
+        saved_user = os.environ.get("USER")
+        saved_username = os.environ.get("USERNAME")
+        os.environ["USER"] = "clipuser"
+        os.environ.pop("USERNAME", None)
+        os.chdir(folder)
+        try:
+            current = os.path.abspath(folder)
+            left = "Path: " + current
+            self.assertNotIn("clipuser", left)
+            logical = left + "  " + right
+            self.assertNotIn(cli.Cli.APP_NAME, left)
+            self.assertNotIn(cli.Cli._PKG_VERSION, left)
+            self.assertEqual(Tui().menu_lines()[0], logical)
+            self.assertEqual(Tui().self_menu_lines()[0], logical)
+            self.assertEqual(Tui().log_menu_lines()[0], logical)
+            self.assertEqual(Tui().language_menu_lines()[0], logical)
+            self.assertNotIn("Current:", logical)
+            self.assertNotIn("clipuser", logical)
+            self.assertFalse(logical.startswith("路徑"))
+
+            model = MenuModel()
+            screen = FakeScreen([])
+            _height, width = screen.getmaxyx()
+            placeable = width - 1
+            painted = left + (" " * (placeable - len(left) - len(right))) + right
+            painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+            self.assertEqual(screen.drawn[0], painted)
+            self.assertTrue(screen.drawn[0].startswith(left))
+            flat = "".join(screen.drawn)
+            self.assertIn(
+                "  {} {}  │  main menu  │  Up/Down  •  Enter".format(
+                    cli.Cli.APP_NAME, cli.Cli._PKG_VERSION
+                ),
+                flat,
+            )
+            self.assertIn("1. edit", flat)
+            self.assertLess(flat.index(left), flat.index("1. edit"))
+
+            model.layer = "self"
+            screen.drawn.clear()
+            painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+            self.assertEqual(screen.drawn[0], painted)
+            flat = "".join(screen.drawn)
+            self.assertIn(
+                "  {} {}  │  self-management  │  Up/Down  •  Enter".format(
+                    cli.Cli.APP_NAME, cli.Cli._PKG_VERSION
+                ),
+                flat,
+            )
+            self.assertIn("82. version", flat)
+            self.assertNotIn(cli.Cli.APP_NAME, screen.drawn[0])
+            self.assertNotIn(cli.Cli._PKG_VERSION, screen.drawn[0])
+
+            tail = 4
+            narrow_width = len("Path: ") + tail
+            self.assertEqual(painter.path_line(narrow_width), "Path: " + current[-tail:])
+            self.assertNotIn(right, painter.path_line(narrow_width))
+            narrow = FakeScreen([], size=(24, narrow_width + 1))
+            model.layer = "front"
+            painter.paint(narrow, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+            self.assertEqual(narrow.drawn[0], "Path: " + current[-tail:])
+            self.assertNotEqual(narrow.drawn[0], painted)
+            self.assertTrue(current.endswith(narrow.drawn[0][len("Path: ") :]))
+
+            os.chdir(nested)
+            screen.drawn.clear()
+            painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+            moved_left = "Path: " + os.path.abspath(nested)
+            moved_paint = moved_left + (" " * (placeable - len(moved_left) - len(right))) + right
+            self.assertEqual(screen.drawn[0], moved_paint)
+            self.assertEqual(Tui().menu_lines()[0], moved_left + "  " + right)
+            self.assertNotEqual(moved_left, left)
+        finally:
+            os.chdir(previous)
+            if saved_user is None:
+                os.environ.pop("USER", None)
+            else:
+                os.environ["USER"] = saved_user
+            if saved_username is None:
+                os.environ.pop("USERNAME", None)
+            else:
+                os.environ["USERNAME"] = saved_username
+            os.rmdir(folder)
+            os.rmdir(nested)
+
+    def test_tp_tui_08_login_field_stays_off_the_path_line(self):
+        """TP-TUI-08: the withdrawn login field is not drawn on the path line."""
+        import inspect
+
+        from VideoSpeed.menu_painter import MenuPainter
+
+        _freeze_clock(self, "08:09:10")
+        painter = MenuPainter()
+        self.assertFalse(hasattr(painter, "current_label"))
+        self.assertFalse(hasattr(painter, "_login_name"))
+        self.assertFalse(hasattr(MenuPainter, "CURRENT_LABEL_EN"))
+        self.assertFalse(hasattr(MenuPainter, "CURRENT_LABEL_ZH_HANT"))
+        line = painter.path_line()
+        self.assertNotIn("Current:", line)
+        self.assertNotIn("當前", line)
+        source = (ROOT / "src" / "VideoSpeed" / "menu_painter.py").read_text(encoding="utf-8")
+        self.assertNotIn("getpass", source)
+        self.assertNotIn("subprocess", source)
+        self.assertNotIn('"id"', source)
+        self.assertNotIn("current_label", source)
+        self.assertNotIn("_login_name", source)
+        self.assertIsNone(inspect.getattr_static(MenuPainter, "current_label", None))
+        self.assertIsNone(inspect.getattr_static(MenuPainter, "_login_name", None))
+
+    def test_tp_tui_09_clock_on_the_right(self):
+        """TP-TUI-09: the local clock sits on the right when the path row has room."""
+        import os
+
+        from VideoSpeed import cli
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter
+        from VideoSpeed.tui import Tui
+
+        right = _freeze_clock(self, "14:05:09")
+        painter = MenuPainter()
+        self.assertEqual(painter.clock_text(), right)
+        self.assertRegex(right, r"^\d{2}:\d{2}:\d{2}$")
+        self.assertEqual(len(right), 8)
+        source = (ROOT / "src" / "VideoSpeed" / "menu_painter.py").read_text(encoding="utf-8")
+        self.assertIn("localtime", source)
+        self.assertNotIn("gmtime", source)
+        left = "Path: " + os.path.abspath(os.getcwd())
+        logical = painter.path_line()
+        self.assertEqual(logical, left + "  " + right)
+        self.assertGreaterEqual(logical.find(right) - len(left), 2)
+        wide = len(left) + 2 + len(right)
+        self.assertEqual(painter.path_line(wide), left + "  " + right)
+        self.assertEqual(len(painter.path_line(wide + 5)), wide + 5)
+        self.assertTrue(painter.path_line(wide + 5).endswith(right))
+        self.assertEqual(painter.path_line(wide - 1), left)
+        self.assertNotIn(right, painter.path_line(wide - 1))
+        self.assertEqual(Tui().menu_lines()[0], logical)
+        self.assertEqual(Tui().self_menu_lines()[0], logical)
+
+        model = MenuModel()
+        screen = FakeScreen([])
+        _height, width = screen.getmaxyx()
+        placeable = width - 1
+        painted = left + (" " * (placeable - len(left) - len(right))) + right
+        painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+        self.assertEqual(screen.drawn[0], painted)
+        model.layer = "self"
+        screen.drawn.clear()
+        painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+        self.assertEqual(screen.drawn[0], painted)
+
+        model.show_result("page")
+        screen.drawn.clear()
+        painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+        self.assertEqual(screen.drawn[0], cli.Cli.APP_NAME)
+        self.assertFalse(screen.drawn[0].startswith("Path:"))
+
+        model.phase = "board"
+        screen.drawn.clear()
+        painter.paint_prompt(
+            screen,
+            model,
+            "edit",
+            ["Folder?"],
+            True,
+            cli.Cli.APP_NAME,
+            cli.Cli._PKG_VERSION,
+            lambda lines, _room, _pin: lines,
+        )
+        self.assertEqual(screen.drawn[0], cli.Cli.APP_NAME)
+        self.assertNotIn(right, screen.drawn[0])
+
+    def test_tp_tui_10_clock_updates_each_second(self):
+        """TP-TUI-10: one second with no key redraws the clock and stays on the board."""
+        import inspect
+        import time
+        from unittest.mock import patch
+
+        from VideoSpeed import cli
+        from VideoSpeed.menu_session import MenuSession
+
+        counter = {"n": 0}
+
+        def localtime():
+            second = counter["n"]
+            counter["n"] += 1
+            return time.struct_time((2026, 10, 2, 12, 0, second, 4, 275, 0))
+
+        class ClockScreen(FakeScreen):
+            def __init__(self, keys):
+                super().__init__(keys)
+                self.timeouts = []
+                self.calls = 0
+
+            def timeout(self, ms):
+                self.timeouts.append(ms)
+
+            def getch(self):
+                self.calls += 1
+                if self.calls > 40:
+                    raise AssertionError("the clock wait did not stop")
+                return super().getch()
+
+        with patch("time.localtime", side_effect=localtime):
+            screen = ClockScreen([-1, ord("9"), 10])
+            code = MenuSession(
+                cli.Cli.APP_NAME,
+                cli.Cli._PKG_VERSION,
+                on_version=lambda: cli.Cli._PKG_VERSION,
+                on_about=lambda: "about page",
+                boards={"front": _menu_rows()},
+                on_kind=lambda _kind: None,
+            ).run(screen)
+        self.assertEqual(code, 0)
+        self.assertEqual(screen.keys, [])
+        self.assertEqual(screen.timeouts[0], 1000)
+        self.assertIn(1000, screen.timeouts)
+        path_rows = [line for line in screen.drawn if line.startswith("Path: ")]
+        self.assertGreaterEqual(len(path_rows), 2)
+        self.assertTrue(path_rows[0].endswith("12:00:00"))
+        self.assertTrue(path_rows[1].endswith("12:00:01"))
+        self.assertGreaterEqual(path_rows[0].find("12:00:00") - len("Path: "), 2)
+
+        counter["n"] = 0
+        with patch("time.localtime", side_effect=localtime):
+            screen = ClockScreen(
+                [ord("a"), ord("b"), ord("o"), ord("u"), ord("t"), 10, -1, ord("9"), 10]
+            )
+            code = MenuSession(
+                cli.Cli.APP_NAME,
+                cli.Cli._PKG_VERSION,
+                on_version=lambda: cli.Cli._PKG_VERSION,
+                on_about=lambda: "about page",
+                boards={"front": _menu_rows()},
+                on_kind=lambda _kind: None,
+            ).run(screen)
+        self.assertEqual(code, 0, screen.timeouts)
+        self.assertEqual(screen.keys, [])
+        self.assertIn(-1, screen.timeouts)
+        self.assertLess(screen.timeouts.index(1000), screen.timeouts.index(-1))
+
+        session_source = (ROOT / "src" / "VideoSpeed" / "menu_session.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("threading", session_source)
+        self.assertNotIn("Thread(", session_source)
+        wait_source = inspect.getsource(MenuSession._wait_key)
+        self.assertNotIn("log_message", wait_source)
+
     def test_about_result_scrolls_when_the_page_is_long(self):
         """TP-ABOUT-08: a long about page scrolls; a one-line result still closes."""
         import curses
@@ -378,16 +1058,21 @@ class TestTui(unittest.TestCase):
 
         model.show_result(_about_text())
         screen = FakeScreen([], size=(24, 80))
-        paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
+        paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
         first = "\n".join(screen.drawn)
         self.assertIn("Domain:", first)
         self.assertNotIn("Basic Usage:", first)
-        for _ in range(16):
+        scrolled = first
+        found = False
+        for _ in range(40):
             model.handle_key(curses.KEY_DOWN, 24)
-        screen.drawn.clear()
-        paint(screen, model, cli.APP_NAME, cli._PKG_VERSION)
-        scrolled = "\n".join(screen.drawn)
-        self.assertIn("Basic Usage:", scrolled)
+            screen.drawn.clear()
+            paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+            scrolled = "\n".join(screen.drawn)
+            if "Basic Usage:" in scrolled:
+                found = True
+                break
+        self.assertTrue(found, scrolled)
         self.assertIn("Up/Down scrolls this page.", scrolled)
         model.handle_key(10, 24)
         self.assertEqual(model.phase, "board")
@@ -486,8 +1171,8 @@ class TestTui(unittest.TestCase):
 
         screen = FakeScreen(keys)
         saved_wrapper = curses.wrapper
-        saved_out = cli.Cli.stdout_is_tty
-        saved_in = cli.Cli.stdin_is_tty
+        saved_out = staticmethod(cli.Cli.stdout_is_tty)
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
         saved_ff = Encoder.ensure_ffmpeg
         saved_job = Encoder.process_job
         saved_input = builtins.input
@@ -502,8 +1187,8 @@ class TestTui(unittest.TestCase):
             return True
 
         curses.wrapper = lambda fn: fn(screen)
-        cli.Cli.stdout_is_tty = lambda self: True
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdout_is_tty = lambda *args: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         Encoder.ensure_ffmpeg = count_ffmpeg
         Encoder.process_job = lambda self, *args, **_kwargs: jobs.append(args) or None
         builtins.input = refuse_input
@@ -648,7 +1333,12 @@ class TestTui(unittest.TestCase):
         names = (
             "open_text_menu",
             "menu_lines",
+            "log_menu_lines",
+            "language_menu_lines",
             "framework_hello",
+            "_view_log",
+            "_clear_log",
+            "_log_folder",
             "_edit_in_tui",
             "_list_in_tui",
             "_open_direct_screen",
@@ -662,7 +1352,7 @@ class TestTui(unittest.TestCase):
         ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
         session = (ROOT / "src" / "VideoSpeed" / "tui.py").read_text(encoding="utf-8")
         for name in names:
-            self.assertTrue(inspect.isfunction(Tui.__dict__[name]), name)
+            self.assertTrue(inspect.isfunction(inspect.getattr_static(Tui, name)), name)
             self.assertFalse(inspect.isfunction(getattr(cli, name, None)), name)
             self.assertNotIn("\ndef {}(".format(name), "\n" + ship)
         self.assertIn("class Tui", session)
@@ -684,6 +1374,10 @@ class TestTui(unittest.TestCase):
             "paint",
             "paint_prompt",
             "format_rows",
+            "path_label",
+            "set_path_label",
+            "clock_text",
+            "path_line",
             "row_parts",
             "rows_for",
             "screen_can_hold_box",
@@ -695,11 +1389,12 @@ class TestTui(unittest.TestCase):
             "_result_room",
         )
         for name in painter_names:
-            self.assertTrue(inspect.isfunction(MenuPainter.__dict__[name]), name)
+            self.assertTrue(inspect.isfunction(inspect.getattr_static(MenuPainter, name)), name)
         self.assertEqual(MenuPainter.FRAME_TOP_LEFT, "╭")
         self.assertEqual(MenuPainter.MENU_ROWS[0][1], "edit")
-        self.assertTrue(inspect.isfunction(MenuModel.__dict__["edge_keys"]))
-        self.assertTrue(inspect.isfunction(MenuSession.__dict__["run"]))
+        self.assertTrue(inspect.isfunction(inspect.getattr_static(MenuModel, "edge_keys")))
+        self.assertTrue(inspect.isfunction(inspect.getattr_static(MenuSession, "run")))
+        self.assertTrue(inspect.isfunction(inspect.getattr_static(MenuSession, "_wait_key")))
         self.assertTrue(issubclass(MenuScreenError, Exception))
         homes = {
             MenuPainter: "menu_painter.py",
@@ -713,8 +1408,14 @@ class TestTui(unittest.TestCase):
         )
         self.assertIn("class MenuScreenError", session_file)
         tui_text = (ROOT / "src" / "VideoSpeed" / "tui.py").read_text(encoding="utf-8")
-        self.assertEqual(re.findall(r"^class (\w+)", tui_text, re.M), ["Tui"])
         ship = (ROOT / "src" / "VideoSpeed" / "cli.py").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r"^class (\w+)", tui_text, re.M), ["Tui"])
+        lang_text = (ROOT / "src" / "VideoSpeed" / "language_menu.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertEqual(re.findall(r"^class (\w+)", lang_text, re.M), ["LanguageMenu"])
+        self.assertIn("LanguageMenu(", tui_text)
+        self.assertNotIn("LanguageMenu(", ship)
         self.assertNotIn("FRAME_TOP_LEFT", ship)
         self.assertNotIn("FRAME_TOP_LEFT", tui_text)
 

@@ -6,7 +6,7 @@ from __future__ import print_function, unicode_literals
 
 from pathlib import Path
 
-from .run_output import log_instantiated
+
 
 
 class MediaInfo:
@@ -14,7 +14,8 @@ class MediaInfo:
 
     def __init__(self, output, logger=None):
         self.logger = logger
-        log_instantiated(logger, "MediaInfo")
+        if logger is not None:
+            logger.log_message("instantiated", component="MediaInfo")
         self.output = output
 
     def get_mp4_files(self, folder="."):

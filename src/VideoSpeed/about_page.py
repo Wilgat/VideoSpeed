@@ -7,7 +7,7 @@ from __future__ import print_function, unicode_literals
 import os
 
 from .check_system import CheckSystem
-from .run_output import log_instantiated
+
 
 
 class AboutPage:
@@ -33,8 +33,14 @@ class AboutPage:
         logger=None,
     ):
         self.logger = logger
-        log_instantiated(logger, "AboutPage")
-        self.check = check if check is not None else CheckSystem(logger=logger)
+        if logger is not None:
+            logger.log_message("instantiated", component="AboutPage")
+        self.check = check if check is not None else CheckSystem(
+            logger=logger,
+            app_name=app_name,
+            version=version,
+            console_name=console_name,
+        )
         self.app_name = app_name
         self.version = version
         self.major = major

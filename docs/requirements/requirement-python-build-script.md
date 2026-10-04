@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-build-script.md
-**Status**: Active (Version 1.1.0)
+**Status**: Active (Version 1.1.2)
 **Area**: python
 **Key**: `requirement-python-build-script`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -69,7 +69,7 @@ Manifest identity stays on `requirement-python-packaging`. The version integers 
 | `test-install` | operational | Read `[project].name`. Uninstall that distribution when present. `python3 -m pip install` this checkout | A hard-coded project name; `setup.sh`; extra arguments; install after a failed uninstall |
 | `test` | test-purpose | `tests/run.sh` | Extra arguments; another test runner |
 
-Samples:
+### Sample code
 
 ```text
 ./build.sh
@@ -103,7 +103,7 @@ Samples:
 | **Package name** | `VideoSpeed` |
 | **Build command** | `python3 -m build --sdist --wheel --outdir dist/` |
 | **Upload command** | `python3 -m twine upload dist/*` |
-| **Tag name** | `v` plus `__version__` (today `v1.0.7`) |
+| **Tag name** | `v` plus `__version__` (today `v1.0.11`) |
 | **Suite** | `tests/run.sh` |
 | **test-install** | `tomllib` reads `[project].name` from `pyproject.toml` (today `VideoSpeed`). `python3 -m pip show`, then `python3 -m pip uninstall -y` when present, then `python3 -m pip install` of the checkout directory. `read_project_name` and `do_test_install` do not embed that name |
 | **Not a verb** | `setup.sh` (pyenv-selected local install). `test-install` does not call it |
@@ -178,7 +178,9 @@ TP-BUILD-01 asserts help (and empty argv) exits 0, lists every verb, and puts `t
 |------|--------|------|
 | 2026-10-01 | Active 1.0.0 | Maintainer verbs for `build.sh` |
 | 2026-10-01 | Active 1.1.0 | `test-install` reads the project name, uninstalls that pip install, then installs this checkout |
+| 2026-10-02 | Active 1.1.1 | Sample code shows the `./build.sh` verbs |
+| 2026-10-04 | Active 1.1.2 | Tag example is `v` plus package string `1.0.11` |
 
-**Last Updated**: 2026-10-01
+**Last Updated**: 2026-10-04
 **Owner**: VideoSpeed project maintainers
 **Alignment**: Registry `docs/requirements/index.md`; CIAO (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

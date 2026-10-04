@@ -1,12 +1,12 @@
 **file**: docs/requirements/requirement-python-cli-interface.md  
-**Status**: Active (Version 1.9.0)  
+**Status**: Active (Version 1.9.4)  
 **Area**: python  
 **Key**: `requirement-python-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are the same actions as the text menu: `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `help` and `version` are self-management verbs. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
+Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `hello` prints `Hello.` and is not a text-menu row. The other verbs match a menu action. `help` and `version` are self-management verbs. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
 
 Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops are owned by **`requirement-video-ffmpeg-pipeline`**.
 
@@ -53,10 +53,14 @@ Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops 
 `main` in `src/VideoSpeed/cli.py` **MUST** perform these five steps in this order. `__main__.py` and the console script only call `main` and exit with its code. They **MUST NOT** repeat the steps. The order matches sibling product AnimeDlp’s `main`: version, logger, debug, missing libraries, then the argument parser. AnimeDlp prints `__version__` on the debug line. VideoSpeed prints the same line from `MAJOR_VERSION`, `MINOR_VERSION`, and `PATCH_VERSION` (`requirement-python-version`).
 
 M1. **Step 1 — main’s own version.** **MUST** read `MAJOR_VERSION`, `MINOR_VERSION`, and `PATCH_VERSION` from the package. **MUST NOT** assign a second triple. The string **MUST** equal `__version__`.  
-M2. **Step 2 — logger.** **MUST** construct one ChronicleLogger as `requirement-python-cli-logging` requires (`logname="VideoSpeed"`, then `logName()`, `baseDir()`, `logDir()`). If that import fails, **MUST** print the install next step and return `1` before the parser runs.  
-M3. **Step 3 — debug.** If `logger.isDebug()` is true, **MUST** log the identity line with the three integers, `ChronicleLogger.class_version()`, and a line whose message is `debug mode`, `component="main"`. Before that block, **MUST** call `quiet(True)` when `--json` is set or this run will open the text screen (`requirement-python-cli-logging`). A non-TUI run that is not `--json` **MUST** leave quiet off, so the operator sees `debug mode`. `DEBUG` must already be set before step 2. After this step, `main` **MUST** construct `Cli` with that logger. Each class stores it and logs `instantiated` (`requirement-python-cli-logging`).  
+M2. **Step 2 — logger.** **MUST** write `logger = ChronicleLogger(...)` inside `def main`, as `requirement-python-cli-logging` requires (`logname="VideoSpeed"`, then `logName()`, `baseDir()`, `logDir()`). That statement is the construct. A method is not the construct. `Cli.__new__` is not the construct. If that import fails, **MUST** print the install next step and return `1` before the parser runs.  
+M3. **Step 3 — debug.** If `logger.isDebug()` is true, **MUST** log the identity line with the three integers, `ChronicleLogger.class_version()`, and a line whose message is `debug mode`, `component="main"`. When `--json` is set or this run will open the text screen, step 2 **MUST** pass `is_quiet=True` into `ChronicleLogger(...)` (`requirement-python-cli-logging`). Calling `quiet(True)` only after that constructor returns does not hide a line the constructor already printed. A non-TUI run that is not `--json` **MUST** leave `is_quiet` false, so the operator sees `debug mode`. `DEBUG` must already be set before step 2. After this step, `main` **MUST** construct `Cli` with that logger. Each class stores it and logs `instantiated` (`requirement-python-cli-logging`).  
 M4. **Step 4 — major import missing.** **MUST** use the AnimeDlp gate: `log_message` at `FATAL`, `component="main"`, then `return 1`. ChronicleLogger is that gate at step 2. OpenCV (`cv2`) stays lazy (`requirement-python-coding-style`). `main` **MUST** run that same FATAL gate immediately before a duration probe. The text menu stays in this package (`requirement-python-tui`). Its class home is `requirement-python-oop`. `def main` stays in `src/VideoSpeed/cli.py`. Class `Cli` in that file constructs the objects that requirement names, including class `Tui`. It is not a pip import. `--help` and `--version` **MUST** still succeed when `cv2` is absent.  
 M5. **Step 5 — argument parser.** **MUST** build the `ArgumentParser` and call `parse_args` only after steps 1–3, and after the ChronicleLogger gate. Flags stay the list in §2.4. `--version` **MUST** print the package string from step 1.
+
+### Sample code
+
+`def main` writes `ChronicleLogger(...)` and then `Cli(logger)`. The parser runs after that construct.
 
 ```python
 from ChronicleLogger import ChronicleLogger
@@ -68,13 +72,13 @@ def main(argv=None):
 
     # 2. logger
     appname = "VideoSpeed"
-    logger = ChronicleLogger(logname=appname)
+    logger = ChronicleLogger(logname=appname, is_quiet=json_or_text_screen)
     appname = logger.logName()
     basedir = logger.baseDir()
     logdir = logger.logDir()
 
-    # Quiet this mirror first when --json is set or the text screen will open.
-    # A non-TUI, non-JSON run leaves quiet off, so "debug mode" is visible.
+    # is_quiet is true when --json is set or the text screen is already known.
+    # A non-TUI, non-JSON run leaves it false, so "debug mode" is visible.
 
     # 3. debug
     if logger.isDebug():
@@ -93,6 +97,8 @@ def main(argv=None):
     # 4. major import missing (ChronicleLogger already gated above)
     #    cv2: same FATAL shape, at first use, not before --version
 
+    app = Cli(logger)
+
     # 5. argument parser
     parser = argparse.ArgumentParser(prog="video-speed")
     parser.add_argument("--version", action="version", version=version)
@@ -101,7 +107,7 @@ def main(argv=None):
 
 | Item | Value |
 |------|--------|
-| **Order today in `cli.py`** | `main` calls one ChronicleLogger construct before the parser: version triple, read-back, quiet for `--json` or the text screen, then the debug identity and `debug mode` when `isDebug()` is true, then `Cli(logger)`. Each class logs `instantiated`. A missing ChronicleLogger returns 1 before the parser. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
+| **Order today in `cli.py`** | `def main` writes `ChronicleLogger(...)` before the parser: version triple, `is_quiet=True` when `--json` or the text screen is already known, read-back, then the debug identity and `debug mode` when `isDebug()` is true, then `Cli(logger)`. Each `__init__` writes `instantiated`. A missing ChronicleLogger returns 1 before the parser. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
 | **Version binding today** | `cli.py` imports the package triple and `__version__`. It does not declare its own triple |
 
 ### 2.2 Mode (owned elsewhere)
@@ -117,7 +123,7 @@ def main(argv=None):
 
 ### 2.3a Product verbs (the command line beside the menu)
 
-The text menu is one way to start an action. The command line is the other. A **product verb** is the first positional argument. It names the same action a person can pick on the menu. Flags stay. A verb does not remove `--file`, `--start`, or `--end`.
+The text menu is one way to start an action. The command line is the other. A **product verb** is the first positional argument. Most verbs name an action a person can pick on the menu. `hello` is the command line only. Flags stay. A verb does not remove `--file`, `--start`, or `--end`.
 
 These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
 
@@ -126,7 +132,7 @@ These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
 | `help` | `--help`. Usage text. The menu does not number this row. It is a self-management verb. | no | no |
 | `version` | Self-management **82**. Installed version. No pip and no network. | no | no |
 | `about` | Self-management **83 about**. Page body is `requirement-python-about` | no | no |
-| `hello` | Menu **7 hello**. Body is `Hello.` | no | no |
+| `hello` | Prints `Hello.`. Not a numbered menu row. Does not open the text menu | no | no |
 | `edit` | Menu **1 edit**. Domain steps D-01..D-08 | yes, unless `--folder` or `--file` already names the directory | yes, unless `--file` names the MP4 |
 | `list-mp4` | The MP4 list edit shows after the folder question. The verb lists and stops. It does not encode | yes, unless `--folder` names the directory, or `--file` names a file whose parent is that directory | no |
 | `self-install` | Self-management **87**. `python -m pip install VideoSpeed` | no | no |
@@ -300,9 +306,13 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | 2026-10-01 | Active 1.8.3 | Step 3 logs `debug mode`. A non-TUI, non-JSON run shows it. `--json` and the text screen quiet that mirror |
 | 2026-10-01 | Active 1.8.4 | After the debug step, `Cli` is built with that logger. Each class logs `instantiated` |
 | 2026-10-02 | Active 1.9.0 | Self-management verbs. `version-check` and `self-update` call pip. `help` stays unnumbered |
+| 2026-10-02 | Active 1.9.1 | `hello` stays a command and is not a text-menu row |
+| 2026-10-02 | Active 1.9.2 | Step 2 passes `is_quiet=True` when `--json` or the text screen is already known. `quiet(True)` after the constructor returns is not that quiet |
+| 2026-10-02 | Active 1.9.3 | Step 2 is the statement `ChronicleLogger(...)` inside `def main`. A method does not instantiate the logger. `Cli.__new__` is not that step |
+| 2026-10-02 | Active 1.9.4 | Sample code shows `ChronicleLogger(...)` and then `Cli(logger)` before the parser |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-02  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

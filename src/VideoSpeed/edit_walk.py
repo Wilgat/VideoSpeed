@@ -10,7 +10,7 @@ from __future__ import print_function, unicode_literals
 import sys
 from pathlib import Path
 
-from .run_output import log_instantiated
+
 
 
 class EditWalk:
@@ -18,7 +18,8 @@ class EditWalk:
 
     def __init__(self, output, encoder, media, ratio_min, ratio_max, logger=None):
         self.logger = logger
-        log_instantiated(logger, "EditWalk")
+        if logger is not None:
+            logger.log_message("instantiated", component="EditWalk")
         self.output = output
         self.encoder = encoder
         self.media = media

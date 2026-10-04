@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import curses
 
+from .language_menu import LanguageMenu
 from .menu_painter import MenuPainter
 from .menu_session import MenuScreenError, MenuSession
-from .run_output import log_instantiated
+from .system_log import SystemLog
+
 
 
 class Tui:
@@ -20,9 +22,10 @@ class Tui:
     The menu rows stay the front board from requirement-python-tui.
     """
 
-    def __init__(self, app=None, app_name="VideoSpeed", version=None, logger=None):
+    def __init__(self, app=None, app_name="VideoSpeed", version=None, logger=None, home=None):
         self.logger = logger
-        log_instantiated(logger, "Tui")
+        if logger is not None:
+            logger.log_message("instantiated", component="Tui")
         self.app = app
         self.app_name = app_name
         if version is None:
@@ -30,6 +33,12 @@ class Tui:
             version = __version__
         self.version = version
         self.painter = MenuPainter(logger=logger)
+        self.system_log = SystemLog(logger=logger)
+        name = app_name
+        if app is not None and getattr(app, "app_name", None):
+            name = app.app_name
+        self.language = LanguageMenu(logger=logger, app_name=name, home=home)
+        self.painter.set_path_label(self.language.path_label())
 
     def _name(self):
         if self.app is not None:
@@ -43,17 +52,23 @@ class Tui:
 
     def menu_lines(self):
         """
-        General Purpose: Title and aligned menu rows for the text screen.
-        The column widths come from MenuPainter, so a shorter verb is padded
-        before the colon.
+        General Purpose: Path line and aligned menu rows for the text screen.
+        The first row is the current directory. The column widths come from
+        MenuPainter, so a shorter verb is padded before the colon.
         """
-        title = "{} ({}) — main menu".format(self._name(), self._ver())
-        return [title] + self.painter.format_rows(MenuPainter.MENU_ROWS)
+        return [self.painter.path_line()] + self.painter.format_rows(self.language.boards()["front"])
 
     def self_menu_lines(self):
-        """General Purpose: Title and rows for the self-management board under 8."""
-        title = "{} ({}) — self-management".format(self._name(), self._ver())
-        return [title] + self.painter.format_rows(MenuPainter.SELF_ROWS)
+        """General Purpose: Path line and rows for the self-management board under 8."""
+        return [self.painter.path_line()] + self.painter.format_rows(self.language.boards()["self"])
+
+    def log_menu_lines(self):
+        """General Purpose: Path line and rows for the system-log board under 6."""
+        return [self.painter.path_line()] + self.painter.format_rows(self.language.boards()["log"])
+
+    def language_menu_lines(self):
+        """General Purpose: Path line and rows for the language board under 4."""
+        return [self.painter.path_line()] + self.painter.format_rows(self.language.boards()["lang"])
 
     def framework_help(self):
         """
@@ -74,15 +89,32 @@ class Tui:
         )
 
     def _boards(self):
-        return {
-            "front": MenuPainter.MENU_ROWS,
-            "self": MenuPainter.SELF_ROWS,
-        }
+        return self.language.boards()
+
+    def _apply_language(self, session):
+        """Copy the current language onto the session. Does not construct a class."""
+        self.language.apply_to(session.model, session.painter)
+        self.painter.set_path_label(self.language.path_label())
+
+    def _pick_language(self, session, code):
+        """Save one code, then return to the front board in that language."""
+        saved = self.language.save(code)
+        self._apply_language(session)
+        if saved:
+            session.model.error = self.language.saved_line()
+        else:
+            session.model.error = self.language.failed_line()
+        session.model.layer = "front"
+        session.model.index = 0
+        session.model.buffer = ""
+        session.model.cursor = 0
+        session.model.focus = "list"
+        return None
 
     def framework_hello(self):
         """
-        General Purpose: Hello text for menu item 7.
-        requirement-python-tui: the result page shows this message.
+        General Purpose: Hello text for the command-line verb.
+        requirement-python-tui: the front board does not list this page.
         """
         return "Hello."
 
@@ -115,18 +147,23 @@ class Tui:
             self._visible_lines,
         )
 
-    def _tui_read(self, screen, model, lines):
+    def _tui_read(self, screen, model, lines, title="edit"):
         """
         General Purpose: Read one line from the bottom input box.
 
-        Returns the text, or None when the person presses Esc or the screen
-        reports no key (back to the front board).
+        Returns the text, or None when the person presses Esc. The board's
+        one-second clock wait is cleared before each key, so that wait is
+        not Esc. requirement-python-tui rule 13.
         """
         model.buffer = ""
         model.cursor = 0
         model.focus = "input"
         while True:
-            self._paint_lines(screen, model, "edit", lines, pin_last=True)
+            self._paint_lines(screen, model, title, lines, pin_last=True)
+            # Rule 13: a no-key from the board clock must not close this question.
+            arm = getattr(screen, "timeout", None)
+            if arm is not None:
+                arm(-1)
             key = screen.getch()
             if key in (-1, 27):
                 model.error = ""
@@ -162,6 +199,10 @@ class Tui:
         model.error = ""
         body = list(lines) + ["", "Press a key to return to the main menu."]
         self._paint_lines(screen, model, "edit", body, pin_last=True)
+        # Rule 13: the board clock's one-second wait is not this notice.
+        arm = getattr(screen, "timeout", None)
+        if arm is not None:
+            arm(-1)
         try:
             screen.getch()
         except Exception:
@@ -181,10 +222,10 @@ class Tui:
             except ValueError:
                 model.error = "Please enter a number"
 
-    def _tui_yes_no(self, screen, model, lines, default_no=True):
+    def _tui_yes_no(self, screen, model, lines, default_no=True, title="edit"):
         """General Purpose: y/n from the box; empty uses the default."""
         while True:
-            raw = self._tui_read(screen, model, lines)
+            raw = self._tui_read(screen, model, lines, title=title)
             if raw is None:
                 return None
             raw = raw.strip().lower()
@@ -196,10 +237,10 @@ class Tui:
                 return False
             model.error = "Please enter y or n"
 
-    def _tui_index(self, screen, model, lines, count):
+    def _tui_index(self, screen, model, lines, count, title="edit"):
         """General Purpose: Read a 1-based index from the box; re-ask on error."""
         while True:
-            raw = self._tui_read(screen, model, lines)
+            raw = self._tui_read(screen, model, lines, title=title)
             if raw is None:
                 return None
             raw = raw.strip()
@@ -238,8 +279,6 @@ class Tui:
         screen_box = {}
 
         def on_kind(kind):
-            if kind == "hello":
-                return self.framework_hello()
             if kind == "help":
                 return self.framework_help()
             if kind in ("version-check", "self-update", "self-install", "self-uninstall"):
@@ -250,6 +289,20 @@ class Tui:
                 if screen is not None:
                     self._list_in_tui(screen, session.model)
                 return None
+            if kind == "view-log":
+                screen = screen_box.get("screen")
+                if screen is None:
+                    return None
+                return self._view_log(screen, session.model)
+            if kind == "clear-log":
+                screen = screen_box.get("screen")
+                if screen is None:
+                    return None
+                return self._clear_log(screen, session.model)
+            if kind == "log-folder":
+                return self._log_folder()
+            if kind in self.language.CODES:
+                return self._pick_language(session, kind)
             if kind != "edit":
                 return None
             screen = screen_box.get("screen")
@@ -272,6 +325,7 @@ class Tui:
             on_kind=on_kind,
             logger=self.logger,
         )
+        self._apply_language(session)
 
         def _wrapped(screen):
             screen_box["screen"] = screen
@@ -290,6 +344,63 @@ class Tui:
             app.output.out_err("   Next: video-speed --help")
             return "missing"
         return None
+
+    def _view_log(self, screen, model):
+        """General Purpose: List log files and return the chosen file for the result page."""
+        folder = self.system_log.log_dir()
+        if not folder:
+            return "No log folder."
+        files = self.system_log.log_files()
+        if not files:
+            return "No log file in {0}.".format(folder)
+        lines = ["Log files:"]
+        for index, path in enumerate(files, start=1):
+            lines.append("{0}. {1}".format(index, path.name))
+        lines.append("")
+        lines.append("Choose a log file:")
+        picked = self._tui_index(screen, model, lines, len(files), title="system-log")
+        if picked is None:
+            return None
+        path = files[picked]
+        body = self.system_log.read_log(path)
+        if body is None:
+            return "ERROR: {0} is not a log file in the log folder.".format(path.name)
+        if body == "":
+            body = "(empty)"
+        return "{0}\n\n{1}".format(path.name, body)
+
+    def _clear_log(self, screen, model):
+        """General Purpose: List log files, confirm, and empty the chosen file."""
+        folder = self.system_log.log_dir()
+        if not folder:
+            return "No log folder."
+        files = self.system_log.log_files()
+        if not files:
+            return "No log file in {0}.".format(folder)
+        lines = ["Log files:"]
+        for index, path in enumerate(files, start=1):
+            lines.append("{0}. {1}".format(index, path.name))
+        lines.append("")
+        lines.append("Choose a log file to clear:")
+        picked = self._tui_index(screen, model, lines, len(files), title="system-log")
+        if picked is None:
+            return None
+        path = files[picked]
+        answer = self._tui_yes_no(
+            screen,
+            model,
+            ["Clear {0}? (y/n)".format(path.name)],
+            title="system-log",
+        )
+        if answer is not True:
+            return None
+        if not self.system_log.clear_log(path):
+            return "ERROR: {0} is not a log file in the log folder.".format(path.name)
+        return "Cleared {0}.".format(path.name)
+
+    def _log_folder(self):
+        """General Purpose: The log-folder result page. The path is logDir()."""
+        return self.system_log.folder_text()
 
     def _edit_in_tui(
         self,
@@ -383,6 +494,7 @@ class Tui:
             on_kind=lambda _kind: None,
             logger=self.logger,
         )
+        self._apply_language(session)
 
         def _wrapped(screen):
             try:

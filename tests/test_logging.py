@@ -1,4 +1,4 @@
-# TP-LOG-01, TP-LOG-02, TP-LOG-04 — ChronicleLogger in main
+# TP-LOG-01, TP-LOG-02, TP-LOG-04, TP-LOG-05, TP-LOG-08 — ChronicleLogger in main
 # (requirement-python-cli-logging).
 from __future__ import print_function, unicode_literals
 
@@ -53,6 +53,23 @@ class TestLogging(unittest.TestCase):
         else:
             os.environ[key] = value
 
+    def _spy_logger(self):
+        import ChronicleLogger as chronicle_pkg
+
+        seen = {}
+        real = chronicle_pkg.ChronicleLogger
+
+        def factory(*args, **kwargs):
+            seen["kwargs"] = dict(kwargs)
+            obj = real(*args, **kwargs)
+            seen["logger"] = obj
+            return obj
+
+        factory.class_version = real.class_version
+        chronicle_pkg.ChronicleLogger = factory
+        self.addCleanup(setattr, chronicle_pkg, "ChronicleLogger", real)
+        return seen
+
     def _log_text(self, logd):
         files = sorted(Path(logd).glob("video-speed-*.log"))
         self.assertTrue(files, "daily log was not created under the temp log dir")
@@ -64,14 +81,16 @@ class TestLogging(unittest.TestCase):
 
         base, logd = self._dirs()
         self._push_debug(None)
-        logger = cli.Cli()._start_logger(["--version"], base, logd)
+        seen = self._spy_logger()
+        with redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit) as caught:
+                cli.main(["--version"], log_basedir=base, log_logdir=logd)
+        logger = seen["logger"]
         self.assertIsNotNone(logger)
         self.assertEqual(logger.logName(), "video-speed")
         self.assertEqual(str(Path(logger.baseDir())), str(Path(base)))
         self.assertEqual(str(Path(logger.logDir())), str(Path(logd)))
-        with redirect_stdout(io.StringIO()):
-            with self.assertRaises(SystemExit) as caught:
-                cli.main(["--version"], log_basedir=base, log_logdir=logd)
+        self.assertFalse(seen["kwargs"].get("is_quiet"))
         self.assertEqual(caught.exception.code, 0)
         self.assertTrue(list(Path(logd).glob("video-speed-*.log")))
 
@@ -136,8 +155,8 @@ class TestLogging(unittest.TestCase):
 
         base, logd = self._dirs()
         self._push_debug("show")
-        saved_tty = cli.Cli.stdin_is_tty
-        cli.Cli.stdin_is_tty = lambda self: False
+        saved_tty = staticmethod(cli.Cli.stdin_is_tty)
+        cli.Cli.stdin_is_tty = lambda *args: False
         out = io.StringIO()
         err = io.StringIO()
         try:
@@ -163,27 +182,19 @@ class TestLogging(unittest.TestCase):
 
         base, logd = self._dirs()
         self._push_debug(None)
-        seen = {}
+        seen = self._spy_logger()
         saved_open = Tui.open_text_menu
-        saved_tty = cli.Cli.stdin_is_tty
-        saved_start = cli.Cli._start_logger
-
-        def wrapped(self, argv, log_basedir="", log_logdir=""):
-            logger = saved_start(self, argv, log_basedir, log_logdir)
-            seen["logger"] = logger
-            return logger
+        saved_tty = staticmethod(cli.Cli.stdin_is_tty)
 
         def menu(self):
             seen["quiet"] = seen["logger"].quiet()
             return None
 
-        cli.Cli._start_logger = wrapped
         Tui.open_text_menu = menu
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         try:
             code = cli.main([], log_basedir=base, log_logdir=logd)
         finally:
-            cli.Cli._start_logger = saved_start
             Tui.open_text_menu = saved_open
             cli.Cli.stdin_is_tty = saved_tty
         self.assertEqual(code, 0)
@@ -197,11 +208,11 @@ class TestLogging(unittest.TestCase):
         base, logd = self._dirs()
         self._push_debug("1")
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
-        saved_out = cli.Cli.stdout_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
+        saved_out = staticmethod(cli.Cli.stdout_is_tty)
         Tui.open_text_menu = lambda self: None
-        cli.Cli.stdin_is_tty = lambda self: True
-        cli.Cli.stdout_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
+        cli.Cli.stdout_is_tty = lambda *args: True
         out = io.StringIO()
         try:
             with redirect_stdout(out):
@@ -241,6 +252,8 @@ class TestLogging(unittest.TestCase):
             "Tui",
             "MenuPainter",
             "SelfManage",
+            "SystemLog",
+            "LanguageMenu",
         ):
             line = "@{0} :] instantiated".format(name)
             self.assertIn(line, logged, name)
@@ -248,8 +261,14 @@ class TestLogging(unittest.TestCase):
         self.assertNotIn("debug mode", text)
         self.assertNotIn("debug mode", logged)
 
-        gate = cli.Cli.__new__(cli.Cli)
-        logger = gate._start_logger(["--version"], base, logd)
+        from ChronicleLogger import ChronicleLogger
+
+        logger = ChronicleLogger(
+            logname="VideoSpeed",
+            basedir=base,
+            logdir=logd,
+            is_quiet=False,
+        )
         app = cli.Cli(logger)
         self.assertIs(app.encoder.logger, logger)
         self.assertIs(app.tui.painter.logger, logger)
@@ -259,6 +278,8 @@ class TestLogging(unittest.TestCase):
         self.assertIs(app.output.logger, logger)
         self.assertIs(app.stage.logger, logger)
         self.assertIs(app.self_manage.logger, logger)
+        self.assertIs(app.tui.system_log.logger, logger)
+        self.assertIs(app.tui.language.logger, logger)
         session = MenuSession(
             "VideoSpeed",
             "0",
@@ -286,3 +307,55 @@ class TestLogging(unittest.TestCase):
         self.assertEqual(json_caught.exception.code, 0)
         self.assertNotIn("instantiated", json_out.getvalue())
         self.assertIn("@Cli :] instantiated", self._log_text(json_log))
+
+    def _fresh_log(self):
+        parent = tempfile.mkdtemp(prefix="videospeed_log_parent_")
+        self.addCleanup(self._rm, parent)
+        logd = os.path.join(parent, "fresh")
+        self.assertFalse(os.path.isdir(logd))
+        return parent, logd
+
+    def test_tp_log_08_about_json_is_quiet_on_construct(self):
+        """TP-LOG-08: about --json passes is_quiet before the log folder is created."""
+        import json
+
+        from VideoSpeed import cli
+
+        base, logd = self._fresh_log()
+        self._push_debug("1")
+        seen = self._spy_logger()
+        out = io.StringIO()
+        err = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = cli.main(
+                ["about", "--json"], log_basedir=base, log_logdir=logd
+            )
+        self.assertEqual(code, 0)
+        self.assertIs(seen["kwargs"].get("is_quiet"), True)
+        raw = out.getvalue()
+        page = err.getvalue()
+        self.assertNotIn("Created directory:", raw)
+        self.assertNotIn("Created directory:", page)
+        self.assertNotIn("debug mode", raw)
+        self.assertNotIn("debug mode", page)
+        self.assertNotIn("] pid:", raw)
+        self.assertNotIn("] pid:", page)
+        self.assertNotIn("[CHECK SYSTEM]:", raw)
+        self.assertIn("[CHECK SYSTEM]:", page)
+        obj = json.loads(raw)
+        self.assertTrue(obj["ok"])
+        self.assertEqual(obj["jobs"], [])
+        logged = self._log_text(logd)
+        self.assertIn("debug mode", logged)
+        self.assertIn("@Cli :] instantiated", logged)
+
+        ver_base, ver_log = self._fresh_log()
+        seen.clear()
+        ver_out = io.StringIO()
+        with redirect_stdout(ver_out):
+            with self.assertRaises(SystemExit) as caught:
+                cli.main(["--version"], log_basedir=ver_base, log_logdir=ver_log)
+        self.assertEqual(caught.exception.code, 0)
+        self.assertFalse(seen["kwargs"].get("is_quiet"))
+        self.assertIn("Created directory:", ver_out.getvalue())
+        self.assertIn("debug mode", ver_out.getvalue())

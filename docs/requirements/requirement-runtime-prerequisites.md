@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-runtime-prerequisites.md  
-**Status**: Active (Version 1.1.7)  
+**Status**: Active (Version 1.1.9)  
 **Area**: runtime  
 **Key**: `requirement-runtime-prerequisites`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -71,7 +71,7 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | **System binary** | `ffmpeg` on `PATH` |
 | **Auto install command** | **none** (not implemented) |
 | **Platform notes** | Linux primary. Duration probing uses the headless OpenCV wheel, which does not need `libGL.so.1`. Other OS OK when FFmpeg + OpenCV are available |
-| **Product version** | 1.0.7 |
+| **Product version** | 1.0.11 |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -80,6 +80,18 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 - **Principle 2 – Intentional**: External vs pip deps separated.
 
 ---
+
+## Sample code
+
+```python
+import shutil
+
+def require_ffmpeg():
+    if shutil.which("ffmpeg") is None:
+        raise SystemExit("ERROR: ffmpeg is not on PATH. Next: install FFmpeg.")
+```
+
+This check does not install FFmpeg and does not use admin privilege. OpenCV and ChronicleLogger stay pip strings on `requirement-python-dependency-management`.
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
@@ -146,9 +158,11 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | 2026-10-01 | Active 1.1.5 | Text menu is in this package; no menu pip row |
 | 2026-10-01 | Active 1.1.6 | Text menu is class `Tui` in `src/VideoSpeed/tui.py`. Still not a pip package |
 | 2026-10-01 | Active 1.1.7 | Text menu session is class `Tui`. Frame is class `MenuPainter`. Still not a pip package |
+| 2026-10-02 | Active 1.1.8 | Sample code shows a missing `ffmpeg` failing closed. No install |
+| 2026-10-04 | Active 1.1.9 | Product version is package string `1.0.11` |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

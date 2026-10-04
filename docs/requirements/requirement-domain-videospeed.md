@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-videospeed.md  
-**Status**: Active (Version 1.1.9)  
+**Status**: Active (Version 1.2.5)  
 **Area**: domain  
 **Key**: `requirement-domain-videospeed`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -83,14 +83,14 @@ Domain **MUST NOT** restate full FFmpeg filter graphs in a second competing SSOT
 Because the product is **prompt-driven**, “help” **MUST** be available as:
 
 1. **Session banners / step labels** that name the four domain capabilities: cut, speed/length percent, optional boomerang, output path.  
-2. **Product README** domain rows that match this catalog.  
+2. **Product README** domain rows that match this catalog. Headings, badges, and pictures of that document are `requirement-python-readme`. This pillar keeps the domain rows.  
 3. `--help` and the verb `help` **MUST** list the same capabilities (cut, length percent, optional boomerang), the product verbs `help`, `about`, `hello`, `edit`, and `list-mp4`, and the job flags `--file`, `--start`, `--end`, `--percent`, `--boomerang`, `--folder`.
 
 Help / README domain rows **MUST** include:
 
 | Help row | Text intent |
 |----------|-------------|
-| Text menu | On a terminal, numbered rows edit / hello / about / Exit above a three-row rounded input box and a status line (`requirement-python-tui`). **7 hello** shows `Hello.` The same tokens are product verbs, plus `help` and `list-mp4` |
+| Text menu | On a terminal, numbered rows edit / language / system-log / self-management / Exit above a three-row rounded input box and a status line (`requirement-python-tui`). Row **4** is language (`requirement-python-cli-language`). Hello is not a menu row. `video-speed hello` still prints `Hello.` |
 | Select folder | Folder containing MP4 files (default: current directory) |
 | Select video | Choose from numbered list |
 | Cut | Start and end time in seconds |
@@ -120,7 +120,7 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | **Product / package name** | `VideoSpeed` |
 | **Console script** | `video-speed` |
 | **Domain implementation module** | `src/VideoSpeed/cli.py` |
-| **VERSION** | `1.0.7` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 7) |
+| **VERSION** | `1.0.11` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 11) |
 | **Input formats (current)** | MP4 only (`*.mp4`, `*.MP4`), recursive under selected folder |
 | **Output location** | Same directory as source video |
 | **Output name pattern** | `{stem}_cut{start:.1f}-{end:.1f}s_{int(ratio)}pct[_BOOMERANG].mp4` |
@@ -136,6 +136,22 @@ Product identity / about **MUST** be able to report these domain lines. The page
 - **Principle 1 – Caution**: Non-goals listed so agents do not invent cloud/GUI scope.
 
 ---
+
+## Sample code
+
+```text
+video-speed edit --file clip.mp4 --start 1 --end 5 --percent 100
+video-speed edit --file clip.mp4 --start 1 --end 5 --percent 50 --boomerang
+```
+
+```python
+name = "{0}_cut{1:.1f}-{2:.1f}s_{3:d}pct".format(stem, start, end, int(percent))
+if boomerang:
+    name += "_BOOMERANG"
+name += ".mp4"
+```
+
+Those commands are `clip_cut1.0-5.0s_100pct.mp4` and `clip_cut1.0-5.0s_50pct_BOOMERANG.mp4` beside the source. The filter graph stays on `requirement-video-ffmpeg-pipeline`.
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
@@ -180,7 +196,9 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | `requirement-video-ffmpeg-pipeline` | **Operational encode SSOT** |
 | `requirement-python-cli-interface` | Entry, `main` order, and product verb names |
 | `requirement-python-interactive-vs-noninteractive` | Menu walk versus one verb versus one job. Folder, then file |
-| `requirement-python-tui` | Menu look; edit / hello / about / Exit |
+| `requirement-python-tui` | Menu look; edit / language / system-log / self-management / Exit |
+| `requirement-python-cli-language` | Menu language on row **4**. The row numbers stay on `requirement-python-tui` |
+| `requirement-python-readme` | User document sections, badges, and pictures. Domain rows stay in this file |
 | `requirement-python-about` | About page body and how each line is read |
 | `requirement-runtime-prerequisites` | FFmpeg / OpenCV presence |
 | `requirement-python-error-handling` | Invalid range / missing files |
@@ -210,9 +228,15 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | 2026-10-01 | Active 1.1.7 | Product verbs `help`, `about`, `hello`, `edit`, `list-mp4`. `list-mp4` is D-01 only |
 | 2026-10-01 | Active 1.1.8 | Text-menu painter is class `Tui` in `src/VideoSpeed/tui.py` |
 | 2026-10-01 | Active 1.1.9 | Text-menu session is class `Tui`. Frame is class `MenuPainter`. Domain steps unchanged |
+| 2026-10-02 | Active 1.2.0 | The text menu does not list hello. `video-speed hello` still prints `Hello.` |
+| 2026-10-02 | Active 1.2.1 | The text menu also lists system-log. The rows stay on `requirement-python-tui` |
+| 2026-10-02 | Active 1.2.2 | Sample code shows the edit command and the output basename |
+| 2026-10-04 | Active 1.2.3 | VERSION is package string `1.0.11` |
+| 2026-10-04 | Active 1.2.4 | The text menu also lists language. The rows stay on `requirement-python-tui`. The codes stay on `requirement-python-cli-language` |
+| 2026-10-04 | Active 1.2.5 | User-document headings and pictures point at `requirement-python-readme`. Domain rows stay here |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

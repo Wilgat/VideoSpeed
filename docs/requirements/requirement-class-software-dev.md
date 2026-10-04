@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.0.18 – VideoSpeed software-development class law + residual stack)  
+**Status**: Active (Version 1.0.21 – VideoSpeed software-development class law + residual stack)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -126,7 +126,8 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Interactive walk vs one job | `requirement-python-interactive-vs-noninteractive` | Mode matrix; do not duplicate |
 | Text menu look (default TUI style) | `requirement-python-tui` | Picture stays here. Session is class `Tui`. Frame is class `MenuPainter` (`requirement-python-oop`) |
 | About page (identity, host check, star box) | `requirement-python-about` | Line text stays here. Host-check functions are class `CheckSystem` |
-| Pyenv root and the python2, python3, and pyenv paths | `requirement-python-pyenv` | CheckSystem reads them. Labels stay on `requirement-python-about` |
+| Pyenv root and the python2, python3, and pyenv paths | `requirement-python-pyenv` | CheckSystem reads them. Labels stay on `requirement-python-about`. Interpreter lines yield to conda when under conda |
+| Conda root and the python2, python3, and conda paths | `requirement-python-conda` | CheckSystem reads them. Labels stay on `requirement-python-about` |
 | OOP grouping (one class per file) | `requirement-python-oop` | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Domain surface (workflow, help framing) | `requirement-domain-videospeed` | Four pillars |
 | FFmpeg cut / speed / boomerang ops | `requirement-video-ffmpeg-pipeline` | Ops SSOT |
@@ -135,7 +136,7 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | Host runtime deps (FFmpeg, OpenCV) | `requirement-runtime-prerequisites` | External tools; pip floors point at the dependency requirement |
 | Pip dependency version floors | `requirement-python-dependency-management` | `opencv-python-headless` and `ChronicleLogger` strings |
 | Durable system-status logs | `requirement-python-cli-logging` | One ChronicleLogger, including thread create and thread operations; do not duplicate |
-| Control-C during a long child | `requirement-python-graceful-exit` | Stop the child, do not publish, exit 130. Do not duplicate |
+| Control-C | `requirement-python-graceful-exit` | Ask `Exit? (y/n)` on an open text screen, log the decision, stop a live child, do not publish, exit 130 on yes. Do not duplicate |
 | Product version integers | `requirement-python-version` | `MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION`; do not duplicate |
 | Public product reviews / TP map | `reviews/` (git-tracked) | what-to-review · test-plan · lessons · reports |
 | Shell online install / Type O `curl\|sh` | **intentionally absent** | Not a shell channel product |
@@ -157,6 +158,17 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 **Dest fence conditions:** **none**. There is no dest approve/reject/review inbound. Dest **MUST NOT** fence rows are not invented here.
 
 ---
+
+## Sample code
+
+This file points. It does not construct the logger and it does not encode.
+
+```python
+def main(argv=None):
+    logger = ChronicleLogger(logname="VideoSpeed", is_quiet=json_or_text_screen)
+    app = Cli(logger)
+    return app.run(argv)
+```
 
 ## 3. Why This Requirement Exists (Direct CIAO Alignment)
 
@@ -222,12 +234,13 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | `requirement-python-error-handling` | Errors / cleanup |
 | `requirement-runtime-prerequisites` | Host tools |
 | `requirement-python-cli-logging` | System-status logs |
-| `requirement-python-graceful-exit` | Control-C during a long child |
+| `requirement-python-graceful-exit` | Control-C confirm, exit log, and the child stop |
 | `requirement-python-version` | Version integer SSOT |
 | `requirement-python-build-script` | Maintainer `./build.sh` verbs |
 | `requirement-python-json-output` | `--json` object |
 | `requirement-python-about` | About page body |
 | `requirement-python-pyenv` | Pyenv root and the three location paths |
+| `requirement-python-conda` | Conda root and the three location paths |
 | `requirement-python-oop` | One class per file. `def main` stays in `cli.py` |
 | `docs/requirements/index.md` | Registry |
 
@@ -259,6 +272,9 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 | 2026-10-01 | Active 1.0.16 | Thread create and thread operations stay on `requirement-python-cli-logging`. Do not duplicate |
 | 2026-10-01 | Active 1.0.17 | The logger is an `__init__` parameter on `requirement-python-oop`. Do not duplicate |
 | 2026-10-02 | Active 1.0.18 | Pyenv root and the python2, python3, and pyenv paths point at `requirement-python-pyenv`. Do not duplicate |
+| 2026-10-02 | Active 1.0.19 | Conda root and the python2, python3, and conda paths point at `requirement-python-conda`. Do not duplicate |
+| 2026-10-02 | Active 1.0.20 | Control-C confirm, the exit log, and the child stop point at `requirement-python-graceful-exit`. Do not duplicate |
+| 2026-10-02 | Active 1.0.21 | Sample code shows `def main` writing `ChronicleLogger(...)` and then `Cli(logger)`. This file still only points |
 
 ---
 

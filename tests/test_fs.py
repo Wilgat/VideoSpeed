@@ -102,9 +102,9 @@ class TestFs(unittest.TestCase):
             Path(cmd[-1]).write_bytes("pass-{}".format(len(calls)).encode("ascii"))
 
         try:
-            output = RunOutput(cli.APP_NAME, cli._PKG_VERSION)
+            output = RunOutput(cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
             encoder = Encoder(
-                output, MediaInfo(output), FileStage(), cli.RATIO_MIN, cli.RATIO_MAX
+                output, MediaInfo(output), FileStage(), cli.Cli.RATIO_MIN, cli.Cli.RATIO_MAX
             )
             with patch.object(encoder, "run_ffmpeg", side_effect=fake_run):
                 with redirect_stdout(io.StringIO()):

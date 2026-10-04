@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-video-ffmpeg-pipeline.md  
-**Status**: Active (Version 1.1.5)  
+**Status**: Active (Version 1.1.6)  
 **Area**: video  
 **Key**: `requirement-video-ffmpeg-pipeline`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -116,6 +116,16 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 
 ---
 
+## Sample code
+
+```python
+command = ["ffmpeg", "-nostdin", "-y", "-i", str(source)]
+subprocess.run(command, stdin=subprocess.DEVNULL, check=True)
+shutil.move(temp_path, final_path)
+```
+
+At 100% length with boomerang off, the cut is the file `shutil.move` publishes. There is no speed encode on that path. `os.rename` and `os.replace` are not this sample. The filter graph stays in `Encoder`.
+
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
 - **Caution:** Fail closed on FFmpeg errors; never silent success.  
@@ -189,6 +199,7 @@ General file-move coding rules also live in **`requirement-python-coding-style`*
 | 2026-10-01 | Active 1.1.3 | 100% length publishes the cut; FFmpeg uses `-nostdin`; the text screen shows the saved name |
 | 2026-10-01 | Active 1.1.4 | Encode methods are class `Encoder`. Order unchanged. `TP-OOP-04` is todo |
 | 2026-10-01 | Active 1.1.5 | `Encoder`, `MediaInfo`, and `FileStage` are on disk. `TP-OOP-04` has landed. Order unchanged |
+| 2026-10-02 | Active 1.1.6 | Sample code shows `-nostdin` and `shutil.move`. No speed encode at 100% with boomerang off |
 
 ---
 

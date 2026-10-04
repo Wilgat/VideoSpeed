@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-interactive-vs-noninteractive.md
-**Status**: Active (Version 1.3.0)
+**Status**: Active (Version 1.3.2)
 **Area**: python
 **Key**: `requirement-python-interactive-vs-noninteractive`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -57,6 +57,7 @@ Which pixels the screen uses stay on `requirement-python-tui`. What cut, percent
 12. **`list-mp4`.** On a terminal, a missing folder uses the folder prompt. Enter means the current directory. The next screen is the numbered MP4 list, then stop. Without a terminal, a missing `--folder` means the current directory, the list is printed, and the program **MUST NOT** prompt. When `--file` is present and `--folder` is absent, the folder **MUST** be the parent of that file, and the verb **MUST** still only list. No MP4 **MUST** be a non-zero exit on this path. The verb **MUST NOT** encode and **MUST NOT** pick a file for the person.
 13. **`about` and `hello`.** Each **MUST** show its page and exit. `about` is `requirement-python-about`. `hello` is the message `Hello.`. Neither **MUST** ask for a folder or a file, with or without a terminal. Job selectors and modifiers on these two verbs **MUST** be ignored. They **MUST NOT** encode.
 14. **Unknown verb.** A positional token outside `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall` **MUST** exit non-zero, **MUST** name those verbs, and **MUST NOT** open the menu or wait. `./build.sh` tokens such as `setup` stay unknown here. `version` is a product verb. It is not the `./build.sh version` maintainer verb.
+15. **Control-C confirm.** When the text screen is already open, Control-C asks `Exit? (y/n)` under `requirement-python-graceful-exit`. That question consumes the open screen. It **MUST NOT** call `isatty`. It is not a new mode decision and it is not row 9. `--json`, the non-interactive job, and a run with no text screen **MUST NOT** ask and **MUST NOT** hang. Those exits stay on `requirement-python-graceful-exit`.
 
 ### 2.1 Field table (interactive edit)
 
@@ -70,7 +71,7 @@ Which pixels the screen uses stay on `requirement-python-tui`. What cut, percent
 | Boomerang | no | `Make it go forward + backward (y/n) [n]:` | no | Anything other than y/yes/n/no: re-ask this question |
 | Again | no | `Again? (y/n):` | no | Same y/n rule. Yes repeats the cut on this video |
 
-Esc at any row returns to the front menu. The process stays up until **Exit**.
+Esc at any row returns to the front menu. The process stays up until **Exit**. Control-C asks `Exit? (y/n)` before it leaves. Declining stays. Row 9 still leaves without that question.
 
 Direct `video-speed edit` on a terminal uses this same table. It starts at Folder when the directory is still unknown, and at Video when the directory is known and `--file` is omitted. A supplied `--file` skips Folder and Video. A supplied `--percent` or `--boomerang` pre-fills that field. It does not skip Folder or Video, and it does not cancel the verb.
 
@@ -120,7 +121,7 @@ On a terminal, ask only the rows this verb still needs. One question at a time, 
 | No verb, `--file`, `--start`, `--end`, optional `--percent`, optional `--boomerang` | One job. Percent default 100. Boomerang default off | Ask again; open the menu |
 | `--json` on any row above | The same path decision. The menu stays closed. A verb that still needs a folder or a file asks on the error stream, folder then file. Standard output is the one object in `requirement-python-json-output` | Draw the text menu; mix progress into that object |
 
-Samples:
+### Sample code
 
 ```text
 video-speed
@@ -228,6 +229,7 @@ TP-MODE-01 asserts rule 2 and rule 3 for a selector with no product verb: `--fil
 | `docs/requirements/requirement-python-cli-logging.md` | Quiet before the menu |
 | `docs/requirements/requirement-class-software-dev.md` | Approver none; no dest fence |
 | `src/VideoSpeed/cli.py` | Decision and both paths |
+| `docs/requirements/requirement-python-graceful-exit.md` | Control-C question. Not a new mode |
 
 ## 7. Status history
 
@@ -240,6 +242,8 @@ TP-MODE-01 asserts rule 2 and rule 3 for a selector with no product verb: `--fil
 | 2026-10-01 | Active 1.2.2 | The session stays class `Tui`. The frame is class `MenuPainter`. The question order stays here. `EditWalk` carries it |
 | 2026-10-01 | Active 1.2.3 | `Encoder.batch_session` is on disk. `TP-OOP-04` has landed. The question order stays here |
 | 2026-10-02 | Active 1.3.0 | `version`, `self-install`, `version-check`, `self-update`, and `self-uninstall` are product verbs. Python lifecycle verbs call pip. Empty argv is not those verbs |
+| 2026-10-02 | Active 1.3.1 | Control-C on an open text screen asks `Exit? (y/n)`. The question does not call `isatty`. No screen and `--json` do not ask. The decision stays on `requirement-python-graceful-exit` |
+| 2026-10-02 | Active 1.3.2 | Sample code shows the menu walk and the one-job commands |
 
 **Last Updated**: 2026-10-02
 **Owner**: VideoSpeed project maintainers

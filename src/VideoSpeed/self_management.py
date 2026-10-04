@@ -8,7 +8,7 @@ from __future__ import annotations
 import subprocess
 import sys
 
-from .run_output import log_instantiated
+
 
 
 class SelfManage:
@@ -23,7 +23,8 @@ class SelfManage:
 
     def __init__(self, app_name: str, version: str, runner=None, logger=None) -> None:
         self.logger = logger
-        log_instantiated(logger, "SelfManage")
+        if logger is not None:
+            logger.log_message("instantiated", component="SelfManage")
         self.app_name = app_name
         self.version = version
         self.runner = runner or self._subprocess_runner

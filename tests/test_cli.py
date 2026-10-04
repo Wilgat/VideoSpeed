@@ -108,9 +108,9 @@ class TestCli(unittest.TestCase):
         opened = []
         from VideoSpeed.tui import Tui
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         try:
             cases = (
                 ["--file", "clip.mp4"],
@@ -136,9 +136,9 @@ class TestCli(unittest.TestCase):
         opened = []
         from VideoSpeed.tui import Tui
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         try:
             for argv in (["--percent", "80"], ["--boomerang"]):
                 err = io.StringIO()
@@ -190,9 +190,9 @@ class TestCli(unittest.TestCase):
         opened = []
         from VideoSpeed.tui import Tui
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         try:
             for token in ("setup", "Exit", "exit", "test", "clean"):
                 proc = _run([token])
@@ -380,11 +380,11 @@ class TestCli(unittest.TestCase):
         opened = []
         from VideoSpeed.tui import Tui
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
-        saved_out = cli.Cli.stdout_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
+        saved_out = staticmethod(cli.Cli.stdout_is_tty)
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
-        cli.Cli.stdout_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
+        cli.Cli.stdout_is_tty = lambda *args: True
         try:
             for argv in (["about"], ["hello"], ["help"], ["about", "--boomerang"]):
                 buf = io.StringIO()
@@ -406,14 +406,14 @@ class TestCli(unittest.TestCase):
         opened = []
         from VideoSpeed.tui import Tui
         saved_open = Tui.open_text_menu
-        saved_in = cli.Cli.stdin_is_tty
-        saved_out = cli.Cli.stdout_is_tty
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
+        saved_out = staticmethod(cli.Cli.stdout_is_tty)
         from VideoSpeed.encoder import Encoder
         saved_ff = Encoder.ensure_ffmpeg
         saved_stdin = sys.stdin
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
-        cli.Cli.stdout_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
+        cli.Cli.stdout_is_tty = lambda *args: True
         Encoder.ensure_ffmpeg = lambda self: True
         sys.stdin = io.StringIO("")
         out = io.StringIO()
@@ -438,7 +438,7 @@ class TestCli(unittest.TestCase):
 
         opened.clear()
         Tui.open_text_menu = lambda self: opened.append("open") or None
-        cli.Cli.stdin_is_tty = lambda self: True
+        cli.Cli.stdin_is_tty = lambda *args: True
         try:
             err = io.StringIO()
             with redirect_stderr(err):
@@ -468,6 +468,8 @@ class TestCli(unittest.TestCase):
         from VideoSpeed.media_info import MediaInfo
         from VideoSpeed.run_output import RunOutput
         from VideoSpeed.self_management import SelfManage
+        from VideoSpeed.language_menu import LanguageMenu
+        from VideoSpeed.system_log import SystemLog
 
         self.assertTrue(inspect.isclass(Cli))
         self.assertTrue(inspect.isfunction(main))
@@ -504,18 +506,35 @@ class TestCli(unittest.TestCase):
             (SelfManage, "self_management.py", (
                 "local_version", "argv_for", "run_text", "emit", "_subprocess_runner",
             )),
+            (SystemLog, "system_log.py", (
+                "log_dir", "log_files", "read_log", "clear_log", "folder_text",
+            )),
+            (LanguageMenu, "language_menu.py", (
+                "path", "save", "boards", "titles", "tokens", "path_label",
+                "unknown_choice", "saved_line", "failed_line", "apply_to",
+            )),
         )
         for cls, filename, names in homes:
             self.assertEqual(Path(inspect.getfile(cls)).name, filename)
             for name in names:
-                self.assertTrue(inspect.isfunction(cls.__dict__[name]), name)
+                self.assertTrue(inspect.isfunction(inspect.getattr_static(cls, name)), name)
                 self.assertNotIn("\ndef {}(".format(name), "\n" + ship)
         for name in (
-            "build_parser", "_dispatch", "_start_logger", "_verb_help",
+            "build_parser", "_dispatch", "_verb_help",
             "_verb_about", "_verb_hello", "_verb_edit", "_verb_list_mp4",
-            "_unknown_verb", "stdin_is_tty", "stdout_is_tty",
+            "_unknown_verb",
         ):
-            self.assertTrue(inspect.isfunction(Cli.__dict__[name]), name)
+            self.assertTrue(inspect.isfunction(inspect.getattr_static(Cli, name)), name)
+        for name in ("_opens_text_screen", "stdin_is_tty", "stdout_is_tty"):
+            self.assertIsInstance(inspect.getattr_static(Cli, name), staticmethod, name)
+        self.assertIsNone(inspect.getattr_static(Cli, "_start_logger", None))
+        self.assertNotIn("Cli.__new__", ship)
+        self.assertNotIn("log_instantiated", ship)
+        self.assertIn("logger = ChronicleLogger(", ship)
+        output_src = (ROOT / "src" / "VideoSpeed" / "run_output.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("def log_instantiated", output_src)
 
 
 def json_loads(raw):

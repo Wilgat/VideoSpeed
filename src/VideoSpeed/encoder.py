@@ -11,7 +11,7 @@ import subprocess
 from pathlib import Path
 
 from .file_stage import FileStage
-from .run_output import log_instantiated
+
 
 
 class Encoder:
@@ -23,7 +23,8 @@ class Encoder:
 
     def __init__(self, output, media, stage, ratio_min, ratio_max, logger=None):
         self.logger = logger
-        log_instantiated(logger, "Encoder")
+        if logger is not None:
+            logger.log_message("instantiated", component="Encoder")
         self.output = output
         self.media = media
         self.stage = stage if stage is not None else FileStage(logger=logger)

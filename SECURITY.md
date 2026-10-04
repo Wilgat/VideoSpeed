@@ -4,7 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.0.10 (current) | Yes |
+| 1.0.11 (current) | Yes |
+| 1.0.10 | Yes |
 | 1.0.9 | Yes |
 | Older releases | Best-effort; prefer upgrading to current |
 

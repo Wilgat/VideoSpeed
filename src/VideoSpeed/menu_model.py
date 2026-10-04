@@ -7,27 +7,34 @@ from __future__ import annotations
 import curses
 
 from .menu_painter import MenuPainter
-from .run_output import log_instantiated
+
 
 
 class MenuModel:
     """Keystroke state for the front board. The bottom frame is the input box.
 
     boards, when set, replaces the front rows for this session. Omit boards
-    and the model keeps VideoSpeed's edit / hello / self-management / Exit list,
-    plus the self-management board under 8.
+    and the model keeps VideoSpeed's edit / language / system-log /
+    self-management / Exit list, the language board under 4, the
+    self-management board under 8, and the system-log board under 6.
     """
 
     def __init__(self, boards: dict | None = None, logger=None) -> None:
         self.logger = logger
-        log_instantiated(logger, "MenuModel")
+        if logger is not None:
+            logger.log_message("instantiated", component="MenuModel")
         self.painter = MenuPainter(logger=logger)
         if boards is None:
             boards = {
                 "front": MenuPainter.MENU_ROWS,
                 "self": MenuPainter.SELF_ROWS,
+                "log": MenuPainter.LOG_ROWS,
+                "lang": MenuPainter.LANG_ROWS,
             }
         self.boards = boards
+        self.titles = {}
+        self.tokens = {}
+        self.unknown_choice = "That choice is not on this list. Pick a listed number."
         self.layer = "front"
         self.index = 0
         self.buffer = ""
@@ -100,7 +107,7 @@ class MenuModel:
         if 32 <= key < 127:
             self._insert(chr(key))
             return None
-        self.error = "That choice is not on this list. Pick a listed number."
+        self.error = self.unknown_choice
         return None
 
     def _show_front(self) -> None:
@@ -174,7 +181,7 @@ class MenuModel:
         self.cursor -= 1
 
     def _reject(self) -> None:
-        self.error = "That choice is not on this list. Pick a listed number."
+        self.error = self.unknown_choice
         self.focus = "input"
         self.cursor = len(self.buffer)
 
@@ -190,6 +197,11 @@ class MenuModel:
         for number, short, _explain, kind in self.rows():
             if token == short:
                 return self._activate(number, kind)
+        hit = self.tokens.get(token)
+        if hit is not None:
+            kind, only_layer = hit
+            if only_layer is None or only_layer == self.layer:
+                return self._activate(0, kind)
         kind = MenuPainter.ANY_BOARD.get(token)
         if kind is not None:
             return self._activate(0, kind)
@@ -215,6 +227,20 @@ class MenuModel:
             return None
         if kind == "self-management":
             self.layer = "self"
+            self.index = 0
+            self.focus = "list"
+            self.buffer = ""
+            self.cursor = 0
+            return None
+        if kind == "system-log":
+            self.layer = "log"
+            self.index = 0
+            self.focus = "list"
+            self.buffer = ""
+            self.cursor = 0
+            return None
+        if kind == "language":
+            self.layer = "lang"
             self.index = 0
             self.focus = "list"
             self.buffer = ""

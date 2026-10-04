@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-dependency-management.md  
-**Status**: Active (Version 1.2.2)  
+**Status**: Active (Version 1.2.3)  
 **Area**: python  
 **Key**: `requirement-python-dependency-management`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -68,6 +68,18 @@ This file owns the **pip requirement strings** VideoSpeed declares. The machine 
 
 On Termux, Git Bash, Windows cmd, or the same class, these wheels stay a normal-user pip install. **This requirement:** do not satisfy `opencv-python-headless>=5.0.0.93` or `ChronicleLogger>=1.3.1` with admin privilege, a system package manager, or `sudo pip`.
 
+## Sample code
+
+```toml
+[project]
+dependencies = [
+  "opencv-python-headless>=5.0.0.93",
+  "ChronicleLogger>=1.3.1",
+]
+```
+
+`opencv-python` is not in this list. There is no menu wheel.
+
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
 - **Caution:** Pin the vision wheel that imports on a machine without GL.  
@@ -130,6 +142,7 @@ On Termux, Git Bash, Windows cmd, or the same class, these wheels stay a normal-
 | 2026-10-01 | Active 1.2.0 | Menu wheel removed; painter is `src/VideoSpeed/menu.py` |
 | 2026-10-01 | Active 1.2.1 | Painter is class `Tui` in `src/VideoSpeed/tui.py`. Still no menu wheel |
 | 2026-10-01 | Active 1.2.2 | Painter is class `MenuPainter`. Still no menu wheel. `TP-OOP-03` is todo |
+| 2026-10-02 | Active 1.2.3 | Sample code shows the two pip strings. No menu wheel |
 
 ---
 

@@ -8,7 +8,7 @@ from collections.abc import Callable
 
 from .menu_model import MenuModel
 from .menu_painter import MenuPainter
-from .run_output import log_instantiated
+
 
 
 class MenuScreenError(Exception):
@@ -17,7 +17,8 @@ class MenuScreenError(Exception):
     def __init__(self, message="", logger=None):
         super().__init__(message)
         self.logger = logger
-        log_instantiated(logger, "MenuScreenError")
+        if logger is not None:
+            logger.log_message("instantiated", component="MenuScreenError")
 
 
 class MenuSession:
@@ -38,7 +39,8 @@ class MenuSession:
         logger=None,
     ) -> None:
         self.logger = logger
-        log_instantiated(logger, "MenuSession")
+        if logger is not None:
+            logger.log_message("instantiated", component="MenuSession")
         self.app_name = app_name
         self.version = version
         self.on_version = on_version
@@ -47,6 +49,24 @@ class MenuSession:
         self.leave_kind = None
         self.painter = MenuPainter(logger=logger)
         self.model = MenuModel(boards=boards, logger=logger)
+
+    def _wait_key(self, screen):
+        """One key, or None when the one-second clock wait ended with no key.
+
+        A screen with no timeout keeps getch as it is. -1 stays end of input.
+        requirement-python-tui rule 13. This wait is not a thread and not a log line.
+        """
+        arm = getattr(screen, "timeout", None)
+        show_clock = self.model.phase != "result"
+        if arm is not None:
+            if show_clock:
+                arm(1000)
+            else:
+                arm(-1)
+        key = screen.getch()
+        if key == -1 and show_clock and arm is not None:
+            return None
+        return key
 
     def run(self, screen) -> int:
         screen.keypad(True)
@@ -59,7 +79,10 @@ class MenuSession:
         while True:
             self.painter.paint(screen, self.model, self.app_name, self.version)
             _height, _width = screen.getmaxyx()
-            action = self.model.handle_key(screen.getch(), _height)
+            key = self._wait_key(screen)
+            if key is None:
+                continue
+            action = self.model.handle_key(key, _height)
             if action == "exit":
                 return 0
             if action == "version":
