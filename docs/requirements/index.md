@@ -28,7 +28,7 @@
 | requirement-runtime-prerequisites | Host FFmpeg + pip deps; no root auto-install claim | runtime | Active | `requirement-runtime-prerequisites.md` | 2026-10-04 |
 | requirement-python-pyenv | Under pyenv, about shows python2 and python3 inside that root, and pyenv location is bin/pyenv. `in_pyenv` does not replace that root test | python | Active | `requirement-python-pyenv.md` | 2026-10-02 |
 | requirement-python-conda | Under conda, about shows python2 and python3 inside that prefix, and conda location is bin/conda. `in_conda` does not replace that root test | python | Active | `requirement-python-conda.md` | 2026-10-02 |
-| requirement-python-readme | User document at root `README.md`: section order, badges, install honesty, and one paragraph plus alt per screenshot. Behavior stays on the peer that owns it | python | Active | `requirement-python-readme.md` | 2026-10-04 |
+| requirement-python-readme | User document at root `README.md`: section order, Advantages, related projects, badges, install honesty, and one paragraph plus alt per screenshot. Behavior stays on the peer that owns it | python | Active | `requirement-python-readme.md` | 2026-10-04 |
 
 ## Intentionally absent (by design)
 

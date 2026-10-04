@@ -11,7 +11,7 @@ Authoritative specialized product law for **VideoSpeed** lives here.
 | Product / package | `VideoSpeed` |
 | Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 11 → `1.0.11` |
 | Text menu | `requirement-python-tui` — picture; first row is Path and the current directory; session is class `Tui`; frame is class `MenuPainter`. Front row **4** is language. Front row **6** is system-log |
-| User README | `requirement-python-readme` — root `README.md` sections, badges, install honesty, and the text-menu screenshots. The path-row sentence names the local clock |
+| User README | `requirement-python-readme` — root `README.md` sections, Advantages after Features, related projects, badges, install honesty, and the text-menu screenshots. The path-row sentence names the local clock |
 | Menu language | `requirement-python-cli-language` — thirteen codes on row **4**; one line under this login’s persistence directory; `VIDEOSPEED_LANG` wins at process start and does not write |
 | About page | `requirement-python-about` — identity, host check, star box. `about --json` writes that page to the error stream (`TP-ABOUT-15` have) |
 | Pyenv paths | `requirement-python-pyenv` — under pyenv, python2 and python3 stay inside the root, and pyenv location is `bin/pyenv`. `in_pyenv` does not replace that root test |

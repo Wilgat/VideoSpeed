@@ -28,6 +28,41 @@ Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERS
 - Non-interactive job: `--file`, `--start`, `--end`, optional `--percent` / `--boomerang`, with or without `edit`. Any of those selectors with no product verb skips the menu
 - Fail-closed when **FFmpeg** is missing from `PATH`, when prompts are needed without a terminal, or when `--percent` or `--boomerang` is passed without a job
 
+## Advantages
+
+### Dual-mode interface
+
+You set a length as a percent from **20** to **200**, and boomerang as yes or no. You do not write an FFmpeg filter graph (`setpts`, `atempo`, or a reverse-and-concat graph).
+
+With no arguments on a terminal, the text menu opens. The first row keeps the path and a local clock. A rounded input box sits on the bottom. Edit walks the folder, the file, the cut, the percent, and boomerang, and asks again when a range is invalid.
+
+A script passes `--file`, `--start`, `--end`, and optional `--percent` and `--boomerang`. `--json` prints one object and keeps the menu closed. With no terminal and no job, the program exits with an error instead of waiting on a prompt.
+
+### Built-in languages
+
+Row **4** lists thirteen languages: English, Simplified Chinese, Traditional Chinese, Spanish, Arabic, French, Portuguese, Russian, German, Japanese, Korean, Dutch, and Greek. The choice is saved for the next run.
+
+### USB-safe staging
+
+Intermediate files are written beside the output when that folder can be written, including on a removable drive. The finished file is published with `shutil.move`. When that folder cannot be written, the stage uses the system temporary directory.
+
+### Lifecycle and diagnostics
+
+`version-check`, `self-update`, `self-install`, and `self-uninstall` are menu rows and commands. `self-uninstall` on the command line needs `--force`. They call pip. They do not use root.
+
+**system-log** (6) views a log, clears a log after a yes/no question, and shows the log folder. **about** (83) prints the host check in English: Python, the C library, conda and pyenv locations, and whether the process is inside Docker.
+
+### Comparison
+
+| Feature | Raw FFmpeg CLI | Typical Python wrappers (moviepy) | VideoSpeed |
+|---------|----------------|-----------------------------------|------------|
+| Learning curve | Filter graph (`setpts`, `atempo`, reverse and concat) | A Python script | Text menu, or a percent and yes/no |
+| Non-interactive / CI | Native command line | A custom script | `--file`, `--start`, `--end`, `--percent`, `--boomerang`, and `--json`. Fail closed with no terminal |
+| Menu languages | None | None | Thirteen, kept for the next run |
+| Temporary files | You choose the paths | Often the system temporary directory | Beside the output when that folder can be written. Publish with `shutil.move` |
+| Self-management | The system package manager | pip from outside the tool | Built-in version-check, self-update, self-install, and self-uninstall |
+| Diagnostics and logs | The encode stream | A logging setup in the script | system-log menu and the about host check |
+
 ## Quick Installation
 
 ### Prerequisites (system)
@@ -323,8 +358,14 @@ clip_cut1.0-5.0s_50pct_BOOMERANG.mp4
 
 ## Related Projects
 
-- [VideoSpeed on GitHub](https://github.com/Wilgat/VideoSpeed)
-- [VideoSpeed on PyPI](https://pypi.org/project/VideoSpeed/)
+- [VideoSpeed on GitHub](https://github.com/Wilgat/VideoSpeed) — this program’s source
+- [VideoSpeed on PyPI](https://pypi.org/project/VideoSpeed/) — this program on PyPI
+- [AnimeDlp](https://github.com/Wilgat/AnimeDlp) — command-line downloader for anime video sites
+- [ChronicleLogger](https://github.com/Wilgat/ChronicleLogger) — status logger this program depends on (`ChronicleLogger>=1.3.1`)
+- [VideoJoin](https://github.com/Wilgat/VideoJoin) — joins two local videos with FFmpeg
+- [CIAO](https://github.com/cloudgen/ciao) — defensive programming principles: Caution, Intentional, Anti-fragile, Over-engineered
+- [CIAO-Lite](https://github.com/cloudgen/ciao-lite) — short agent contract: Simplicity but Safety
+- [safe-rm](https://github.com/cloudgen/safe-rm) — guarded `rm` that refuses a login home, `/home`, and `/usr/bin`
 
 ## Contributing
 

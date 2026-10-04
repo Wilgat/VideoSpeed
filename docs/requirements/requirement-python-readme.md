@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-readme.md
-**Status**: Active (Version 1.0.3)
+**Status**: Active (Version 1.0.5)
 **Area**: python
 **Key**: `requirement-python-readme`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -20,7 +20,7 @@ This file owns the product user document at the repository root: which sections 
 
 | Includes | Excludes |
 |----------|----------|
-| Section order, badges, install sentences, and the picture catalog | A second menu, a second verb list, or a second encode order |
+| Section order, badges, the Advantages contrast, install sentences, and the picture catalog | A second menu, a second verb list, or a second encode order |
 | Relative links to captures of the running text menu | A generated drawing that invents row text |
 | The rule that a named setup script exists, and that a wheel example uses the name the build writes | A shell online install, or root as the documented path |
 
@@ -115,6 +115,7 @@ The first-row sentence in the user document **MUST** name the current directory 
 | Heading | What this document must keep | Owner of the behavior |
 |---------|------------------------------|------------------------|
 | Features | Recursive MP4 discovery. Cut with re-prompt. Length 20–200% with picture and sound kept together. Optional boomerang. Temps beside the output and publish by `shutil.move`. Text menu on the verbs above, with the path and a local clock. Product verbs `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall` (`self-uninstall` needs `--force`). `Exit` is menu-only. `./build.sh` verbs are not `video-speed` verbs. `--help` / `--version`. No arguments on a terminal opens the menu. A job is `--file` / `--start` / `--end` with optional `--percent` / `--boomerang`. Fail closed when FFmpeg is missing, when prompts need a terminal and there is none, or when percent or boomerang arrives without a job | Peers in §2.2. The path-row sentence is the clock rule in §2.2 |
+| Advantages | The four parts and the comparison table below. This section states the contrast. It does not restate the encode procedure | This file for the contrast. Peers in §2.2 for the behavior |
 | Quick Installation | The five subsections below | This table |
 | Prerequisites (system) | FFmpeg on `PATH`. Python matches `requires-python` | `requirement-runtime-prerequisites` |
 | From PyPI (registry channel) | Package name `VideoSpeed`. Maintainer verbs on `./build.sh`: `help`, `version`, `setup`, `clean`, `build`, `test`, `test-install`, `upload`, `git`, `tag`, `release` (`all` is that same chain). Empty `./build.sh` prints help and does not upload. `pip install VideoSpeed`. The PyPI badge is the live index | `requirement-python-packaging`, `requirement-python-build-script` |
@@ -126,10 +127,41 @@ The first-row sentence in the user document **MUST** name the current directory 
 | Screenshots | Lead: each heading is the file name, and the paragraph is what that picture shows (the words on the screen, the characters in the input box, or the scene). Package **1.0.11**. The paragraph and the image alt are the catalog below | This file |
 | Examples | `cd /path/to/videos`, then `video-speed`, then `--version`, then one shot `--file clip.mp4 --start 1.0 --end 5.0 --percent 100`. Shapes `clip_cut1.0-5.0s_100pct.mp4` and `clip_cut1.0-5.0s_50pct_BOOMERANG.mp4` illustrate the domain pattern. They are not the pictured job | `requirement-domain-videospeed` |
 | Platform Compatibility | Linux primary. macOS and Windows when Python, FFmpeg, and OpenCV are present. Local disk and USB. Temps sit beside the final path | `requirement-video-ffmpeg-pipeline`, `requirement-python-coding-style` |
-| Related Projects | The GitHub and PyPI links above | This file |
+| Related Projects | This program’s GitHub and PyPI links, then the six repositories below, in that order, each with one sentence | This file |
 | Contributing | Fork, `pip install -e .` or `./setup.sh` when that file exists, a pull request, and do not strip `shutil.move` | `requirement-python-coding-style` |
 | License | MIT, link `LICENSE.md`, and that file exists | `requirement-python-packaging` |
 | Last Update | Names the package version. The current line may also name front **4**, front **6**, the path and the clock, and the about fields PID, cache chain, persistence, and TTY. A screenshot sentence is not required | This file for the line. `requirement-python-version` for the string |
+
+**Related projects, in this order.** The first two are this program. The next six are the related repositories. Each line is one sentence. Do not add an install recipe for any of them.
+
+| Order | Link | Sentence |
+|------:|------|----------|
+| 1 | `https://github.com/Wilgat/VideoSpeed` | This program’s source |
+| 2 | `https://pypi.org/project/VideoSpeed/` | This program on PyPI |
+| 3 | `https://github.com/Wilgat/AnimeDlp` | Command-line downloader for anime video sites |
+| 4 | `https://github.com/Wilgat/ChronicleLogger` | Status logger this program depends on (`ChronicleLogger>=1.3.1`) |
+| 5 | `https://github.com/Wilgat/VideoJoin` | Joins two local videos with FFmpeg |
+| 6 | `https://github.com/cloudgen/ciao` | Defensive programming principles: Caution, Intentional, Anti-fragile, Over-engineered |
+| 7 | `https://github.com/cloudgen/ciao-lite` | Short agent contract: Simplicity but Safety |
+| 8 | `https://github.com/cloudgen/safe-rm` | Guarded `rm` that refuses a login home, `/home`, and `/usr/bin` |
+
+**Advantages, after Features and before Quick Installation.** Four parts, then the comparison. The path row in this section names the local clock.
+
+1. **Dual-mode interface.** A length is a percent from 20 to 200. Boomerang is yes or no. The person does not write an FFmpeg filter graph (`setpts`, `atempo`, or a reverse-and-concat graph). Those names are the contrast, not a recipe. With no arguments on a terminal, the text menu opens: path and local clock on the first row, a rounded input box, the edit walk, and a fresh prompt when a range is invalid. A script passes `--file`, `--start`, `--end`, and optional `--percent` and `--boomerang`. `--json` prints one object and keeps the menu closed. With no terminal and no job, the program exits with an error.
+2. **Built-in languages.** Row **4** lists thirteen languages: English, Simplified Chinese, Traditional Chinese, Spanish, Arabic, French, Portuguese, Russian, German, Japanese, Korean, Dutch, and Greek. The choice is saved for the next run.
+3. **USB-safe staging.** Intermediate files are written beside the output when that folder can be written, including on a removable drive. The finished file is published with `shutil.move`. When that folder cannot be written, the stage uses the system temporary directory. The section **MUST NOT** say the stage never uses that directory.
+4. **Lifecycle and diagnostics.** `version-check`, `self-update`, `self-install`, and `self-uninstall` are menu rows and commands. `self-uninstall` on the command line needs `--force`. They call pip and do not use root. **system-log** (6) views a log, clears a log after a yes/no question, and shows the log folder. **about** (83) prints the host check in English: Python, the C library, conda and pyenv locations, and whether the process is inside Docker.
+
+**Comparison table.** Columns: Feature, Raw FFmpeg CLI, Typical Python wrappers (moviepy), VideoSpeed.
+
+| Feature | Raw FFmpeg CLI | Typical Python wrappers (moviepy) | VideoSpeed |
+|---------|----------------|-----------------------------------|------------|
+| Learning curve | Filter graph (`setpts`, `atempo`, reverse and concat) | A Python script | Text menu, or a percent and yes/no |
+| Non-interactive / CI | Native command line | A custom script | `--file`, `--start`, `--end`, `--percent`, `--boomerang`, and `--json`. Fail closed with no terminal |
+| Menu languages | None | None | Thirteen, kept for the next run |
+| Temporary files | You choose the paths | Often the system temporary directory | Beside the output when that folder can be written. Publish with `shutil.move` |
+| Self-management | The system package manager | pip from outside the tool | Built-in version-check, self-update, self-install, and self-uninstall |
+| Diagnostics and logs | The encode stream | A logging setup in the script | system-log menu and the about host check |
 
 **Screenshot catalog, in this order.** Each row is a relative link `screenshots/<file>`. The paragraph and the alt are the words `README.md` prints for that file.
 
@@ -187,7 +219,7 @@ The documented install is for this login. **This requirement:** the user documen
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
 - **Caution:** An install sentence that names a missing script is a defect, even when an older note described that script.
-- **Intentional:** Twenty-four pictures, one pictured job, one section order. Each paragraph is the catalog cell for that file.
+- **Intentional:** An Advantages section, twenty-four pictures, one pictured job, one section order. Each picture paragraph is the catalog cell for that file.
 - **Anti-fragile:** A new PNG in `screenshots/` becomes a required link in the same change. A non-menu file stays labeled as itself.
 - **Over-protect (Principle 20):** Do not let the user document become a second menu, a second verb list, or a second encode procedure.
 
@@ -196,6 +228,8 @@ The documented install is for this login. **This requirement:** the user documen
 **Future AI assistants or maintainers MUST NOT**:
 
 - Restate encode order, verb lists, menu numbers, language codes, about fields, JSON shape, or the prerequisite table in this file as a second procedure.
+- Turn the Advantages section into an FFmpeg filter recipe. `setpts` and `atempo` may appear only as names the person does not have to write.
+- Claim that intermediate files never use the system temporary directory.
 - Replace a capture with a generated image.
 - Leave any PNG in `screenshots/` out of `README.md`.
 - Describe `screenshots/video.png` as a text-menu capture.
@@ -210,7 +244,7 @@ The documented install is for this login. **This requirement:** the user documen
 
 ## 5. Definition of done
 
-1. `README.md` has the sections in §2.5, in that order.
+1. `README.md` has the sections in §2.5, in that order, including Advantages after Features.
 2. The Version badge token matches the package string.
 3. The Screenshots section links every PNG in `screenshots/`, in catalog order, including `video.png`. Each heading is the basename. Each paragraph and each image alt are the catalog cells for that file.
 4. The path-row sentence names the local clock.
@@ -225,7 +259,7 @@ The Screenshots paragraphs and alts are the live `README.md`. Items 4, 5, and 6 
 | TP family / ID | Suite | Status |
 |----------------|-------|--------|
 | **TP-DOC-01** Version badge matches the package string, and `video-speed --file` is in the user document | `tests/test_docs.py` | have |
-| **TP-DOC-03** Section headings, the screenshot links, each catalog paragraph and alt, the clock sentence, a named setup script exists, and the wheel example matches the built distribution name | `tests/test_docs.py` | todo |
+| **TP-DOC-03** Section headings including Advantages, the comparison table, the screenshot links, each catalog paragraph and alt, the clock sentence, a named setup script exists, and the wheel example matches the built distribution name | `tests/test_docs.py` | todo |
 
 ## 6. Related artifacts
 
@@ -258,3 +292,5 @@ The Screenshots paragraphs and alts are the live `README.md`. Items 4, 5, and 6 
 | 2026-10-04 | Active 1.0.1 | Every PNG in `screenshots/` is a required link. `video.png` is linked and is not a menu capture |
 | 2026-10-04 | Active 1.0.2 | Each picture’s heading is its basename. The paragraph is taken from the filename and from what the picture shows |
 | 2026-10-04 | Active 1.0.3 | The catalog paragraph and alt for each PNG are the words in the live Screenshots section |
+| 2026-10-04 | Active 1.0.4 | Advantages sits after Features: dual-mode interface, thirteen languages, beside-output staging, lifecycle and diagnostics, and the comparison table |
+| 2026-10-04 | Active 1.0.5 | Related Projects lists this program, then AnimeDlp, ChronicleLogger, VideoJoin, CIAO, CIAO-Lite, and safe-rm |

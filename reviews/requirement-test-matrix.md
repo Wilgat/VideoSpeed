@@ -27,6 +27,6 @@
 | requirement-python-project-structure | python | TP-STRUCT-01 | src layout; ship SSOT |
 | requirement-python-error-handling | python | TP-ERR-* · TP-CLI-04..05 | Fail closed; source safe |
 | requirement-runtime-prerequisites | runtime | TP-PRE-* | FFmpeg + OpenCV honesty |
-| requirement-python-readme | python | TP-DOC-01 · TP-DOC-03 | Root `README.md` sections, badges, and text-menu screenshots. `TP-DOC-01` **have** is the version badge and `video-speed --file` only. `TP-DOC-03` **todo** is headings, picture links, each catalog paragraph and alt, the clock sentence, a named `setup.sh`, and the wheel basename |
+| requirement-python-readme | python | TP-DOC-01 · TP-DOC-03 | Root `README.md` sections, Advantages, badges, and text-menu screenshots. `TP-DOC-01` **have** is the version badge and `video-speed --file` only. `TP-DOC-03` **todo** is headings including Advantages, the comparison table, picture links, each catalog paragraph and alt, the clock sentence, a named `setup.sh`, and the wheel basename |
 
 **Absent by design (no TP Core):** shell online-install, `curl|sh` remote self-management, automatic channel checksum, Type 1 sudoers elevation. Python self-management is present: `TP-SELF-01` and `TP-TUI-06`. `version-check` and `self-update` call pip.

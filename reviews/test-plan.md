@@ -237,7 +237,7 @@ The logger parameter on each class `__init__` is `TP-LOG-05` (**have**). `requir
 |-------|--------|-----------------|------------------------|--------|
 | TP-STRUCT-01 | Ship SSOT is `src/VideoSpeed/cli.py` not bootstrap-old alone | `tests/test_docs.py` | structure · L-DUAL-01 | **have** |
 | TP-DOC-01 | README version/install claims vs pyproject | `tests/test_docs.py` | packaging · L-DOCS-01 | **have** |
-| TP-DOC-03 | README section headings, screenshot links, each catalog paragraph and alt, path-row clock sentence, named setup script exists, wheel example matches the built distribution name | `tests/test_docs.py` | requirement-python-readme | **todo** |
+| TP-DOC-03 | README section headings including Advantages, the comparison table, screenshot links, each catalog paragraph and alt, path-row clock sentence, named setup script exists, wheel example matches the built distribution name | `tests/test_docs.py` | requirement-python-readme | **todo** |
 
 ### Intentionally n/a
 
