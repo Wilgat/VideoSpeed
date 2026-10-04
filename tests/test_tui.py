@@ -1335,7 +1335,7 @@ class TestTui(unittest.TestCase):
             "menu_lines",
             "log_menu_lines",
             "language_menu_lines",
-            "framework_hello",
+            "framework_help",
             "_view_log",
             "_clear_log",
             "_log_folder",

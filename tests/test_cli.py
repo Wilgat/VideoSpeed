@@ -158,7 +158,7 @@ class TestCli(unittest.TestCase):
     def test_tp_cli_07_help_and_unknown_verb(self):
         """TP-CLI-07: help lists the product verbs; an unknown verb exits 1."""
         verbs = (
-            "help", "version", "about", "hello", "edit", "list-mp4",
+            "help", "version", "about", "edit", "list-mp4",
             "self-install", "version-check", "self-update", "self-uninstall",
         )
         proc = _run(["help"])
@@ -177,6 +177,8 @@ class TestCli(unittest.TestCase):
         self.assertEqual(flagged.returncode, 0, flagged.stderr.decode())
         for name in verbs:
             self.assertIn(name, help_out)
+        self.assertNotIn("hello", out)
+        self.assertNotIn("hello", help_out)
 
         # help stays human text even with --json.
         coated = _run(["help", "--json"])
@@ -194,15 +196,19 @@ class TestCli(unittest.TestCase):
         Tui.open_text_menu = lambda self: opened.append("open") or None
         cli.Cli.stdin_is_tty = lambda *args: True
         try:
-            for token in ("setup", "Exit", "exit", "test", "clean"):
+            for token in ("setup", "Exit", "exit", "test", "clean", "hello"):
                 proc = _run([token])
                 err = proc.stderr.decode("utf-8", "replace")
+                out_text = proc.stdout.decode("utf-8", "replace")
                 self.assertEqual(proc.returncode, 1, err)
                 self.assertIn("Unknown verb", err)
                 self.assertIn("Next:", err)
-                for name in ("help", "about", "hello", "edit", "list-mp4", "version-check"):
+                for name in ("help", "about", "edit", "list-mp4", "version-check"):
                     self.assertIn(name, err, token)
-                self.assertNotIn("main menu", proc.stdout.decode("utf-8", "replace"))
+                if token != "hello":
+                    self.assertNotIn("hello", err, token)
+                self.assertNotIn("Hello.", out_text + err)
+                self.assertNotIn("main menu", out_text)
                 err_buf = io.StringIO()
                 with redirect_stderr(err_buf):
                     code = cli.main([token])
@@ -351,12 +357,7 @@ class TestCli(unittest.TestCase):
             os.rmdir(empty)
 
     def test_tp_mode_08_pages_do_not_ask(self):
-        """TP-MODE-08: about, help, and hello do not ask for a folder or a file."""
-        hello = _run(["hello"])
-        self.assertEqual(hello.returncode, 0, hello.stderr.decode())
-        self.assertIn("Hello.", hello.stdout.decode("utf-8", "replace"))
-        self.assertNotIn("Folder (Enter", (hello.stdout + hello.stderr).decode())
-
+        """TP-MODE-08: about and help do not ask for a folder or a file."""
         about = _run(["about", "--percent", "50", "--file", "clip.mp4"])
         about_text = (about.stdout + about.stderr).decode("utf-8", "replace")
         self.assertEqual(about.returncode, 0, about_text)
@@ -368,11 +369,12 @@ class TestCli(unittest.TestCase):
         coated = _run(["--json", "hello"])
         raw = coated.stdout.decode("utf-8")
         doc = json_loads(raw)
-        self.assertEqual(coated.returncode, 0, coated.stderr.decode())
-        self.assertTrue(doc["ok"])
+        self.assertEqual(coated.returncode, 1, coated.stderr.decode())
+        self.assertFalse(doc["ok"])
         self.assertEqual(doc["mode"], "noninteractive")
         self.assertEqual(doc["jobs"], [])
-        self.assertIn("Hello.", coated.stderr.decode("utf-8", "replace"))
+        self.assertIn("hello", doc["error"])
+        self.assertNotIn("Hello.", coated.stderr.decode("utf-8", "replace"))
         self.assertNotIn("Folder (Enter", coated.stderr.decode())
 
         from VideoSpeed import cli
@@ -386,7 +388,7 @@ class TestCli(unittest.TestCase):
         cli.Cli.stdin_is_tty = lambda *args: True
         cli.Cli.stdout_is_tty = lambda *args: True
         try:
-            for argv in (["about"], ["hello"], ["help"], ["about", "--boomerang"]):
+            for argv in (["about"], ["help"], ["about", "--boomerang"]):
                 buf = io.StringIO()
                 err = io.StringIO()
                 with redirect_stdout(buf), redirect_stderr(err):
@@ -521,7 +523,7 @@ class TestCli(unittest.TestCase):
                 self.assertNotIn("\ndef {}(".format(name), "\n" + ship)
         for name in (
             "build_parser", "_dispatch", "_verb_help",
-            "_verb_about", "_verb_hello", "_verb_edit", "_verb_list_mp4",
+            "_verb_about", "_verb_edit", "_verb_list_mp4",
             "_unknown_verb",
         ):
             self.assertTrue(inspect.isfunction(inspect.getattr_static(Cli, name)), name)

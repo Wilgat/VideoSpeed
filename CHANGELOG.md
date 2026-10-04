@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The first menu row keeps `Path` and the current directory on the left and a local clock (`HH:MM:SS`) on the right when the row has room. The clock is drawn again each second.
 - The about page, after Location, prints PID, the cache folder chain, persistence storage, and TTY / Interactive. Under conda, `python2` and `python3` stay inside that prefix, and conda location is `bin/conda`. `about --json` writes that page to the error stream. Standard output stays the JSON object.
 
+### Removed
+- The command-line verb `hello`. `video-speed hello` is an unknown verb: it exits 1, names the remaining verbs, and does not print `Hello.`. The numbered menu still has no hello row.
+
 ## [1.0.10] - 2026-10-02
 
 ### Added

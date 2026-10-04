@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-videospeed.md  
-**Status**: Active (Version 1.2.5)  
+**Status**: Active (Version 1.2.6)  
 **Area**: domain  
 **Key**: `requirement-domain-videospeed`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -59,7 +59,7 @@ VideoSpeed is an **interactive domain CLI** (not a multi-verb Type 0 shell produ
 
 **Job flags (also named on `requirement-python-cli-interface`):** `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`.
 
-**Product verbs (also named on `requirement-python-cli-interface` §2.3a):** `help`, `about`, `hello`, `edit`, `list-mp4`. `edit` runs D-01..D-08. `list-mp4` runs D-01 and stops. It shows the MP4 list. It does not choose one file and it does not encode. On a terminal, a verb that still needs a target asks for the folder first, then for the specific file only when the verb needs one. That order is `requirement-python-interactive-vs-noninteractive` §2.1b. This list is the domain actions. It is not a Type 0 install surface.
+**Product verbs (also named on `requirement-python-cli-interface` §2.3a):** `help`, `about`, `edit`, `list-mp4`. `hello` is not a product verb. `edit` runs D-01..D-08. `list-mp4` runs D-01 and stops. It shows the MP4 list. It does not choose one file and it does not encode. On a terminal, a verb that still needs a target asks for the folder first, then for the specific file only when the verb needs one. That order is `requirement-python-interactive-vs-noninteractive` §2.1b. This list is the domain actions. It is not a Type 0 install surface.
 
 **Output switch (not a domain step):** `--json`, owned by `requirement-python-json-output`. It does not add a cut, a percent, or a boomerang.
 
@@ -84,13 +84,13 @@ Because the product is **prompt-driven**, “help” **MUST** be available as:
 
 1. **Session banners / step labels** that name the four domain capabilities: cut, speed/length percent, optional boomerang, output path.  
 2. **Product README** domain rows that match this catalog. Headings, badges, and pictures of that document are `requirement-python-readme`. This pillar keeps the domain rows.  
-3. `--help` and the verb `help` **MUST** list the same capabilities (cut, length percent, optional boomerang), the product verbs `help`, `about`, `hello`, `edit`, and `list-mp4`, and the job flags `--file`, `--start`, `--end`, `--percent`, `--boomerang`, `--folder`.
+3. `--help` and the verb `help` **MUST** list the same capabilities (cut, length percent, optional boomerang), the product verbs `help`, `about`, `edit`, and `list-mp4`, and the job flags `--file`, `--start`, `--end`, `--percent`, `--boomerang`, `--folder`.
 
 Help / README domain rows **MUST** include:
 
 | Help row | Text intent |
 |----------|-------------|
-| Text menu | On a terminal, numbered rows edit / language / system-log / self-management / Exit above a three-row rounded input box and a status line (`requirement-python-tui`). Row **4** is language (`requirement-python-cli-language`). Hello is not a menu row. `video-speed hello` still prints `Hello.` |
+| Text menu | On a terminal, numbered rows edit / language / system-log / self-management / Exit above a three-row rounded input box and a status line (`requirement-python-tui`). Row **4** is language (`requirement-python-cli-language`). Hello is not a menu row. `hello` is not a product verb. |
 | Select folder | Folder containing MP4 files (default: current directory) |
 | Select video | Choose from numbered list |
 | Cut | Start and end time in seconds |
@@ -234,6 +234,7 @@ Those commands are `clip_cut1.0-5.0s_100pct.mp4` and `clip_cut1.0-5.0s_50pct_BOO
 | 2026-10-04 | Active 1.2.3 | VERSION is package string `1.0.11` |
 | 2026-10-04 | Active 1.2.4 | The text menu also lists language. The rows stay on `requirement-python-tui`. The codes stay on `requirement-python-cli-language` |
 | 2026-10-04 | Active 1.2.5 | User-document headings and pictures point at `requirement-python-readme`. Domain rows stay here |
+| 2026-10-04 | Active 1.2.6 | `hello` is not a domain verb and is not a product verb |
 
 ---
 

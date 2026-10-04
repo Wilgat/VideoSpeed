@@ -1,12 +1,12 @@
 **file**: docs/requirements/requirement-python-cli-interface.md  
-**Status**: Active (Version 1.9.4)  
+**Status**: Active (Version 1.9.5)  
 **Area**: python  
 **Key**: `requirement-python-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `hello` prints `Hello.` and is not a text-menu row. The other verbs match a menu action. `help` and `version` are self-management verbs. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
+Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `hello` is not a product verb. `help` stays off the numbered menu. The other verbs match a menu action. `help` and `version` are self-management verbs. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
 
 Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops are owned by **`requirement-video-ffmpeg-pipeline`**.
 
@@ -123,7 +123,7 @@ def main(argv=None):
 
 ### 2.3a Product verbs (the command line beside the menu)
 
-The text menu is one way to start an action. The command line is the other. A **product verb** is the first positional argument. Most verbs name an action a person can pick on the menu. `hello` is the command line only. Flags stay. A verb does not remove `--file`, `--start`, or `--end`.
+The text menu is one way to start an action. The command line is the other. A **product verb** is the first positional argument. The verbs name an action a person can pick on the menu, except `help`, which stays off the numbered list. `hello` is not a product verb. Flags stay. A verb does not remove `--file`, `--start`, or `--end`.
 
 These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
 
@@ -132,7 +132,6 @@ These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
 | `help` | `--help`. Usage text. The menu does not number this row. It is a self-management verb. | no | no |
 | `version` | Self-management **82**. Installed version. No pip and no network. | no | no |
 | `about` | Self-management **83 about**. Page body is `requirement-python-about` | no | no |
-| `hello` | Prints `Hello.`. Not a numbered menu row. Does not open the text menu | no | no |
 | `edit` | Menu **1 edit**. Domain steps D-01..D-08 | yes, unless `--folder` or `--file` already names the directory | yes, unless `--file` names the MP4 |
 | `list-mp4` | The MP4 list edit shows after the folder question. The verb lists and stops. It does not encode | yes, unless `--folder` names the directory, or `--file` names a file whose parent is that directory | no |
 | `self-install` | Self-management **87**. `python -m pip install VideoSpeed` | no | no |
@@ -140,19 +139,18 @@ These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
 | `self-update` | Self-management **85**. `python -m pip install --upgrade VideoSpeed` | no | no |
 | `self-uninstall` | Self-management **86**. `python -m pip uninstall -y VideoSpeed`. The command line also requires `--force` | no | no |
 
-10. **MUST** accept the positional verbs `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall` on `video-speed` and on `python -m VideoSpeed`.  
+10. **MUST** accept the positional verbs `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall` on `video-speed` and on `python -m VideoSpeed`.  
 11. **MUST** make `help` and `--help` print the same usage. That usage **MUST** name each of those verbs and the job flags, and **MUST** name the pip commands for `version-check` and `self-update`.  
-12. An unknown positional token **MUST** exit non-zero, **MUST** name those verbs, and **MUST NOT** open the menu and **MUST NOT** encode.  
-13. **MUST NOT** delete this verb list and leave flags as the only command line. **MUST NOT** make the front board the only way to run `about`, `hello`, `edit`, or `list-mp4`.  
+12. An unknown positional token **MUST** exit non-zero, **MUST** name those verbs, and **MUST NOT** open the menu and **MUST NOT** encode. `hello` is an unknown token. It **MUST NOT** print `Hello.`.  
+13. **MUST NOT** delete this verb list and leave flags as the only command line. **MUST NOT** make the front board the only way to run `about`, `edit`, or `list-mp4`. **MUST NOT** add `hello` as a product verb.  
 14. When a verb still needs a folder or a specific file, the order **MUST** be the folder first and the specific file second, as `requirement-python-interactive-vs-noninteractive` §2.1b. This file **MUST NOT** keep a second prompt matrix.  
-15. `help`, `version`, `about`, `hello`, `self-install`, `version-check`, `self-update`, and `self-uninstall` **MUST NOT** ask for a folder or a file. `version` **MUST NOT** call pip. `version-check` and `self-update` **MUST** call pip as the table says. `self-install` and `self-uninstall` **MUST** call pip as the table says. Those commands **MUST NOT** use `sudo` and **MUST NOT** use `curl`. `self-uninstall` without `--force` **MUST** exit non-zero and name `--force`. `list-mp4` **MUST NOT** ask for a specific file and **MUST NOT** encode. `Exit` stays a menu control. It is not a positional verb.  
-16. Without a terminal, `help`, `version`, `about`, `hello`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall --force` **MUST** still run and **MUST NOT** wait. `edit` without a terminal **MUST** follow the one-job rule when `--file`, `--start`, and `--end` are present, and the fail-closed stop when they are not.
+15. `help`, `version`, `about`, `self-install`, `version-check`, `self-update`, and `self-uninstall` **MUST NOT** ask for a folder or a file. `version` **MUST NOT** call pip. `version-check` and `self-update` **MUST** call pip as the table says. `self-install` and `self-uninstall` **MUST** call pip as the table says. Those commands **MUST NOT** use `sudo` and **MUST NOT** use `curl`. `self-uninstall` without `--force` **MUST** exit non-zero and name `--force`. `list-mp4` **MUST NOT** ask for a specific file and **MUST NOT** encode. `Exit` stays a menu control. It is not a positional verb.  
+16. Without a terminal, `help`, `version`, `about`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall --force` **MUST** still run and **MUST NOT** wait. `edit` without a terminal **MUST** follow the one-job rule when `--file`, `--start`, and `--end` are present, and the fail-closed stop when they are not.
 
 ```text
 video-speed help
 video-speed version
 video-speed about
-video-speed hello
 video-speed version-check
 video-speed self-update
 video-speed self-install
@@ -178,7 +176,7 @@ video-speed list-mp4 --folder ./clips
 | **Module entry** | `src/VideoSpeed/__main__.py` → `main()` |
 | **CLI module** | `src/VideoSpeed/cli.py` |
 | **Empty argv** | Mode matrix in `requirement-python-interactive-vs-noninteractive` |
-| **Argparse** | positional verb `help` \| `version` \| `about` \| `hello` \| `edit` \| `list-mp4` \| `self-install` \| `version-check` \| `self-update` \| `self-uninstall`; flags `--help`, `--version`, `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`, `--json`, `--force` |
+| **Argparse** | positional verb `help` \| `version` \| `about` \| `edit` \| `list-mp4` \| `self-install` \| `version-check` \| `self-update` \| `self-uninstall`; flags `--help`, `--version`, `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`, `--json`, `--force` |
 | **Product verbs** | §2.3a. Prompt order is the mode requirement |
 | **Empty argv, no TTY** | Fail closed; owned by the mode requirement |
 | **JSON** | `--json` owned by `requirement-python-json-output`. No `--quiet` |
@@ -219,7 +217,7 @@ video-speed list-mp4 --folder ./clips
 5. Leave `cli-new.py` as silent dual SSOT for entry behavior.  
 6. Copy the mode matrix back into this file. Point at `requirement-python-interactive-vs-noninteractive`.  
 7. Copy `./build.sh` verb procedures into this file. Point at `requirement-python-build-script`.  
-8. Remove `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, or `self-uninstall`, or leave the command line as flags only. Do not replace the pip commands with `curl` or `sudo pip`.  
+8. Remove `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, or `self-uninstall`, or leave the command line as flags only. Do not add `hello` as a product verb. Do not replace the pip commands with `curl` or `sudo pip`.  
 9. Treat `./build.sh` verbs as `video-speed` verbs, or treat these product verbs as maintainer verbs.
 
 **Violating this rule is a critical CLI regression.**
@@ -242,9 +240,9 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | AC-6 | Success prints output path |
 | AC-7 | `--file` + `--start` + `--end` runs one job without prompts |
 | AC-8 | No TTY, no verb, and no job flags → fail closed with next step |
-| AC-9 | `help` and `--help` both list `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall` |
+| AC-9 | `help` and `--help` both list `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`, and neither lists `hello` |
 | AC-10 | An unknown positional verb exits non-zero, names those verbs, and does not open the menu |
-| AC-11 | `about`, `hello`, `version`, and `list-mp4` run without a terminal and do not wait |
+| AC-11 | `about`, `version`, and `list-mp4` run without a terminal and do not wait. `hello` exits non-zero and does not wait |
 | AC-12 | `version-check` and `self-update` call pip. `version` does not. `self-uninstall` without `--force` exits non-zero |
 
 ---
@@ -310,9 +308,10 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | 2026-10-02 | Active 1.9.2 | Step 2 passes `is_quiet=True` when `--json` or the text screen is already known. `quiet(True)` after the constructor returns is not that quiet |
 | 2026-10-02 | Active 1.9.3 | Step 2 is the statement `ChronicleLogger(...)` inside `def main`. A method does not instantiate the logger. `Cli.__new__` is not that step |
 | 2026-10-02 | Active 1.9.4 | Sample code shows `ChronicleLogger(...)` and then `Cli(logger)` before the parser |
+| 2026-10-04 | Active 1.9.5 | `hello` is not a product verb. `video-speed hello` exits non-zero and does not print `Hello.` |
 
 ---
 
-**Last Updated**: 2026-10-02  
+**Last Updated**: 2026-10-04  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

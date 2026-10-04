@@ -21,7 +21,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | `--version` / `--help` | **have** | `tests/test_cli.py` |
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
-| Product verbs `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall` | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-SELF-01`, `TP-TUI-06`, `TP-MODE-05`..`TP-MODE-08`) |
+| Product verbs `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall`. `hello` is an unknown verb | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-SELF-01`, `TP-TUI-06`, `TP-MODE-05`..`TP-MODE-08`) |
 | Text menu frame and columns | **have** | `tests/test_tui.py` (`src/VideoSpeed/tui.py`, class `Tui`) |
 | Text menu top line keeps the path on the left and a local clock on the right | **have** | `TP-TUI-07`, `TP-TUI-08`, `TP-TUI-09`, `TP-TUI-10`. Front and self-management boards paint `Path:` and the absolute working directory. The clock `HH:MM:SS` sits on the right when the row has room and is drawn again each second |
 | FFmpeg preflight | **have** | `tests/test_prereq.py` (missing-binary path) |
@@ -100,7 +100,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-CLI-04 | No MP4 in folder → clear message, non-success path | `tests/test_cli.py` | CLI · error-handling | **have** |
 | TP-CLI-05 | Invalid video index re-prompts (not crash) | `tests/test_cli.py` | error-handling | **todo** |
 | TP-CLI-06 | Batch `--file`/`--start`/`--end`; missing file / incomplete flags fail closed | `tests/test_cli.py` | CLI · domain | **have** |
-| TP-CLI-07 | `help` lists the ten product verbs and the word pip; an unknown verb exits 1 and does not open the menu | `tests/test_cli.py` | requirement-python-cli-interface · requirement-python-interactive-vs-noninteractive | **have** |
+| TP-CLI-07 | `help` lists the nine product verbs and the word pip, and does not list `hello`; an unknown verb, including `hello`, exits 1 and does not open the menu | `tests/test_cli.py` | requirement-python-cli-interface · requirement-python-interactive-vs-noninteractive | **have** |
 | TP-SELF-01 | `version` is local. `version-check`, `self-update`, `self-install`, and `self-uninstall --force` call pip. No `sudo`. No network in the suite | `tests/test_cli.py` | requirement-python-cli-interface | **have** |
 
 ### TP-MODE (menu walk versus one job)
@@ -114,7 +114,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-MODE-05 | `video-speed edit` on a terminal with no `--file` asks the folder line, then the video line, inside the frame, and does not call `input()` | `tests/test_tui.py` | requirement-python-interactive-vs-noninteractive | **have** |
 | TP-MODE-06 | `video-speed edit` with no terminal and without `--file`, `--start`, and `--end` exits 1 and does not prompt | `tests/test_cli.py` | requirement-python-interactive-vs-noninteractive | **have** |
 | TP-MODE-07 | `list-mp4` on a terminal asks for the folder when omitted, then lists, and does not encode. With no terminal it lists `--folder` or the current directory and does not prompt | `tests/test_cli.py` · `tests/test_tui.py` | requirement-python-interactive-vs-noninteractive · requirement-domain-videospeed | **have** |
-| TP-MODE-08 | `about`, `help`, and `hello` do not ask for a folder or a file, with or without a terminal | `tests/test_cli.py` | requirement-python-interactive-vs-noninteractive · requirement-python-about | **have** |
+| TP-MODE-08 | `about` and `help` do not ask for a folder or a file, with or without a terminal | `tests/test_cli.py` | requirement-python-interactive-vs-noninteractive · requirement-python-about | **have** |
 
 ### TP-BUILD (maintainer `build.sh` verbs)
 

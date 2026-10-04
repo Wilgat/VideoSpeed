@@ -53,7 +53,6 @@ class Cli:
         "help",
         "version",
         "about",
-        "hello",
         "edit",
         "list-mp4",
         "self-install",
@@ -168,13 +167,6 @@ class Cli:
         """
         return self._verb_page(self.about.framework_about())
 
-    def _verb_hello(self):
-        """
-        General Purpose: Show Hello. Job flags are ignored.
-        Last updated: 2026-10-01
-        """
-        return self._verb_page(self.tui.framework_hello())
-
     def _unknown_verb(self, token):
         """
         General Purpose: Reject a positional token that is not a product verb.
@@ -266,10 +258,10 @@ class Cli:
             description=(
                 "{} — cut an MP4, change length/speed, optional boomerang.\n"
                 "With no arguments in a terminal, starts the interactive editor.\n"
-                "Product verbs: help, version, about, hello, edit, list-mp4,\n"
+                "Product verbs: help, version, about, edit, list-mp4,\n"
                 "self-install, version-check, self-update, self-uninstall.\n"
                 "help prints this usage. version prints the installed version.\n"
-                "about and hello print a page and do not ask for a folder or a file.\n"
+                "about prints a page and does not ask for a folder or a file.\n"
                 "edit asks for a folder, then a file, when those are not already named.\n"
                 "list-mp4 lists MP4 files and does not encode.\n"
                 "version-check runs: python -m pip index versions VideoSpeed\n"
@@ -287,7 +279,7 @@ class Cli:
             default=None,
             metavar="verb",
             help=(
-                "Product verb: help, version, about, hello, edit, list-mp4, "
+                "Product verb: help, version, about, edit, list-mp4, "
                 "self-install, version-check, self-update, or self-uninstall"
             ),
         )
@@ -387,7 +379,7 @@ class Cli:
             elif not token.startswith("-") and verb is None:
                 verb = token
             index += 1
-        if verb in ("help", "about", "hello") or verb in Cli.LIFECYCLE_VERBS:
+        if verb in ("help", "about") or verb in Cli.LIFECYCLE_VERBS:
             return False
         if verb == "edit":
             return not (has_file and has_start and has_end)
@@ -419,8 +411,6 @@ class Cli:
             return 1
         if verb == "about":
             return self._verb_about()
-        if verb == "hello":
-            return self._verb_hello()
         if verb == "version":
             return self._verb_page(self.self_manage.local_version())
         if verb == "self-uninstall":

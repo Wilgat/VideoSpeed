@@ -77,7 +77,7 @@ class Tui:
         """
         return (
             "help: usage for VideoSpeed.\n"
-            "Verbs: help, version, about, hello, edit, list-mp4, "
+            "Verbs: help, version, about, edit, list-mp4, "
             "self-install, version-check, self-update, self-uninstall.\n"
             "version shows the installed version.\n"
             "version-check runs: python -m pip index versions VideoSpeed\n"
@@ -110,13 +110,6 @@ class Tui:
         session.model.cursor = 0
         session.model.focus = "list"
         return None
-
-    def framework_hello(self):
-        """
-        General Purpose: Hello text for the command-line verb.
-        requirement-python-tui: the front board does not list this page.
-        """
-        return "Hello."
 
     def _visible_lines(self, lines, room, pin_last):
         """General Purpose: Lines that fit above the input box.

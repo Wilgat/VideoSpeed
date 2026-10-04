@@ -3,9 +3,9 @@
 **Product:** VideoSpeed  
 **Ship unit:** `src/VideoSpeed/cli.py`  
 **Dispatcher:** `_dispatch` (the `help` token returns from `main` before JSON)  
-**Scan date:** 2026-10-02  
+**Scan date:** 2026-10-04  
 **Mode:** full (no previous table)  
-**Counts:** live 10 · not-yet-wired 12 · copied 0 · re-checked 10
+**Counts:** live 9 · not-yet-wired 12 · copied 0 · re-checked 9
 
 Inventory is the dispatcher, not the help text. Dates are the handler comment `Last updated:`. This list is not the who-is-who catalog. Who runs the program stays on `requirement-class-software-dev` (no dest machine, no approver). No separate actor file was added.
 
@@ -16,7 +16,6 @@ Inventory is the dispatcher, not the help text. Dates are the handler comment `L
 | help | `_verb_help` | you | 2026-10-02 | help: Print this usage. Not a numbered menu row |
 | version | `_dispatch` | you | 2026-10-02 | version: Print the installed version. No pip |
 | about | `_verb_about` | you | 2026-10-02 | about: Show the about page and do not ask for a folder or a file |
-| hello | `_verb_hello` | you | 2026-10-02 | hello: Show Hello. and do not ask for a folder or a file |
 | edit | `_verb_edit` | you | 2026-10-02 | edit: Ask for a folder, then a file, when those are not already named |
 | list-mp4 | `_verb_list_mp4` | you | 2026-10-02 | list-mp4: List MP4 files and do not encode |
 | self-install | `SelfManage.emit` | you | 2026-10-02 | self-install: python -m pip install VideoSpeed |

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-readme.md
-**Status**: Active (Version 1.0.5)
+**Status**: Active (Version 1.0.6)
 **Area**: python
 **Key**: `requirement-python-readme`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -114,7 +114,7 @@ The first-row sentence in the user document **MUST** name the current directory 
 
 | Heading | What this document must keep | Owner of the behavior |
 |---------|------------------------------|------------------------|
-| Features | Recursive MP4 discovery. Cut with re-prompt. Length 20–200% with picture and sound kept together. Optional boomerang. Temps beside the output and publish by `shutil.move`. Text menu on the verbs above, with the path and a local clock. Product verbs `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall` (`self-uninstall` needs `--force`). `Exit` is menu-only. `./build.sh` verbs are not `video-speed` verbs. `--help` / `--version`. No arguments on a terminal opens the menu. A job is `--file` / `--start` / `--end` with optional `--percent` / `--boomerang`. Fail closed when FFmpeg is missing, when prompts need a terminal and there is none, or when percent or boomerang arrives without a job | Peers in §2.2. The path-row sentence is the clock rule in §2.2 |
+| Features | Recursive MP4 discovery. Cut with re-prompt. Length 20–200% with picture and sound kept together. Optional boomerang. Temps beside the output and publish by `shutil.move`. Text menu on the verbs above, with the path and a local clock. Product verbs `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall` (`self-uninstall` needs `--force`). `hello` is not a product verb. `Exit` is menu-only. `./build.sh` verbs are not `video-speed` verbs. `--help` / `--version`. No arguments on a terminal opens the menu. A job is `--file` / `--start` / `--end` with optional `--percent` / `--boomerang`. Fail closed when FFmpeg is missing, when prompts need a terminal and there is none, or when percent or boomerang arrives without a job | Peers in §2.2. The path-row sentence is the clock rule in §2.2 |
 | Advantages | The four parts and the comparison table below. This section states the contrast. It does not restate the encode procedure | This file for the contrast. Peers in §2.2 for the behavior |
 | Quick Installation | The five subsections below | This table |
 | Prerequisites (system) | FFmpeg on `PATH`. Python matches `requires-python` | `requirement-runtime-prerequisites` |
@@ -294,3 +294,4 @@ The Screenshots paragraphs and alts are the live `README.md`. Items 4, 5, and 6 
 | 2026-10-04 | Active 1.0.3 | The catalog paragraph and alt for each PNG are the words in the live Screenshots section |
 | 2026-10-04 | Active 1.0.4 | Advantages sits after Features: dual-mode interface, thirteen languages, beside-output staging, lifecycle and diagnostics, and the comparison table |
 | 2026-10-04 | Active 1.0.5 | Related Projects lists this program, then AnimeDlp, ChronicleLogger, VideoJoin, CIAO, CIAO-Lite, and safe-rm |
+| 2026-10-04 | Active 1.0.6 | The Features verb list does not name `hello` |

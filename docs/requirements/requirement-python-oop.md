@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-oop.md
-**Status**: Active (Version 1.2.15)
+**Status**: Active (Version 1.2.16)
 **Area**: python
 **Key**: `requirement-python-oop`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -60,7 +60,7 @@ The menu picture stays on `requirement-python-tui`. The menu language stays on `
 7. `src/VideoSpeed/cli.py` **MUST** define class `Cli` and **MUST NOT** define another class.  
 8. `def main` **MUST** stay in `src/VideoSpeed/cli.py`. The signature stays `main(argv=None, log_basedir="", log_logdir="")`. `main` builds the objects in this file and runs one job.  
 9. The console script **MUST** stay `video-speed = "VideoSpeed.cli:main"`. `src/VideoSpeed/__main__.py` **MUST** keep `from .cli import main`.  
-10. `cli.py` **MUST NOT** define another class's methods. `Cli` owns `build_parser`, `_dispatch`, `_opens_text_screen`, `_verb_help`, `_verb_page`, `_verb_about`, `_verb_hello`, `_verb_edit`, `_verb_list_mp4`, `_unknown_verb`, `stdin_is_tty`, and `stdout_is_tty`. `Cli` does not own the ChronicleLogger construct. Pip lifecycle verbs stay on `SelfManage`.  
+10. `cli.py` **MUST NOT** define another class's methods. `Cli` owns `build_parser`, `_dispatch`, `_opens_text_screen`, `_verb_help`, `_verb_page`, `_verb_about`, `_verb_edit`, `_verb_list_mp4`, `_unknown_verb`, `stdin_is_tty`, and `stdout_is_tty`. `Cli` does not own `_verb_hello`. `Cli` does not own the ChronicleLogger construct. Pip lifecycle verbs stay on `SelfManage`.  
 11. `Cli` constructs the other classes and calls them. Each class receives its collaborators through its constructor. A lazy `_host()` import of `cli` is not the end state.  
 11f. A constant or variable that class `Cli` or `def main` owns is an attribute of class `Cli`, or a name assigned inside `main()`. It is not a module-level assignment in `cli.py`. That set is `_PKG_VERSION`, `APP_NAME`, `CONSOLE_NAME`, `PRODUCT_VERBS`, `LIFECYCLE_VERBS`, `AUTHOR_NAME`, `HOMEPAGE`, `LAST_UPDATE`, `DOWNLOAD_URL`, `BASIC_USAGE`, `RATIO_MIN`, and `RATIO_MAX`. `Cli` passes the values other classes print. Those classes do not import the names from the `cli` module.  
 11g. Another class keeps its own constants. The frame glyphs, `MENU_ROWS`, and `SELF_ROWS` stay on `MenuPainter`. Version integers stay in `__init__.py` (rule 27). Importing those integers into `cli.py` is the package read that class `Cli` formats into `_PKG_VERSION`.
@@ -76,11 +76,11 @@ The menu picture stays on `requirement-python-tui`. The menu language stays on `
 
 ### 2.3 Text menu
 
-12. `src/VideoSpeed/tui.py` **MUST** define class `Tui` and no other class. `Tui` owns `open_text_menu`, `menu_lines`, `self_menu_lines`, `log_menu_lines`, `language_menu_lines`, `framework_help`, `framework_hello`, `_boards`, `_apply_language`, `_pick_language`, `_edit_in_tui`, `_list_in_tui`, `_view_log`, `_clear_log`, `_log_folder`, `_open_direct_screen`, `_visible_lines`, `_tui_read`, `_tui_notice`, `_tui_float`, `_tui_yes_no`, and `_tui_index`.  
+12. `src/VideoSpeed/tui.py` **MUST** define class `Tui` and no other class. `Tui` owns `open_text_menu`, `menu_lines`, `self_menu_lines`, `log_menu_lines`, `language_menu_lines`, `framework_help`, `_boards`, `_apply_language`, `_pick_language`, `_edit_in_tui`, `_list_in_tui`, `_view_log`, `_clear_log`, `_log_folder`, `_open_direct_screen`, `_visible_lines`, `_tui_read`, `_tui_notice`, `_tui_float`, `_tui_yes_no`, and `_tui_index`. `Tui` does not own `framework_hello`.  
 13. Class `MenuPainter` in `src/VideoSpeed/menu_painter.py` owns `paint`, `paint_prompt`, `path_label`, `set_path_label`, `clock_text`, `path_line`, `format_rows`, `row_parts`, `rows_for`, `screen_can_hold_box`, `_put`, `_paint_box`, `_input_field`, `_status_line`, `_result_overflow`, and `_result_room`. The frame glyphs, `MENU_ROWS`, `SELF_ROWS`, `LOG_ROWS`, and `LANG_ROWS` live in that module. `FRAME_TOP_LEFT` **MUST NOT** appear in `cli.py`. `path_label`, `clock_text`, and `path_line` draw the first row of the front board, of the language board, of the self-management board, and of the system-log board. The words, the clock shape, shortening that path from the left, and when the clock is omitted stay on `requirement-python-tui` rule 13. These methods do not detect a language and do not invent a second line. `set_path_label` stores the word the caller already chose.  
 14. Class `MenuModel` in `src/VideoSpeed/menu_model.py` owns the keystroke state and `edge_keys`.  
 15. Class `MenuSession` in `src/VideoSpeed/menu_session.py` owns `run` and `_wait_key`, and raises `MenuScreenError`. `_wait_key` is the one-second clock wait from `requirement-python-tui` rule 13. It does not start a thread. The picture of that wait stays on that requirement.  
-16. The menu picture (rows, box, hello, about page, fail-closed small screen) stays on `requirement-python-tui`. These classes implement that picture. They do not invent a second layout.  
+16. The menu picture (rows, box, about page, fail-closed small screen) stays on `requirement-python-tui`. The front board has no hello row. These classes implement that picture. They do not invent a second layout.  
 17. `TP-OOP-01` has landed for the session leaving `cli.py`. `cli.py` **MUST NOT** hold those session functions. `TP-OOP-03` has landed. The proof reads `MenuPainter`, `MenuModel`, and `MenuSession` in their own modules. It **MUST NOT** require `MenuSession` to live in `tui.py`.
 
 ### 2.4 Host check and about page
@@ -270,6 +270,7 @@ class Cli:
 | 2026-10-02 | Active 1.2.13 | Class `SystemLog` in `system_log.py` owns the log-file list, the read, and the empty. `Tui` owns the system-log screen methods. `MenuPainter` owns `LOG_ROWS`. The picture stays on `requirement-python-tui` |
 | 2026-10-02 | Active 1.2.14 | Sample code shows `Cli(logger)` and `Tui(logger)`. `StateLogic` stays unordered |
 | 2026-10-04 | Active 1.2.15 | Class `LanguageMenu` in `language_menu.py` owns the codes, the language file, and the words. `Tui` writes `LanguageMenu(...)`. `MenuPainter` owns `LANG_ROWS` and `set_path_label`. `Tui` owns `language_menu_lines`. The picture stays on `requirement-python-tui`. The codes stay on `requirement-python-cli-language` |
+| 2026-10-04 | Active 1.2.16 | `Cli` does not own `_verb_hello`. `Tui` does not own `framework_hello` |
 
 ---
 

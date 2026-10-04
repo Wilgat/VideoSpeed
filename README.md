@@ -22,8 +22,8 @@ Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERS
 - **Length/speed** change (**20–200%**) with A/V tempo kept in sync
 - Optional **boomerang** (forward then reverse)
 - **USB-safe** intermediate files (staged next to the output) and final publish via `shutil.move`
-- **Text menu** on a terminal (`edit`, `language`, `system-log`, `self-management`, `Exit`): the first row keeps `Path` and the current directory on the left, and `Current` plus this login on the right when the row has room. Columns line up, and a three-row rounded input box sits on the bottom with a status line under it. The product name and version stay on that status line. **8 self-management** opens version, about, and the pip lifecycle rows. Hello is not a menu row
-- **Product verbs** `help`, `version`, `about`, `hello`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `help` prints the same usage as `--help`. `version` prints the installed version. `about` and `hello` print a page and do not ask for a folder or a file. `edit` on a terminal asks for the folder, then the file. `list-mp4` lists MP4 files and does not encode. `version-check` runs `python -m pip index versions VideoSpeed`. `self-update` runs `python -m pip install --upgrade VideoSpeed`. `self-install` runs `python -m pip install VideoSpeed`. `self-uninstall` runs `python -m pip uninstall -y VideoSpeed` and needs `--force` on the command line. `Exit` stays on the menu. `./build.sh` verbs such as `setup` are not `video-speed` verbs
+- **Text menu** on a terminal (`edit`, `language`, `system-log`, `self-management`, `Exit`): the first row keeps `Path` and the current directory on the left, and `Current` plus this login on the right when the row has room. Columns line up, and a three-row rounded input box sits on the bottom with a status line under it. The product name and version stay on that status line. **8 self-management** opens version, about, and the pip lifecycle rows
+- **Product verbs** `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `help` prints the same usage as `--help`. `version` prints the installed version. `about` prints a page and does not ask for a folder or a file. `edit` on a terminal asks for the folder, then the file. `list-mp4` lists MP4 files and does not encode. `version-check` runs `python -m pip index versions VideoSpeed`. `self-update` runs `python -m pip install --upgrade VideoSpeed`. `self-install` runs `python -m pip install VideoSpeed`. `self-uninstall` runs `python -m pip uninstall -y VideoSpeed` and needs `--force` on the command line. `Exit` stays on the menu. `./build.sh` verbs such as `setup` are not `video-speed` verbs
 - **`--help`** / **`--version`**; no arguments in a terminal opens that menu
 - Non-interactive job: `--file`, `--start`, `--end`, optional `--percent` / `--boomerang`, with or without `edit`. Any of those selectors with no product verb skips the menu
 - Fail-closed when **FFmpeg** is missing from `PATH`, when prompts are needed without a terminal, or when `--percent` or `--boomerang` is passed without a job
@@ -134,7 +134,7 @@ video-speed
 python -m VideoSpeed
 ```
 
-The screen shows a numbered menu and a rounded input box along the bottom, as wide as the terminal, with one line to type on and a status line under the box. The first row keeps `Path:` and the folder on the left, and a local clock (`HH:MM:SS`) on the right when the row has room. The clock is drawn again each second. The product name and version stay on the status line. **edit** continues the prompts. **language** (4) opens the thirteen menu languages. The choice is kept for the next run. **system-log** (6) opens view-log, clear-log, and log-folder. **view-log** (61) lists the log files and shows the one you pick. **clear-log** (62) empties the file you pick after `Clear <name>? (y/n)`. **log-folder** (63) shows the log folder. **self-management** (8) opens version, about, version-check, self-update, self-uninstall, and self-install. **Exit** leaves. Hello is not on that menu.
+The screen shows a numbered menu and a rounded input box along the bottom, as wide as the terminal, with one line to type on and a status line under the box. The first row keeps `Path:` and the folder on the left, and a local clock (`HH:MM:SS`) on the right when the row has room. The clock is drawn again each second. The product name and version stay on the status line. **edit** continues the prompts. **language** (4) opens the thirteen menu languages. The choice is kept for the next run. **system-log** (6) opens view-log, clear-log, and log-folder. **view-log** (61) lists the log files and shows the one you pick. **clear-log** (62) empties the file you pick after `Clear <name>? (y/n)`. **log-folder** (63) shows the log folder. **self-management** (8) opens version, about, version-check, self-update, self-uninstall, and self-install. **Exit** leaves.
 
 The same actions are verbs. `edit` starts at the folder question. `list-mp4` asks for the folder when it is omitted, prints the numbered list, and stops. `version` prints the installed version and does not call pip. `version-check` and `self-update` call pip.
 
@@ -142,7 +142,6 @@ The same actions are verbs. `edit` starts at the folder question. `list-mp4` ask
 video-speed help
 video-speed version
 video-speed about
-video-speed hello
 video-speed edit
 video-speed edit --folder ./clips
 video-speed edit --file clip.mp4 --start 1 --end 5 --percent 100

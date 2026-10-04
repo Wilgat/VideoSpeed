@@ -4,7 +4,7 @@
 **Class:** software-development · domain SSOT present · **pip/local package** install.  
 **Always load first:** `reviews/lessons.md`
 
-**Last plan update:** 2026-10-01 (product verbs `help`, `about`, `hello`, `edit`, `list-mp4`)
+**Last plan update:** 2026-10-04 (product verbs `help`, `version`, `about`, `edit`, `list-mp4`, and the pip lifecycle verbs; `hello` is not a verb)
 
 ---
 
@@ -29,7 +29,7 @@
 | Class | `requirement-class-software-dev.md` | Python residual; no online shell package |
 | Domain | `requirement-domain-videospeed.md` | Four pillars; cut/speed/boomerang catalog |
 | FFmpeg pipeline | `requirement-video-ffmpeg-pipeline.md` | Order, temps, **`shutil.move`** publish, USB |
-| CLI interface | `requirement-python-cli-interface.md` | Entry points; product verbs `help`, `about`, `hello`, `edit`, `list-mp4`; `main` order; `--help`/`--version` |
+| CLI interface | `requirement-python-cli-interface.md` | Entry points; product verbs `help`, `about`, `edit`, `list-mp4`; `hello` is not a verb; `main` order; `--help`/`--version` |
 | Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, verb prompts (folder then file), or one job. A selector with no verb must not open the menu |
 | JSON output | `requirement-python-json-output.md` | `--json` is one object on stdout. No text menu. Prompts, if any, are on stderr |
 | Text menu | `requirement-python-tui.md` | Default TUI style; session is class `Tui`; frame is class `MenuPainter`; glyphs stay out of `cli.py`. `TP-OOP-03` have |
