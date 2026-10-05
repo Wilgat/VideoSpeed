@@ -3,8 +3,8 @@
 Maps **TP-*** coverage to automated or documented checks.  
 **Suite entry:** `tests/run.sh` (`PYTHONPATH=src python3 -m unittest discover -s tests -v`)  
 **Ship unit:** `src/VideoSpeed/cli.py`  
-**Last update:** 2026-10-02  
-**Last suite run:** 2026-10-02 (`./tests/run.sh`: 90 tests, OK, skipped=1 because ffmpeg is on PATH)
+**Last update:** 2026-10-05  
+**Last suite run:** 2026-10-05 (`./tests/run.sh`: 103 tests, OK, skipped=1 because ffmpeg is on PATH)
 
 Status: **have** = automated today · **todo** = needed · **manual** = documented human procedure · **n/a** · **skip** (environment)
 
@@ -18,6 +18,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | Pip dependency floors (OpenCV headless, ChronicleLogger) | **have** | `tests/test_dependencies.py` |
 | ChronicleLogger system-status wiring | **partial** | `requirement-python-cli-logging` (`TP-LOG-01`, `TP-LOG-02`, `TP-LOG-04`, `TP-LOG-05`, `TP-LOG-08` have; `TP-LOG-03`, `TP-LOG-06`, `TP-LOG-07` todo) |
 | Control-C confirm and child stop | **todo** | `requirement-python-graceful-exit` (`TP-EXIT-01` through `TP-EXIT-07` todo) |
+| Time-consuming FFmpeg child | **have** | `requirement-python-time-consuming-process` (`TP-TIME-01` through `TP-TIME-05` have). One flashing wait line. The half-second flash does not stop the child. `./tests/run.sh` 2026-10-05: 103 tests, OK, skipped=1 |
 | `--version` / `--help` | **have** | `tests/test_cli.py` |
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
@@ -89,6 +90,16 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-EXIT-05 | Control-C during FFmpeg while the text screen is open stops the child and does not publish, then asks. `n` returns to the screen. `y` exits 130 | — | requirement-python-graceful-exit | **todo** |
 | TP-EXIT-06 | A second Control-C while the question is showing exits 130, logs `confirmed=yes`, and does not print a traceback | — | requirement-python-graceful-exit | **todo** |
 | TP-EXIT-07 | `--json` and a non-interactive job do not ask and do not hang. Control-C exits 130 and logs `confirmed=unavailable` | — | requirement-python-graceful-exit | **todo** |
+
+### TP-TIME (time-consuming FFmpeg child)
+
+| TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
+|-------|--------|-----------------|------------------------|--------|
+| TP-TIME-01 | On a text screen, `Encoder.run_ffmpeg` shows `   ● please wait for time consuming process` and then the ○ line on the flash interval `0.5`. One wait line is replaced in place. `Popen` uses stdin `DEVNULL` and captured pipes. `TimeoutExpired` does not kill the child. No thread is started | `tests/test_time.py` | requirement-python-time-consuming-process | **have** |
+| TP-TIME-02 | With no text screen and without `--json`, the same line is rewritten in place and both bullets appear. With `--json`, no progress line is written and the parent still polls until the child exits | `tests/test_time.py` | requirement-python-time-consuming-process | **have** |
+| TP-TIME-03 | Length 100% and boomerang off does not call `speed_change`. The medium child does not start | `tests/test_time.py` | requirement-python-time-consuming-process | **have** |
+| TP-TIME-04 | A length other than 100% calls `speed_change` after the cut. That command uses preset `medium`. The parent returns from that child before publish | `tests/test_time.py` | requirement-python-time-consuming-process | **have** |
+| TP-TIME-05 | An exception other than the flash interval stops the child and propagates. The method does not return 130 and does not ask `Exit?` | `tests/test_time.py` | requirement-python-time-consuming-process | **have** |
 
 ### TP-CLI (CLI surface)
 

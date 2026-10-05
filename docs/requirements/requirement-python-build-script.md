@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-build-script.md
-**Status**: Active (Version 1.1.3)
+**Status**: Active (Version 1.1.4)
 **Area**: python
 **Key**: `requirement-python-build-script`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -103,7 +103,7 @@ Manifest identity stays on `requirement-python-packaging`. The version integers 
 | **Package name** | `VideoSpeed` |
 | **Build command** | `python3 -m build --sdist --wheel --outdir dist/` |
 | **Upload command** | `python3 -m twine upload dist/*` |
-| **Tag name** | `v` plus `__version__` (today `v1.0.12`) |
+| **Tag name** | `v` plus `__version__` (today `v1.0.13`) |
 | **Suite** | `tests/run.sh` |
 | **test-install** | `tomllib` reads `[project].name` from `pyproject.toml` (today `VideoSpeed`). `python3 -m pip show`, then `python3 -m pip uninstall -y` when present, then `python3 -m pip install` of the checkout directory. `read_project_name` and `do_test_install` do not embed that name |
 | **Not a verb** | `setup.sh` (pyenv-selected local install). `test-install` does not call it |
@@ -181,6 +181,7 @@ TP-BUILD-01 asserts help (and empty argv) exits 0, lists every verb, and puts `t
 | 2026-10-02 | Active 1.1.1 | Sample code shows the `./build.sh` verbs |
 | 2026-10-04 | Active 1.1.2 | Tag example is `v` plus package string `1.0.11` |
 | 2026-10-05 | Active 1.1.3 | Tag example is `v` plus package string `1.0.12`. This release was not tagged |
+| 2026-10-05 | Active 1.1.4 | Tag example is `v` plus package string `1.0.13`. This release was not tagged |
 
 **Last Updated**: 2026-10-05
 **Owner**: VideoSpeed project maintainers

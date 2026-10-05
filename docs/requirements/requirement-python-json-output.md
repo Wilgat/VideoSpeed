@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-json-output.md
-**Status**: Active (Version 1.0.7)
+**Status**: Active (Version 1.0.8)
 **Area**: python
 **Key**: `requirement-python-json-output`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -84,7 +84,7 @@ Failure, modifier alone:
   "ok": false,
   "mode": "noninteractive",
   "app": "VideoSpeed",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "error": "--percent and --boomerang need --file, --start, and --end.",
   "next": "video-speed --file clip.mp4 --start 0 --end 5",
   "jobs": []
@@ -98,7 +98,7 @@ Success, one job (paths are the paths the run used):
   "ok": true,
   "mode": "noninteractive",
   "app": "VideoSpeed",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "error": null,
   "next": null,
   "jobs": [
@@ -121,7 +121,7 @@ Walk entered, then end of input before a folder:
   "ok": true,
   "mode": "interactive",
   "app": "VideoSpeed",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "error": null,
   "next": null,
   "jobs": []
@@ -241,6 +241,7 @@ TP-JSON-01 asserts `--json --percent 80` exits 1, does not open the menu, and wr
 | 2026-10-04 | Active 1.0.5 | Sample `version` field is package string `1.0.11` |
 | 2026-10-04 | Active 1.0.6 | `hello` is not a product verb. `about` and `list-mp4` still stay out of the edit walk |
 | 2026-10-05 | Active 1.0.7 | Every product verb accepts `--json` and writes this one object. The verb `help` with `--json` writes usage to the error stream. The flags `--help` and `--version` stay human. Sample `version` is `1.0.12`. `--verbose` does not put the logger mirror on standard output while `--json` is set |
+| 2026-10-05 | Active 1.0.8 | Sample `version` is package string `1.0.13`. `--json` still writes no progress line while FFmpeg runs |
 
 **Last Updated**: 2026-10-05
 **Owner**: VideoSpeed project maintainers

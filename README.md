@@ -1,6 +1,6 @@
 # VideoSpeed - Cut, speed, and boomerang MP4 clips from the CLI
 
-![Version](https://img.shields.io/badge/Version-1.0.12-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.13-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 [![Stars](https://img.shields.io/github/stars/Wilgat/VideoSpeed?style=flat-square)](https://github.com/Wilgat/VideoSpeed)
@@ -13,7 +13,7 @@ VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent)
 |-----|----------------|----------|
 | Editor at a terminal or a script | FFmpeg on `PATH` (does the encode) | A website, installer, or root/sudo tool |
 
-Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.12**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
+Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.13**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
 
 ## Features
 
@@ -111,9 +111,9 @@ The console script is installed on the pyenv 3.14 prefix. `./setup.sh` changes t
 
 ```bash
 # after: python -m build   (or ./build.sh build)
-pip install dist/videospeed-1.0.12-py3-none-any.whl
+pip install dist/videospeed-1.0.13-py3-none-any.whl
 # or
-pip install dist/videospeed-1.0.12.tar.gz
+pip install dist/videospeed-1.0.13.tar.gz
 ```
 
 ### Verify
@@ -184,7 +184,7 @@ Each heading is the file name. The paragraph is what that picture shows: the wor
 
 ### `language-menu.png`
 
-Row **4** has opened the language list. **41 English** is highlighted, with the note “use English for this menu.” The other rows are **42 简体中文**, **43 繁體中文**, **44 Español**, **45 العربية**, **46 Français**, **47 Português**, **48 Русский**, **49 Deutsch**, **50 日本語**, **51 한국어**, **52 Nederlands**, and **53 Ελληνικά**. Each note says to use that language for this menu. **0 Back** says “return to the main menu.” The path label is `Path`, the clock is on the right, and the status line says `language`. VideoSpeed 1.0.12.
+Row **4** has opened the language list. **41 English** is highlighted, with the note “use English for this menu.” The other rows are **42 简体中文**, **43 繁體中文**, **44 Español**, **45 العربية**, **46 Français**, **47 Português**, **48 Русский**, **49 Deutsch**, **50 日本語**, **51 한국어**, **52 Nederlands**, and **53 Ελληνικά**. Each note says to use that language for this menu. **0 Back** says “return to the main menu.” The path label is `Path`, the clock is on the right, and the status line says `language`. VideoSpeed 1.0.13.
 
 ![Language list, 41 English highlighted](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/language-menu.png)
 
@@ -268,7 +268,7 @@ Greek main menu. The line above the box says `Η γλώσσα του μενού 
 
 ### `folder-menu.png`
 
-Edit, first question. The title is `VideoSpeed (1.0.12) — edit`. The page says `Cut → Speed → Optional Boomerang` and `Esc returns to the menu.` The prompt is `Folder (Enter = current):`. The input box contains `sample-videos`. The status line says `edit`.
+Edit, first question. The title is `VideoSpeed (1.0.13) — edit`. The page says `Cut → Speed → Optional Boomerang` and `Esc returns to the menu.` The prompt is `Folder (Enter = current):`. The input box contains `sample-videos`. The status line says `edit`.
 
 ![Folder prompt with sample-videos typed](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/folder-menu.png)
 
@@ -302,6 +302,12 @@ Boomerang question. The page says `Step 3/4 – Add boomerang effect?` and `Make
 
 ![Boomerang question, y typed](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-boomerang-choice.png)
 
+### `tui-please-wait.png`
+
+While FFmpeg runs, the edit page keeps `Working…` and `1. Cutting segment...`, then one line: three spaces, a filled bullet `●`, a space, and `please wait for time consuming process`. This still shows the filled bullet. The bullet alternates with `○` every half second. The title is `VideoSpeed (1.0.13) — edit`. The input box is empty. The status line says `edit`.
+
+![Please wait, filled bullet](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-please-wait.png)
+
 ### `tui-video-done.png`
 
 The encode has finished. The page says `Saved video-1_cut0.0-2.0s_100pct_BOOMERANG.mp4 — Again? (y/n):`. The input box is empty.
@@ -316,7 +322,7 @@ Row **8** has opened self-management. **82 version** is highlighted: “show the
 
 ### `tui-about.png`
 
-**about** (83) on the result page. The title is `VideoSpeed (1.0.12) — result`. The page prints `VideoSpeed 1.0.12`, `Domain: Cut → speed/length → optional boomerang for MP4`, `Runtime tools: FFmpeg (encode), OpenCV (duration probe)`, and `Entry points: video-speed, python -m VideoSpeed`. The host check is stamped `2026-10-05 10:59:40.993328` and headed `[CHECK SYSTEM]:`. Visible lines include Python 3.12.11, C Library GCC 13.3.0, Ubuntu 24.04.5 LTS, amd64, the current user, the shell, the Python executable, python2 location, python3 location, conda location, pyenv location, `Inside docker container: False`, the Cython string, the binary type, the location, the PID, the cache folders, and persistence storage. The footer says `Up/Down scrolls this page.` and `Press a key to return to the main menu.` The page stays in English.
+**about** (83) on the result page. The title is `VideoSpeed (1.0.13) — result`. The page prints `VideoSpeed 1.0.13`, `Domain: Cut → speed/length → optional boomerang for MP4`, `Runtime tools: FFmpeg (encode), OpenCV (duration probe)`, and `Entry points: video-speed, python -m VideoSpeed`. The host check is stamped `2026-10-05 17:17:48.436736` and headed `[CHECK SYSTEM]:`. Visible lines include Python 3.12.11, C Library GCC 13.3.0, Ubuntu 24.04.5 LTS, amd64, the current user, the shell, the Python executable, python2 location, python3 location, conda location, pyenv location, `Inside docker container: False`, the Cython string, the binary type, the location, the PID, the cache folders, and persistence storage. The footer says `Up/Down scrolls this page.` and `Press a key to return to the main menu.` The page stays in English.
 
 ![About host check, English](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-about.png)
 
@@ -376,4 +382,4 @@ MIT License — see [`LICENSE.md`](LICENSE.md).
 
 ## Last Update
 
-2026-10-05 — **1.0.12**: status lines stay off the terminal unless `--verbose` is set. Every product verb accepts `--json`. Front menu **4** is language. Front **6** is system-log. The first row keeps the path and a local clock. The about page prints PID, the cache chain, persistence, and TTY.
+2026-10-05 — **1.0.13**: while FFmpeg runs, one line flashes a bullet and `please wait for time consuming process`. The bullet alternates every half second. `--json` stays silent. The text-menu screenshots show this package string.

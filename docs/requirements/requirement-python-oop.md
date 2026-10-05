@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-oop.md
-**Status**: Active (Version 1.2.16)
+**Status**: Active (Version 1.2.17)
 **Area**: python
 **Key**: `requirement-python-oop`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -145,20 +145,68 @@ On Termux, Git Bash, Windows cmd, or the same class, each class still receives t
 
 ## Sample code
 
-`StateLogic` stays unordered. The site writes the class name.
+`StateLogic` stays unordered. `Cli.__init__` in `src/VideoSpeed/cli.py` writes `ClassName(...)` at each construct site. `def main` writes `Cli(logger)`. The program was not changed.
 
 ```python
-def main(argv=None):
-    logger = ChronicleLogger(logname="VideoSpeed", is_quiet=json_or_text_screen)
+def main(argv=None, log_basedir="", log_logdir=""):
+    show_mirror = Cli._show_log_mirror(argv)
+    logger = ChronicleLogger(
+        logname="VideoSpeed",
+        basedir=log_basedir or "",
+        logdir=log_logdir or "",
+        is_quiet=not show_mirror,
+    )
     app = Cli(logger)
-    return app.run(argv)
+    return app.run(argv, logger=logger)
 
 class Cli:
     def __init__(self, logger=None):
         self.logger = logger
         if logger is not None:
             logger.log_message("instantiated", component="Cli")
-        self.tui = Tui(logger)
+        self.app_name = Cli.APP_NAME
+        self.version = Cli._PKG_VERSION
+        self.output = RunOutput(Cli.APP_NAME, Cli._PKG_VERSION, logger=logger)
+        self.stage = FileStage(logger=logger)
+        self.media = MediaInfo(self.output, logger=logger)
+        self.encoder = Encoder(
+            self.output,
+            self.media,
+            self.stage,
+            Cli.RATIO_MIN,
+            Cli.RATIO_MAX,
+            logger=logger,
+        )
+        self.about = AboutPage(
+            CheckSystem(
+                logger=logger,
+                app_name=Cli.APP_NAME,
+                version=Cli._PKG_VERSION,
+                console_name=Cli.CONSOLE_NAME,
+            ),
+            Cli.APP_NAME,
+            Cli._PKG_VERSION,
+            MAJOR_VERSION,
+            MINOR_VERSION,
+            PATCH_VERSION,
+            Cli.AUTHOR_NAME,
+            Cli.LAST_UPDATE,
+            Cli.HOMEPAGE,
+            Cli.DOWNLOAD_URL,
+            Cli.BASIC_USAGE,
+            Cli.CONSOLE_NAME,
+            logger=logger,
+        )
+        self.edit = EditWalk(
+            self.output,
+            self.encoder,
+            self.media,
+            Cli.RATIO_MIN,
+            Cli.RATIO_MAX,
+            logger=logger,
+        )
+        self.self_manage = SelfManage(Cli.APP_NAME, Cli._PKG_VERSION, logger=logger)
+        self.tui = Tui(self, logger=logger)
 ```
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
@@ -271,9 +319,10 @@ class Cli:
 | 2026-10-02 | Active 1.2.14 | Sample code shows `Cli(logger)` and `Tui(logger)`. `StateLogic` stays unordered |
 | 2026-10-04 | Active 1.2.15 | Class `LanguageMenu` in `language_menu.py` owns the codes, the language file, and the words. `Tui` writes `LanguageMenu(...)`. `MenuPainter` owns `LANG_ROWS` and `set_path_label`. `Tui` owns `language_menu_lines`. The picture stays on `requirement-python-tui`. The codes stay on `requirement-python-cli-language` |
 | 2026-10-04 | Active 1.2.16 | `Cli` does not own `_verb_hello`. `Tui` does not own `framework_hello` |
+| 2026-10-05 | Active 1.2.17 | Sample code is the live `Cli.__init__` construct sites and `def main` writing `Cli(logger)`. `StateLogic` stays unordered. The program was not changed |
 
 ---
 
-**Last Updated**: 2026-10-04
+**Last Updated**: 2026-10-05
 **Owner**: project maintainers
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

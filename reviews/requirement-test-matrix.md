@@ -1,6 +1,6 @@
 # Requirement ↔ test matrix — VideoSpeed
 
-**Updated:** 2026-10-04  
+**Updated:** 2026-10-05  
 **Suite:** `tests/run.sh` — Core have; TP-FFMPEG skip without ffmpeg/fixture
 
 | Requirement key | Area | TP families | Coverage notes |
@@ -10,7 +10,7 @@
 | requirement-video-ffmpeg-pipeline | video | TP-FFMPEG-* · TP-FS-* · TP-ERR-03 | Ops SSOT; **shutil.move**; temps |
 | requirement-python-cli-interface | python | TP-CLI-* · TP-SELF-01 · TP-MAIN-01 | Entry, product verbs, and `main` order. `TP-CLI-07` **have**. `TP-SELF-01` **have** (pip version-check and self-update). `main` order **todo** |
 | requirement-python-interactive-vs-noninteractive | python | TP-MODE-01..09 · TP-CLI-03 · TP-CLI-06 · TP-CLI-07 | Menu is the no-verb entry. `edit` and `list-mp4` are the named screen verbs. `TP-MODE-05`..`09` and `TP-CLI-07` **have**. `TP-CLI-03` **todo** |
-| requirement-python-version | python | TP-VER-01..03 | Triple SSOT `1.0.12`; debug line **todo** |
+| requirement-python-version | python | TP-VER-01..03 | Triple SSOT `1.0.13`; debug line **todo** |
 | requirement-python-tui | python | TP-TUI-01..13 · TP-OOP-03 | Default TUI style. Session is class `Tui`. Frame is class `MenuPainter`. `TP-OOP-03` **have**. The front board does not list hello (`TP-TUI-05` **have**). Menu **4** opens language. Menu **6** opens system-log (`TP-TUI-11` **have**). The view-log list does not use the one-second clock wait (`TP-TUI-12` **have**). Menu **8** opens self-management (`TP-TUI-06` **have**). The first menu row keeps the path on the left (`TP-TUI-07` **have**). The login field is withdrawn (`TP-TUI-08` **have**). The local clock is `TP-TUI-09` **have**. The one-second redraw is `TP-TUI-10` **have**. Display columns are `TP-TUI-13` **have** (Wide and Fullwidth are two; Ambiguous stays one) |
 | requirement-python-cli-language | python | TP-LANG-01 | Front **4** is language. Thirteen codes **41**–**53**. File mode **0600**. A bad line is not rewritten. `VIDEOSPEED_LANG` does not write. **0** Back does not write. A failed write keeps the previous language (`TP-LANG-01` **have**) |
 | requirement-python-about | python | TP-ABOUT-01..15 | About page lines and the read for each line. `TP-ABOUT-09` and `TP-ABOUT-10` are the pyenv paths. `TP-ABOUT-11` and `TP-ABOUT-12` are the conda paths. `TP-ABOUT-13` and `TP-ABOUT-14` are PID, the cache chain, persistence, and TTY. `TP-ABOUT-15` is `about --json` streams (**have**) |
@@ -24,6 +24,7 @@
 | requirement-python-dependency-management | python | TP-DEP-01..04 | Headless OpenCV `>=5.0.0.93`; ChronicleLogger `>=1.3.1` |
 | requirement-python-cli-logging | python | TP-LOG-01..08 · TP-ABOUT-16 | `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)` in that function, with `is_quiet=True` when `--json` or the text screen is already known, passed into every class. Each `__init__` logs `instantiated` (**TP-LOG-05**). `CheckSystem` reads `inVenv`, `inPyenv`, and `inConda` from that logger (**TP-ABOUT-16** have). A major file operation logs the operation and the paths (**TP-LOG-06** todo). Thread creation and thread operations log before the call that can block (**TP-LOG-07** todo; the ship unit creates no threads). A non-TUI, non-JSON run shows `debug mode` when `DEBUG` is on (**TP-LOG-03** todo). `about --json` keeps the mirror off both streams, including `Created directory:` (**TP-LOG-08** have) |
 | requirement-python-graceful-exit | python | TP-EXIT-01..07 | Control-C on an open text screen asks `Exit? (y/n)` and logs the decision. Yes exits 130. A live child is stopped and not published first. All seven proofs **todo**. Not in the ship unit yet |
+| requirement-python-time-consuming-process | python | TP-TIME-01..05 | The FFmpeg child in `Encoder.run_ffmpeg`. One line flashes a bullet and `please wait for time consuming process` every half second. That interval does not stop the child. The long step is `speed_change` when the length is not 100%. All five proofs **have**. `./tests/run.sh` 2026-10-05: 103 tests, OK, skipped=1 |
 | requirement-python-project-structure | python | TP-STRUCT-01 | src layout; ship SSOT |
 | requirement-python-error-handling | python | TP-ERR-* · TP-CLI-04..05 | Fail closed; source safe |
 | requirement-runtime-prerequisites | runtime | TP-PRE-* | FFmpeg + OpenCV honesty |

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-coding-style.md  
-**Status**: Active (Version 1.4.13)  
+**Status**: Active (Version 1.4.14)  
 **Area**: python  
 **Key**: `requirement-python-coding-style`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -142,19 +142,35 @@ On Termux, Git Bash, Windows cmd, or the same class, file moves and status lines
 
 ## Sample code
 
+`FileStage.promote_file` in `src/VideoSpeed/file_stage.py` publishes with `shutil.move`. `def main` writes `ChronicleLogger(...)` and `Cli(logger)`. It does not call `shutil.move`. The program was not changed.
+
 ```python
+class FileStage:
+    def promote_file(self, src, dest):
+        src = Path(src)
+        dest = Path(dest)
+        if not src.is_file():
+            raise FileNotFoundError("promote source missing: {}".format(src))
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(src), str(dest))
+
 class Cli:
     APP_NAME = "VideoSpeed"
     CONSOLE_NAME = "video-speed"
 
-def main(argv=None):
-    logger = ChronicleLogger(logname="VideoSpeed", is_quiet=json_or_text_screen)
+def main(argv=None, log_basedir="", log_logdir=""):
+    show_mirror = Cli._show_log_mirror(argv)
+    logger = ChronicleLogger(
+        logname="VideoSpeed",
+        basedir=log_basedir or "",
+        logdir=log_logdir or "",
+        is_quiet=not show_mirror,
+    )
     app = Cli(logger)
-    shutil.move(src, dst)
-    return app.run(argv)
+    return app.run(argv, logger=logger)
 ```
 
-`Cli(logger)` is the construct. A function that returns `Cli(...)` is a factory. `shutil.move` is the publish. `os.rename` and `os.replace` are not this sample.
+`Cli(logger)` is the construct. A function that returns `Cli(...)` is a factory. `shutil.move` is inside `FileStage.promote_file`. Same device renames. Another device copies, then removes the source. `os.rename` and `os.replace` are not this sample.
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
@@ -253,9 +269,10 @@ def main(argv=None):
 | 2026-10-02 | Active 1.4.11 | A function or a method whose job is to instantiate a class is a factory. The class can be created without one. The caller writes `ClassName(...)`. No new proof id. The suite spy in `tests/test_logging.py` is still that shape |
 | 2026-10-02 | Active 1.4.12 | Control-C confirm, the exit log, and the child stop stay on `requirement-python-graceful-exit`. Do not duplicate |
 | 2026-10-02 | Active 1.4.13 | Sample code shows `Cli(logger)` and `shutil.move`. Identity stays on class `Cli` |
+| 2026-10-05 | Active 1.4.14 | Sample code is `FileStage.promote_file` (`shutil.move` inside that method) and `def main` writing `ChronicleLogger(...)` then `Cli(logger)`. `shutil.move` is not inside `main`. The program was not changed |
 
 ---
 
-**Last Updated**: 2026-10-02  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

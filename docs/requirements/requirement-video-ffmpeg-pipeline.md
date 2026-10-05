@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-video-ffmpeg-pipeline.md  
-**Status**: Active (Version 1.1.6)  
+**Status**: Active (Version 1.1.8)  
 **Area**: video  
 **Key**: `requirement-video-ffmpeg-pipeline`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,7 +8,7 @@
 
 This requirement is the **operational Single Source of Truth** for VideoSpeed media processing: segment cut, speed/length change, optional boomerang (reverse + concat), temporary file lifecycle, and FFmpeg invocation rules.
 
-Domain feature catalog and user workflow labels live in **`requirement-domain-videospeed`**. The menu walk versus one job lives in **`requirement-python-interactive-vs-noninteractive`**. Entry stays on **`requirement-python-cli-interface`**.
+Domain feature catalog and user workflow labels live in **`requirement-domain-videospeed`**. The menu walk versus one job lives in **`requirement-python-interactive-vs-noninteractive`**. Entry stays on **`requirement-python-cli-interface`**. Which of these FFmpeg children is the time-consuming wait, and the flashing line while the parent waits, stay on **`requirement-python-time-consuming-process`**. That file names a half-second flash and names no timeout that stops the child.
 
 ### 1.1 Human-facing
 
@@ -177,6 +177,7 @@ At 100% length with boomerang off, the cut is the file `shutil.move` publishes. 
 | `requirement-python-coding-style` | General file move / temp coding rules |
 | `requirement-python-oop` | Class `Encoder`, class `MediaInfo`, class `FileStage`. This file keeps the order |
 | `requirement-runtime-prerequisites` | `ffmpeg` present |
+| `requirement-python-time-consuming-process` | The FFmpeg child and the flashing wait line. Version 1.1.0 names a half-second flash and names no kill timeout |
 | `docs/requirements/index.md` | Registry |
 
 ## Design-time verification
@@ -200,9 +201,11 @@ At 100% length with boomerang off, the cut is the file `shutil.move` publishes. 
 | 2026-10-01 | Active 1.1.4 | Encode methods are class `Encoder`. Order unchanged. `TP-OOP-04` is todo |
 | 2026-10-01 | Active 1.1.5 | `Encoder`, `MediaInfo`, and `FileStage` are on disk. `TP-OOP-04` has landed. Order unchanged |
 | 2026-10-02 | Active 1.1.6 | Sample code shows `-nostdin` and `shutil.move`. No speed encode at 100% with boomerang off |
+| 2026-10-05 | Active 1.1.7 | The blocking child points at `requirement-python-time-consuming-process`. Order and presets stay here. The program was not changed |
+| 2026-10-05 | Active 1.1.8 | The wait line points at `requirement-python-time-consuming-process` 1.1.0. Order and presets stay here |
 
 ---
 
-**Last Updated**: 2026-10-01  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

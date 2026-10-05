@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.13] - 2026-10-05
+
+### Added
+- While FFmpeg runs, the text screen and a plain terminal show one flashing line: a bullet and `please wait for time consuming process`. The bullet alternates ● and ○ every half second. That interval does not stop FFmpeg. `--json` stays silent. The text-menu screenshots are retaken for 1.0.13, including that wait line.
+
 ## [1.0.12] - 2026-10-05
 
 ### Changed

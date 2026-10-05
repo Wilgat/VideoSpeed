@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-error-handling.md  
-**Status**: Active (Version 1.2.5)  
+**Status**: Active (Version 1.2.6)  
 **Area**: python  
 **Key**: `requirement-python-error-handling`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -95,22 +95,35 @@ On Termux, Git Bash, Windows cmd, or the same class, a failure is still reported
 
 ## Sample code
 
-`StateLogic` is not this file. The console sentence is.
+`StateLogic` is not this file. `RunOutput.out_err` in `src/VideoSpeed/run_output.py` writes the console sentence. `Encoder.ensure_ffmpeg` in `src/VideoSpeed/encoder.py` uses that method and returns `False`. There is no `fail()`. The program was not changed.
 
 ```python
-def fail(sentence, next_step=None):
-    print(sentence, file=sys.stderr)
-    if next_step:
-        print(next_step, file=sys.stderr)
-    return 1
+def out_err(self, msg):
+    if self.message_sink is not None:
+        self.message_sink(msg, True)
+        return
+    print(msg, file=sys.stderr)
+
+def ensure_ffmpeg(self):
+    if shutil.which("ffmpeg") is None:
+        self.output._remember(
+            "ffmpeg not found on PATH.",
+            "Install FFmpeg and ensure ffmpeg is available.",
+        )
+        self.output.out_err("ERROR: ffmpeg not found on PATH.")
+        self.output.out_err("   Install FFmpeg and ensure `ffmpeg` is available.")
+        self.output.out_err("   → https://ffmpeg.org/download.html")
+        return False
+    return True
 ```
 
 ```text
-ERROR: ffmpeg is not on PATH.
-Next: install FFmpeg.
+ERROR: ffmpeg not found on PATH.
+   Install FFmpeg and ensure `ffmpeg` is available.
+   → https://ffmpeg.org/download.html
 ```
 
-Control-C is not this function. Exit 130 stays on `requirement-python-graceful-exit`.
+Control-C is not these methods. Exit 130 stays on `requirement-python-graceful-exit`.
 
 ## 3. Design Principles (CIAO / CIAO-Lite)
 
@@ -179,9 +192,10 @@ Control-C is not this function. Exit 130 stays on `requirement-python-graceful-e
 | 2026-10-01 | Active 1.2.3 | Control-C during a long child is not an FFmpeg failure. Exit 130 is `requirement-python-graceful-exit` |
 | 2026-10-02 | Active 1.2.4 | A Control-C confirm, including a declined answer, is not a failure sentence. The question stays on `requirement-python-graceful-exit` |
 | 2026-10-02 | Active 1.2.5 | Sample code is the operator sentence. `StateLogic` stays off this file |
+| 2026-10-05 | Active 1.2.6 | Sample code is `RunOutput.out_err` and `Encoder.ensure_ffmpeg`. There is no `fail()`. `StateLogic` stays off this file. Control-C stays on `requirement-python-graceful-exit`. The program was not changed |
 
 ---
 
-**Last Updated**: 2026-10-02  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

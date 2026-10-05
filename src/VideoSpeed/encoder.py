@@ -2,12 +2,14 @@
 # Cut, speed, and optional boomerang.
 # requirement-python-oop — class Encoder.
 # requirement-video-ffmpeg-pipeline — order stays cut, then speed, then boomerang.
+# requirement-python-time-consuming-process — run_ffmpeg waits and flashes one line.
 # =============================================================================
 from __future__ import print_function, unicode_literals
 
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from .file_stage import FileStage
@@ -19,7 +21,13 @@ class Encoder:
 
     At 100% length, process_job publishes the cut and skips the speed encode.
     Every command uses -nostdin. run_ffmpeg passes stdin DEVNULL.
+    While the child runs, one line flashes please wait for time consuming process.
     """
+
+    FLASH_SECONDS = 0.5
+    WAIT_PHRASE = "please wait for time consuming process"
+    WAIT_MARK_ON = "\u25cf"
+    WAIT_MARK_OFF = "\u25cb"
 
     def __init__(self, output, media, stage, ratio_min, ratio_max, logger=None):
         self.logger = logger
@@ -30,6 +38,40 @@ class Encoder:
         self.stage = stage if stage is not None else FileStage(logger=logger)
         self.ratio_min = ratio_min
         self.ratio_max = ratio_max
+        self._plain_wait_open = False
+
+    def _wait_line(self, mark):
+        """General Purpose: One flashing wait line. Three spaces, bullet, phrase."""
+        return "   {} {}".format(mark, self.WAIT_PHRASE)
+
+    def _show_wait(self, mark):
+        """General Purpose: Paint or rewrite the one wait line. --json stays silent."""
+        if self.output.json_mode:
+            return
+        line = self._wait_line(mark)
+        if self.output.message_sink is not None:
+            self.output.out_info(line)
+            return
+        sys.stdout.write("\r" + line)
+        sys.stdout.flush()
+        self._plain_wait_open = True
+
+    def _close_plain_wait(self):
+        """General Purpose: End the rewritten terminal line so the next line is new."""
+        if self._plain_wait_open:
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+            self._plain_wait_open = False
+
+    def _stop_child(self, proc):
+        """General Purpose: Stop a child that is still running, then wait for it.
+
+        This is the child stop subprocess.run already performed. It is not Exit?.
+        """
+        if proc is None or proc.poll() is not None:
+            return
+        proc.kill()
+        proc.wait()
 
     def ensure_ffmpeg(self):
         """
@@ -64,37 +106,50 @@ class Encoder:
     def run_ffmpeg(self, cmd):
         """
         General Purpose: Run one FFmpeg command; fail closed on non-zero exit.
+        requirement-python-time-consuming-process — this call waits in the foreground.
+        The half-second flash does not stop the child.
         Does not modify the user's source media path.
-        On the open text screen, capture the child's pipes so the frame stays up.
+        Captured pipes keep the flashing line and a JSON object free of FFmpeg text.
         -nostdin stops FFmpeg from waiting on the terminal at the end of a step.
         """
-        if self.output.message_sink is not None:
-            self.output.out_info("   Running ffmpeg…")
-        else:
-            self.output.out_info("   Running → {}".format(" ".join(str(part) for part in cmd)))
+        mark = self.WAIT_MARK_ON
+        self._show_wait(mark)
+        proc = None
         try:
-            if self.output.message_sink is not None or self.output.json_mode:
-                proc = subprocess.run(
-                    cmd,
-                    check=False,
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-                if proc.returncode != 0:
-                    err = (proc.stderr or b"").decode("utf-8", "replace").strip()
-                    if err:
-                        self.output.out_err(err)
-                    raise subprocess.CalledProcessError(proc.returncode, cmd)
-                return
-            subprocess.run(cmd, check=True, stdin=subprocess.DEVNULL)
+            proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            stderr = b""
+            while True:
+                try:
+                    _stdout, stderr = proc.communicate(timeout=self.FLASH_SECONDS)
+                    break
+                except subprocess.TimeoutExpired:
+                    mark = (
+                        self.WAIT_MARK_OFF
+                        if mark == self.WAIT_MARK_ON
+                        else self.WAIT_MARK_ON
+                    )
+                    self._show_wait(mark)
+            if proc.returncode != 0:
+                err = (stderr or b"").decode("utf-8", "replace").strip()
+                if err:
+                    self.output.out_err(err)
+                raise subprocess.CalledProcessError(proc.returncode, cmd)
         except FileNotFoundError:
             self.output.out_err("ERROR: ffmpeg not found while running a encode step.")
             raise
         except subprocess.CalledProcessError as exc:
             self.output.out_err("ERROR: ffmpeg failed (exit {}).".format(exc.returncode))
             raise
+        except BaseException:
+            self._stop_child(proc)
+            raise
         finally:
+            self._close_plain_wait()
             self._restore_text_screen()
 
     def cut_clip(self, src, start, end, output_path):

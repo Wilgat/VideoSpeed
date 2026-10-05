@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-runtime-prerequisites.md  
-**Status**: Active (Version 1.1.10)  
+**Status**: Active (Version 1.1.12)  
 **Area**: runtime  
 **Key**: `requirement-runtime-prerequisites`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -71,7 +71,7 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | **System binary** | `ffmpeg` on `PATH` |
 | **Auto install command** | **none** (not implemented) |
 | **Platform notes** | Linux primary. Duration probing uses the headless OpenCV wheel, which does not need `libGL.so.1`. Other OS OK when FFmpeg + OpenCV are available |
-| **Product version** | 1.0.12 |
+| **Product version** | 1.0.13 |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -83,12 +83,20 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 
 ## Sample code
 
-```python
-import shutil
+`Encoder.ensure_ffmpeg` in `src/VideoSpeed/encoder.py` is the live check. It returns `False` when `ffmpeg` is missing. It does not raise `SystemExit` and it does not install. The program was not changed.
 
-def require_ffmpeg():
+```python
+def ensure_ffmpeg(self):
     if shutil.which("ffmpeg") is None:
-        raise SystemExit("ERROR: ffmpeg is not on PATH. Next: install FFmpeg.")
+        self.output._remember(
+            "ffmpeg not found on PATH.",
+            "Install FFmpeg and ensure ffmpeg is available.",
+        )
+        self.output.out_err("ERROR: ffmpeg not found on PATH.")
+        self.output.out_err("   Install FFmpeg and ensure `ffmpeg` is available.")
+        self.output.out_err("   → https://ffmpeg.org/download.html")
+        return False
+    return True
 ```
 
 This check does not install FFmpeg and does not use admin privilege. OpenCV and ChronicleLogger stay pip strings on `requirement-python-dependency-management`.
@@ -161,6 +169,8 @@ This check does not install FFmpeg and does not use admin privilege. OpenCV and 
 | 2026-10-02 | Active 1.1.8 | Sample code shows a missing `ffmpeg` failing closed. No install |
 | 2026-10-04 | Active 1.1.9 | Product version is package string `1.0.11` |
 | 2026-10-05 | Active 1.1.10 | Product version is package string `1.0.12` |
+| 2026-10-05 | Active 1.1.11 | Sample code is `Encoder.ensure_ffmpeg`. It returns `False` and does not raise `SystemExit` or install. The program was not changed |
+| 2026-10-05 | Active 1.1.12 | Product version is package string `1.0.13` |
 
 ---
 

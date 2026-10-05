@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-about.md
-**Status**: Active (Version 1.0.13)
+**Status**: Active (Version 1.0.14)
 **Area**: python
 **Key**: `requirement-python-about`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -108,12 +108,12 @@ The screen that shows the page stays on `requirement-python-tui`. The domain sum
 Values in angle brackets are the live read. They are not a frozen login or home path.
 
 ```text
-VideoSpeed 1.0.12
+VideoSpeed 1.0.13
 Domain: Cut → speed/length → optional boomerang for MP4
 Runtime tools: FFmpeg (encode), OpenCV (duration probe)
 Entry points: video-speed, python -m VideoSpeed
 
-2026-10-01 11:16:23.700590 VideoSpeed(v1.0.12)  [CHECK SYSTEM]:
+2026-10-01 11:16:23.700590 VideoSpeed(v1.0.13)  [CHECK SYSTEM]:
   Now checking your operation system!
     Python: 3.12.3
     C Library: GCC 13.3.0
@@ -140,7 +140,7 @@ Entry points: video-speed, python -m VideoSpeed
 
 *****************************************************
 *                                                   *
-* VideoSpeed (1.0.12) by Wilgat Wong on 2026-10-01  *
+* VideoSpeed (1.0.13) by Wilgat Wong on 2026-10-01  *
 *                                                   *
 * You are using an UNINSTALLED version, location:   *
 *     <program path>                                *
@@ -302,6 +302,7 @@ TP-ABOUT-01 asserts the identity line, every host-check label, the star-box titl
 | 2026-10-02 | Active 1.0.11 | `./tests/run.sh`: 86 tests, OK, skipped=1. `TP-ABOUT-15` has. The page stays on the error stream |
 | 2026-10-04 | Active 1.0.12 | Sample version strings are package string `1.0.11` |
 | 2026-10-05 | Active 1.0.13 | Sample version strings are package string `1.0.12` |
+| 2026-10-05 | Active 1.0.14 | Sample version strings are package string `1.0.13` |
 
 **Last Updated**: 2026-10-05
 **Owner**: project maintainers

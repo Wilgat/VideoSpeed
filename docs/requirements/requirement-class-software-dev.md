@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-class-software-dev.md  
-**Status**: Active (Version 1.0.21 – VideoSpeed software-development class law + residual stack)  
+**Status**: Active (Version 1.0.24 – VideoSpeed software-development class law + residual stack)  
 **Area**: class  
 **Key**: `requirement-class-software-dev`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -131,6 +131,7 @@ This file is **class law + residual SSOT**, not a second copy of domain video fe
 | OOP grouping (one class per file) | `requirement-python-oop` | One class per file. `def main` stays in `cli.py`. Each class `__init__` receives the logger. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Domain surface (workflow, help framing) | `requirement-domain-videospeed` | Four pillars |
 | FFmpeg cut / speed / boomerang ops | `requirement-video-ffmpeg-pipeline` | Ops SSOT |
+| Time-consuming process | `requirement-python-time-consuming-process` | The FFmpeg child in `Encoder.run_ffmpeg`. The parent waits in the foreground. One line flashes a bullet and `please wait for time consuming process`. Version 1.1.0 names a half-second flash and names no kill timeout. Do not duplicate |
 | Error / fail-closed user messaging | `requirement-python-error-handling` | Do not duplicate |
 | Python coding style / file move+temps | `requirement-python-coding-style` | `shutil.move`; no `os.rename` or `os.replace` |
 | Host runtime deps (FFmpeg, OpenCV) | `requirement-runtime-prerequisites` | External tools; pip floors point at the dependency requirement |
@@ -161,13 +162,19 @@ VideoSpeed is a **local Type N interactive CLI**. It has **no** dest approval ma
 
 ## Sample code
 
-This file points. It does not construct the logger and it does not encode.
+This file points. It does not own the logger procedure and it does not encode. The statements below are the live construct in `def main`. The full function stays on `requirement-python-cli-interface` and `requirement-python-cli-logging`. The program was not changed.
 
 ```python
-def main(argv=None):
-    logger = ChronicleLogger(logname="VideoSpeed", is_quiet=json_or_text_screen)
+def main(argv=None, log_basedir="", log_logdir=""):
+    show_mirror = Cli._show_log_mirror(argv)
+    logger = ChronicleLogger(
+        logname="VideoSpeed",
+        basedir=log_basedir or "",
+        logdir=log_logdir or "",
+        is_quiet=not show_mirror,
+    )
     app = Cli(logger)
-    return app.run(argv)
+    return app.run(argv, logger=logger)
 ```
 
 ## 3. Why This Requirement Exists (Direct CIAO Alignment)
@@ -275,9 +282,12 @@ def main(argv=None):
 | 2026-10-02 | Active 1.0.19 | Conda root and the python2, python3, and conda paths point at `requirement-python-conda`. Do not duplicate |
 | 2026-10-02 | Active 1.0.20 | Control-C confirm, the exit log, and the child stop point at `requirement-python-graceful-exit`. Do not duplicate |
 | 2026-10-02 | Active 1.0.21 | Sample code shows `def main` writing `ChronicleLogger(...)` and then `Cli(logger)`. This file still only points |
+| 2026-10-05 | Active 1.0.22 | Sample code points at the live `def main` signature: `_show_log_mirror`, `basedir`, `logdir`, `Cli(logger)`, `app.run`. This file still only points. The program was not changed |
+| 2026-10-05 | Active 1.0.23 | The blocking FFmpeg child points at `requirement-python-time-consuming-process`. Do not duplicate. The program behavior was not changed |
+| 2026-10-05 | Active 1.0.24 | The peer wait is version 1.1.0. The flashing line stays on that file. Do not duplicate |
 
 ---
 
-**Last Updated**: 2026-10-02  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

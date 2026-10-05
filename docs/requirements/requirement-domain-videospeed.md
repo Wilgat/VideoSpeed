@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-videospeed.md  
-**Status**: Active (Version 1.2.7)  
+**Status**: Active (Version 1.2.8)  
 **Area**: domain  
 **Key**: `requirement-domain-videospeed`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -120,7 +120,7 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | **Product / package name** | `VideoSpeed` |
 | **Console script** | `video-speed` |
 | **Domain implementation module** | `src/VideoSpeed/cli.py` |
-| **VERSION** | `1.0.12` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 12) |
+| **VERSION** | `1.0.13` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 13) |
 | **Input formats (current)** | MP4 only (`*.mp4`, `*.MP4`), recursive under selected folder |
 | **Output location** | Same directory as source video |
 | **Output name pattern** | `{stem}_cut{start:.1f}-{end:.1f}s_{int(ratio)}pct[_BOOMERANG].mp4` |
@@ -236,6 +236,7 @@ Those commands are `clip_cut1.0-5.0s_100pct.mp4` and `clip_cut1.0-5.0s_50pct_BOO
 | 2026-10-04 | Active 1.2.5 | User-document headings and pictures point at `requirement-python-readme`. Domain rows stay here |
 | 2026-10-04 | Active 1.2.6 | `hello` is not a domain verb and is not a product verb |
 | 2026-10-05 | Active 1.2.7 | VERSION is package string `1.0.12` |
+| 2026-10-05 | Active 1.2.8 | VERSION is package string `1.0.13` |
 
 ---
 

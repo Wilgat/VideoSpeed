@@ -2,14 +2,14 @@
 
 Authoritative specialized product law for **VideoSpeed** lives here.
 
-**Current state (2026-10-05):** Specialized **software-development** product. Left genesis. Registry is populated (23 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
+**Current state (2026-10-05):** Specialized **software-development** product. Left genesis. Registry is populated (24 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
 | Product / package | `VideoSpeed` |
-| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 12 → `1.0.12` |
+| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 13 → `1.0.13` |
 | Text menu | `requirement-python-tui` — picture; first row is Path and the current directory; session is class `Tui`; frame is class `MenuPainter`. Front row **4** is language. Front row **6** is system-log |
 | User README | `requirement-python-readme` — root `README.md` sections, Advantages after Features, related projects, badges, install honesty, and the text-menu screenshots. A capture that shows a version shows the package string. The path-row sentence names the local clock |
 | Menu language | `requirement-python-cli-language` — thirteen codes on row **4**; one line under this login’s persistence directory; `VIDEOSPEED_LANG` wins at process start and does not write |
@@ -27,6 +27,7 @@ Authoritative specialized product law for **VideoSpeed** lives here.
 | Install mode | **pip / local package** |
 | Domain surface | `requirement-domain-videospeed` — four pillars |
 | Encode ops | `requirement-video-ffmpeg-pipeline` — cut / speed / boomerang |
+| Time-consuming process | `requirement-python-time-consuming-process` — the FFmpeg child in `Encoder.run_ffmpeg`. The parent waits in the foreground. One line flashes a bullet and `please wait for time consuming process` every half second. That interval does not stop the child. The long step is the speed encode when the length is not 100% (`TP-TIME-01` through `TP-TIME-05` have) |
 | Coding style | `requirement-python-coding-style` — temps; `shutil.move` for every file move; no `os.rename` or `os.replace`; one class per file; an object is `ClassName(...)` at the site; a factory (a function or a method that instantiates a class) is banned; identity, verb lists, and bounds are attributes of class `Cli`; attribute access by name; no `__dict__` unless the user orders that access |
 | Runtime tools | FFmpeg (system) + OpenCV (pip) |
 | Public reviews | `reviews/` — what-to-review, test-plan, lessons, reports |

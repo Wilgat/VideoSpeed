@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-logging.md
-**Status**: Active (Version 1.0.17)
+**Status**: Active (Version 1.0.20)
 **Area**: python
 **Key**: `requirement-python-cli-logging`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -10,7 +10,7 @@
 
 **Very important.** `def main` instantiates ChronicleLogger. The instantiation is the statement `ChronicleLogger(...)` written in that function, before the argument parser and before any product object.
 
-VideoSpeed records **system status** through that one **ChronicleLogger** instance: process start, debug identity, menu and edit steps, duration probe, encode stages, major file operations, thread creation and thread operations, and failures. Class `CheckSystem` reads whether this process is in a venv, in pyenv, and in conda from that same object. The pip name and version floor live in `requirement-python-dependency-management`. User-visible failure sentences stay owned by `requirement-python-error-handling`. Stopping on Control-C stays owned by `requirement-python-graceful-exit`. The text menu stays owned by `requirement-python-tui`. This file does not name a thread-wait timeout.
+VideoSpeed records **system status** through that one **ChronicleLogger** instance: process start, debug identity, menu and edit steps, duration probe, encode stages, major file operations, thread creation and thread operations, and failures. Class `CheckSystem` reads whether this process is in a venv, in pyenv, and in conda from that same object. The pip name and version floor live in `requirement-python-dependency-management`. User-visible failure sentences stay owned by `requirement-python-error-handling`. Stopping on Control-C stays owned by `requirement-python-graceful-exit`. The text menu stays owned by `requirement-python-tui`. The FFmpeg child that the parent waits on is `requirement-python-time-consuming-process`. This file does not name a thread-wait timeout. Version 1.1.0 of that file names a half-second flash and names no timeout that stops the child, so that wait stays unbounded.
 
 ### 1.1 Human-facing
 
@@ -102,7 +102,7 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 13m. The `component` **MUST** come from the table in rule 13: the class that performs the operation, or `main` when `main` does. Create, start, joined, acquired, and released are `INFO`. A bound that expires is `WARNING`. The call **MUST NOT** sit inside `if logger.isDebug():`. **MUST NOT** use `print`. **MUST NOT** construct a second logger, including one logger per thread.  
 13n. The before-line is what keeps an endless wait visible. A join, wait, or acquire that never returns still has that line already in the daily file, with the thread name and the object it is waiting on.  
 13o. `log_message` **MUST NOT** run while a work lock is held. When more than one thread can call `log_message`, one dedicated lock **MUST** wrap only that call, and that lock **MUST** be released before start, join, wait, acquire of any other lock, or any other blocking call. **MUST NOT** join a thread while holding a lock that thread must take. ChronicleLogger's file append is not a lock. A second logger is not the fix for a torn line.  
-13p. This file does not name a wait timeout. When another requirement names a bound, the before-line includes it and the outcome line says `timeout` when that bound fires. An unbounded wait is still logged before it starts.  
+13p. This file does not name a wait timeout. When another requirement names a bound, the before-line includes it and the outcome line says `timeout` when that bound fires. An unbounded wait is still logged before it starts. The FFmpeg child that the parent waits on is `requirement-python-time-consuming-process`. Version 1.1.0 of that file names a half-second flash and names no timeout that stops the child. The flash interval is not this bound.  
 13q. Quiet from rule 11a still applies. The daily file still receives the line. Control-C of an FFmpeg child stays `requirement-python-graceful-exit`. A thread join is not that stop.
 
 14. Allowed `level` values: `INFO`, `DEBUG`, `WARNING`, `ERROR`, `FATAL`. The library uppercases the string. `ERROR` and `FATAL` mirror to stderr. The others mirror to stdout. Omitted `level` means `INFO`.  
@@ -151,25 +151,38 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 
 ### Sample code
 
-`def main` instantiates ChronicleLogger, reads the resolved names back, runs the debug gate, and then writes `Cli(logger)`.
+`def main` in `src/VideoSpeed/cli.py` instantiates ChronicleLogger, reads the resolved names back, runs the debug gate, and then writes `Cli(logger)`. This sample is that function. The program was not changed.
 
 ```python
-def main(argv=None):
-    """This function instantiates ChronicleLogger. The statement below is the construct."""
-    from ChronicleLogger import ChronicleLogger
-    from VideoSpeed import MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION
+def main(argv=None, log_basedir="", log_logdir=""):
+    if argv is None:
+        argv = sys.argv[1:]
+    argv = list(argv)
+    try:
+        from ChronicleLogger import ChronicleLogger
+    except ImportError:
+        print("ERROR: ChronicleLogger is not installed.", file=sys.stderr)
+        print("   Next: pip install 'ChronicleLogger>=1.3.1'", file=sys.stderr)
+        return 1
 
-    appname = "VideoSpeed"
-    show_mirror = verbose and not json_mode and not text_screen
-    logger = ChronicleLogger(logname=appname, is_quiet=not show_mirror)
+    show_mirror = Cli._show_log_mirror(argv)
+    logger = ChronicleLogger(
+        logname="VideoSpeed",
+        basedir=log_basedir or "",
+        logdir=log_logdir or "",
+        is_quiet=not show_mirror,
+    )
     appname = logger.logName()
     basedir = logger.baseDir()
-    logdir = logger.logDir()
-
+    logger.logDir()
     if logger.isDebug():
         logger.log_message(
             "{0} v{1}.{2}.{3} ({4})".format(
-                appname, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, __file__
+                appname,
+                MAJOR_VERSION,
+                MINOR_VERSION,
+                PATCH_VERSION,
+                __file__,
             ),
             component="main",
         )
@@ -187,9 +200,10 @@ def main(argv=None):
             component="main",
         )
     app = Cli(logger)
+    return app.run(argv, logger=logger)
 ```
 
-That function is `def main`. The statement `ChronicleLogger(...)` instantiates the logger there. `show_mirror` is true only when `--verbose` is set and this run is not `--json` and will not open the text screen. `is_quiet` on the constructor is the opposite of that flag, so the default is quiet. `--json` and a text screen stay quiet even when `--verbose` is also set. `quiet(True)` after this constructor returns does not hide `Created directory:`. Rule 5 keeps this statement in `def main`.
+That function is `def main`. The statement `ChronicleLogger(...)` instantiates the logger there. `Cli._show_log_mirror` is the predicate. It is true only when `--verbose` is set and this run is not `--json` and will not open the text screen. `is_quiet` on the constructor is the opposite of that flag, so the default is quiet. `--json` and a text screen stay quiet even when `--verbose` is also set. `logDir()` is called and its return is not stored. `quiet(True)` after this constructor returns does not hide `Created directory:`. Rule 5 keeps this statement in `def main`.
 
 `log_message` levels. `component` is always a keyword:
 
@@ -303,6 +317,7 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | `docs/requirements/requirement-python-dependency-management.md` | Pip floor `ChronicleLogger>=1.3.1` |
 | `docs/requirements/requirement-python-error-handling.md` | Console failure sentence |
 | `docs/requirements/requirement-python-graceful-exit.md` | Control-C question, exit line, and child stop. This file owns the logger and the component only |
+| `docs/requirements/requirement-python-time-consuming-process.md` | The FFmpeg child and the flashing wait line. Version 1.1.0 names a half-second flash and names no kill timeout. This file does not name that bound |
 | `docs/requirements/requirement-python-tui.md` | Text menu; not a second logger |
 | `docs/requirements/requirement-python-about.md` | The about page, including `[CHECK SYSTEM]:`. Not a logger line |
 | `docs/requirements/requirement-python-json-output.md` | The one JSON object. `quiet(True)` is not that encoder |
@@ -337,6 +352,9 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | 2026-10-02 | Active 1.0.15 | The Control-C exit line uses `menu` on a text screen and `main` otherwise. The interrupted-wait line stays `ffmpeg`. The question words stay on `requirement-python-graceful-exit`. No new proof is marked have. The program was not changed |
 | 2026-10-02 | Active 1.0.16 | Sample code shows `ChronicleLogger(...)` inside `def main`, then `Cli(logger)`. The program was not changed |
 | 2026-10-05 | Active 1.0.17 | The console mirror stays off unless `--verbose` is set on a run that is not `--json` and not a text screen. `DEBUG` without `--verbose` writes the daily file and does not show the terminal. `--json` and a text screen stay quiet even with `--verbose`. There is no `--quiet` flag |
+| 2026-10-05 | Active 1.0.18 | Sample code is the live `def main` logger slice: `Cli._show_log_mirror`, `basedir`, `logdir`, read-back, debug identity, `Cli(logger)`, `app.run`. The program was not changed |
+| 2026-10-05 | Active 1.0.19 | The blocking FFmpeg child points at `requirement-python-time-consuming-process`. This file still names no wait timeout. The program was not changed |
+| 2026-10-05 | Active 1.0.20 | The peer wait is version 1.1.0: a half-second flash, and no kill timeout. This file still names no wait timeout. The program's logger lines were not changed |
 
 ---
 

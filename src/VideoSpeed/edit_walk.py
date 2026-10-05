@@ -26,6 +26,22 @@ class EditWalk:
         self.ratio_min = ratio_min
         self.ratio_max = ratio_max
 
+    def place_job_line(self, body, msg):
+        """General Purpose: Keep one wait line. A later step takes that slot.
+
+        requirement-python-time-consuming-process — a flash replaces the line.
+        It does not append another copy of the same phrase.
+        """
+        phrase = self.encoder.WAIT_PHRASE
+        for part in str(msg).splitlines():
+            if not part.strip():
+                continue
+            if body and phrase in body[-1]:
+                body[-1] = part
+            else:
+                body.append(part)
+        return body
+
     def _err_line(self, text):
         """General Purpose: Prompt or re-ask line on stderr. Not the JSON object."""
         print(text, file=sys.stderr)
@@ -399,9 +415,7 @@ class EditWalk:
             tui._paint_lines(screen, model, "edit", body, pin_last=False)
 
             def paint_job(msg, _is_err, _body=body):
-                for part in str(msg).splitlines():
-                    if part.strip():
-                        _body.append(part)
+                self.place_job_line(_body, msg)
                 model.buffer = ""
                 model.cursor = 0
                 model.focus = "list"

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-tui.md
-**Status**: Active (Version 1.2.15)
+**Status**: Active (Version 1.2.17)
 **Area**: python
 **Key**: `requirement-python-tui`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -85,7 +85,7 @@ Path: /tmp/clips                                              14:05:09
 ╭──────────────╮
 │ > █          │
 ╰──────────────╯
-  VideoSpeed 1.0.12  │  main menu  │  Up/Down  •  Enter
+  VideoSpeed 1.0.13  │  main menu  │  Up/Down  •  Enter
 ```
 
 The same first row when the language is Traditional Chinese (`requirement-python-cli-language`):
@@ -105,16 +105,38 @@ The column rule on a wider number field (same writer, not this product’s board
 
 ### Sample code
 
-The front board, the language board, the self-management board, and the system-log board arm a one-second wait. A question, a notice, and a file list clear that wait before the key read. A no-key from the clock is not Esc. The ship unit already does this. `TP-TUI-12` has.
+`display_width` in `src/VideoSpeed/menu_painter.py` counts columns. `MenuSession._wait_key` arms the one-second clock. `Tui._tui_read` clears that wait before each question key. A no-key from the clock is not Esc. The ship unit already does this. `TP-TUI-12` has. The program was not changed.
 
 ```python
-# Boards that draw the clock. A no-key redraws the clock. It is not Esc.
-screen.timeout(1000)
-key = screen.getch()
+def display_width(text):
+    total = 0
+    for char in text:
+        if unicodedata.east_asian_width(char) in ("W", "F"):
+            total += 2
+        else:
+            total += 1
+    return total
 
-# Questions, notices, and file lists. Clear the one-second wait first.
-screen.timeout(-1)
+def _wait_key(self, screen):
+    arm = getattr(screen, "timeout", None)
+    show_clock = self.model.phase != "result"
+    if arm is not None:
+        if show_clock:
+            arm(1000)
+        else:
+            arm(-1)
+    key = screen.getch()
+    if key == -1 and show_clock and arm is not None:
+        return None
+    return key
+
+# Tui._tui_read, before each getch.
+arm = getattr(screen, "timeout", None)
+if arm is not None:
+    arm(-1)
 key = screen.getch()
+if key in (-1, 27):
+    return None
 ```
 
 ### 2.1 Implementation Notes (this project)
@@ -285,6 +307,8 @@ TP-TUI-01 asserts rules 3, 4, 5, and 7: three rows, the arc corners, full width,
 | 2026-10-04 | Active 1.2.13 | Rule 2 and rule 13 measure the verb pad, the colon column, and the path row in display columns. Wide and Fullwidth count as two. Ambiguous stays one. A later write does not start inside a wide glyph. `TP-TUI-13` has. `./tests/run.sh`: 96 tests, OK, skipped=1 |
 | 2026-10-05 | Active 1.2.14 | Status-line sample is package string `1.0.12` |
 | 2026-10-05 | Active 1.2.15 | This screen is the major entry when no product verb is named. `edit` and `list-mp4` stay the named screen verbs. Other product verbs stay on the terminal. No new picture |
+| 2026-10-05 | Active 1.2.16 | Sample code is `display_width`, `MenuSession._wait_key`, and the `timeout(-1)` lines in `Tui._tui_read`. The program was not changed |
+| 2026-10-05 | Active 1.2.17 | Status-line sample is package string `1.0.13`. During an edit job, one body line is the flashing wait from `requirement-python-time-consuming-process`. The clock on the boards is unchanged |
 
 **Last Updated**: 2026-10-05
 **Owner**: VideoSpeed project maintainers

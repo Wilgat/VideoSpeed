@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-interface.md  
-**Status**: Active (Version 1.9.7)  
+**Status**: Active (Version 1.9.8)  
 **Area**: python  
 **Key**: `requirement-python-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -60,32 +60,38 @@ M5. **Step 5 — argument parser.** **MUST** build the `ArgumentParser` and call
 
 ### Sample code
 
-`def main` writes `ChronicleLogger(...)` and then `Cli(logger)`. The parser runs after that construct.
+`def main` in `src/VideoSpeed/cli.py` writes `ChronicleLogger(...)` and then `Cli(logger)`. `Cli.run` builds the parser. This sample is that function. The program was not changed.
 
 ```python
-from ChronicleLogger import ChronicleLogger
-from VideoSpeed import MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, __version__
+def main(argv=None, log_basedir="", log_logdir=""):
+    if argv is None:
+        argv = sys.argv[1:]
+    argv = list(argv)
+    try:
+        from ChronicleLogger import ChronicleLogger
+    except ImportError:
+        print("ERROR: ChronicleLogger is not installed.", file=sys.stderr)
+        print("   Next: pip install 'ChronicleLogger>=1.3.1'", file=sys.stderr)
+        return 1
 
-def main(argv=None):
-    # 1. main's own version (package SSOT)
-    version = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
-
-    # 2. logger
-    appname = "VideoSpeed"
-    show_mirror = verbose and not json_mode and not text_screen
-    logger = ChronicleLogger(logname=appname, is_quiet=not show_mirror)
+    show_mirror = Cli._show_log_mirror(argv)
+    logger = ChronicleLogger(
+        logname="VideoSpeed",
+        basedir=log_basedir or "",
+        logdir=log_logdir or "",
+        is_quiet=not show_mirror,
+    )
     appname = logger.logName()
     basedir = logger.baseDir()
-    logdir = logger.logDir()
-
-    # is_quiet is true unless --verbose is set on a run that is not --json
-    # and will not open the text screen. --json and a text screen stay quiet.
-
-    # 3. debug
+    logger.logDir()
     if logger.isDebug():
         logger.log_message(
             "{0} v{1}.{2}.{3} ({4})".format(
-                appname, MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION, __file__
+                appname,
+                MAJOR_VERSION,
+                MINOR_VERSION,
+                PATCH_VERSION,
+                __file__,
             ),
             component="main",
         )
@@ -93,22 +99,22 @@ def main(argv=None):
             "Using {0}".format(ChronicleLogger.class_version()),
             component="main",
         )
-        logger.log_message("debug mode", component="main")
-
-    # 4. major import missing (ChronicleLogger already gated above)
-    #    cv2: same FATAL shape, at first use, not before --version
-
+        logger.log_message(
+            "Base {0}".format(basedir),
+            level="DEBUG",
+            component="main",
+        )
+        logger.log_message(
+            "debug mode",
+            component="main",
+        )
     app = Cli(logger)
-
-    # 5. argument parser
-    parser = argparse.ArgumentParser(prog="video-speed")
-    parser.add_argument("--version", action="version", version=version)
-    args = parser.parse_args(argv)
+    return app.run(argv, logger=logger)
 ```
 
 | Item | Value |
 |------|--------|
-| **Order today in `cli.py`** | `def main` writes `ChronicleLogger(...)` before the parser: version triple, `is_quiet=True` unless `--verbose` is set on a run that is not `--json` and will not open the text screen, read-back, then the debug identity and `debug mode` when `isDebug()` is true, then `Cli(logger)`. Each `__init__` writes `instantiated`. A missing ChronicleLogger returns 1 before the parser. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
+| **Order today in `cli.py`** | `def main` writes `ChronicleLogger(...)` with `logname="VideoSpeed"`, `basedir`, `logdir`, and `is_quiet=not Cli._show_log_mirror(argv)`. It reads `logName()`, `baseDir()`, and `logDir()`. When `isDebug()` is true it logs the identity, `ChronicleLogger.class_version()`, the base line, and `debug mode`, `component="main"`. Then `Cli(logger)` and `return app.run(argv, logger=logger)`. `Cli.run` builds the parser. Each `__init__` writes `instantiated`. A missing ChronicleLogger returns 1 before that call. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
 | **Version binding today** | `cli.py` imports the package triple and `__version__`. It does not declare its own triple |
 
 ### 2.2 Mode (owned elsewhere)
@@ -313,6 +319,7 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | 2026-10-04 | Active 1.9.5 | `hello` is not a product verb. `video-speed hello` exits non-zero and does not print `Hello.` |
 | 2026-10-05 | Active 1.9.6 | `--verbose` shows the console mirror unless the run is `--json` or a text screen. There is still no `--quiet`. Every product verb, including `help`, accepts `--json`. The flags `--help` and `--version` stay human |
 | 2026-10-05 | Active 1.9.7 | Each product verb's default route is the terminal. The mode file names the screen exceptions. No product verb is the menu |
+| 2026-10-05 | Active 1.9.8 | Sample code is the live `def main`: `_show_log_mirror`, `ChronicleLogger(...)` with `basedir` and `logdir`, then `Cli(logger)`, then `app.run`. The parser stays in `Cli.run`. The program was not changed |
 
 ---
 

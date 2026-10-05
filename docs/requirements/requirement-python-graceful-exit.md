@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-graceful-exit.md
-**Status**: Active (Version 1.1.1)
+**Status**: Active (Version 1.1.3)
 **Area**: python
 **Key**: `requirement-python-graceful-exit`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-When the operator presses Control-C, VideoSpeed asks whether to exit, records that decision on the one status logger, and leaves with status 130 only when the answer is yes or when no question can be shown. A press during an FFmpeg wait stops that child and does not publish before the question. A press while the text menu is waiting for a key does the same question and does not print a traceback. The menu row Exit stays a menu control. A real FFmpeg failure stays owned by `requirement-python-error-handling`. The logger and the component stay owned by `requirement-python-cli-logging`. The encode order and the publish call stay owned by `requirement-video-ffmpeg-pipeline`. The box pixels stay owned by `requirement-python-tui`. This file does not name a timeout.
+When the operator presses Control-C, VideoSpeed asks whether to exit, records that decision on the one status logger, and leaves with status 130 only when the answer is yes or when no question can be shown. A press during an FFmpeg wait stops that child and does not publish before the question. A press while the text menu is waiting for a key does the same question and does not print a traceback. The menu row Exit stays a menu control. A real FFmpeg failure stays owned by `requirement-python-error-handling`. The logger and the component stay owned by `requirement-python-cli-logging`. The encode order and the publish call stay owned by `requirement-video-ffmpeg-pipeline`. The box pixels stay owned by `requirement-python-tui`. Which FFmpeg child is the time-consuming process, and the flashing line while the parent waits, stay owned by `requirement-python-time-consuming-process`. This file does not name a timeout. Version 1.1.0 of that file names a half-second flash and names no timeout that stops the child.
 
 ### 1.1 Human-facing
 
@@ -47,7 +47,7 @@ When the operator presses Control-C, VideoSpeed asks whether to exit, records th
 4. **MUST NOT** call `isatty` inside the question. The open text screen is the gate, from `requirement-python-interactive-vs-noninteractive`.  
 5. **MUST NOT** treat the text-menu Exit row as this question. That row leaves without asking and returns 0.  
 6. **MUST NOT** apply the stop to a job that has already published.  
-7. **MUST NOT** use this file to name a timeout. A timeout, when one exists, is named by the requirement that owns it.  
+7. **MUST NOT** use this file to name a timeout. A timeout, when one exists, is named by `requirement-python-time-consuming-process`. Version 1.1.0 of that file names a half-second flash and names no timeout that stops the child. The flash interval is not this file's number.  
 8. Actor / role / subject / approver: **considered**. No dest machine. No approver. The table stays on `requirement-class-software-dev`. This file does not add an actor requirement.
 
 ### 2.1 The question
@@ -98,7 +98,7 @@ When the operator presses Control-C, VideoSpeed asks whether to exit, records th
 | **Confirm** | `y` or `yes`. A second Control-C on the question is also yes |
 | **Decline** | `n`, `no`, Enter, or Esc. The process stays. The encode does not resume |
 | **Key wait** | `MenuSession._wait_key` in `src/VideoSpeed/menu_session.py`. Today `screen.getch()` does not catch `KeyboardInterrupt`. `curses.wrapper` then prints the traceback. This law is not in the ship unit yet |
-| **FFmpeg wait** | `Encoder.run_ffmpeg` in `src/VideoSpeed/encoder.py`. Today `subprocess.run` with stdin `DEVNULL`. No `KeyboardInterrupt` handler. No `start_new_session` |
+| **FFmpeg wait** | `Encoder.run_ffmpeg` in `src/VideoSpeed/encoder.py`. Today `subprocess.Popen` and `communicate` with a half-second flash. An interrupt stops the child and propagates. No `Exit? (y/n)` handler. No `start_new_session`. No return 130 |
 | **Backstop** | `main` in `src/VideoSpeed/cli.py`. Not the only handler |
 | **Ignore-stdin flag** | `-nostdin` on every FFmpeg command. Owned by `requirement-video-ffmpeg-pipeline` |
 | **Publish** | `FileStage.promote_file` → `shutil.move`. Not called on this interrupt |
@@ -107,7 +107,7 @@ When the operator presses Control-C, VideoSpeed asks whether to exit, records th
 | **Screen** | The box stays up for the question. A confirmed exit restores the terminal. `_restore_text_screen` calls `curses.reset_prog_mode` when a text screen is active |
 | **Exit** | 130 when leaving because of Control-C. Row 9 Exit still returns 0 and does not ask |
 | **100% length** | A finished 100% job still publishes the cut and skips the speed encode. Interrupt before that publish does not publish |
-| **Timeout** | This file names none |
+| **Timeout** | This file names none. `requirement-python-time-consuming-process` 1.1.0 names a half-second flash and names no kill timeout |
 | **Proof** | `TP-EXIT-01` through `TP-EXIT-07` are todo. The program was not changed for this version |
 
 ### 2.6 Why This Requirement Exists (CIAO)
@@ -187,6 +187,7 @@ A declined answer uses `exit reason=control-c confirmed=no` at `INFO` and does n
 | `docs/requirements/requirement-python-tui.md` | The bottom box. Row 9 is not this question |
 | `docs/requirements/requirement-python-interactive-vs-noninteractive.md` | The open screen is the gate. The question does not call `isatty` |
 | `docs/requirements/requirement-video-ffmpeg-pipeline.md` | Encode order, `-nostdin`, and `promote_file` on a finished job |
+| `docs/requirements/requirement-python-time-consuming-process.md` | The FFmpeg child and the flashing wait line. That file names a half-second flash in 1.1.0 and names no kill timeout |
 | `docs/requirements/requirement-python-coding-style.md` | Points here for Control-C |
 | `docs/requirements/requirement-class-software-dev.md` | Class residual pointer |
 | `src/VideoSpeed/menu_session.py` | Key wait. Law not implemented yet |
@@ -200,9 +201,11 @@ A declined answer uses `exit reason=control-c confirmed=no` at `INFO` and does n
 | 2026-10-01 | Active 1.0.0 | Control-C during the FFmpeg wait stops the child, does not publish, and returns 130. Proofs todo. The ship unit does not catch `KeyboardInterrupt` yet. This file names no timeout |
 | 2026-10-02 | Active 1.1.0 | Control-C on an open text screen asks `Exit? (y/n)` and logs the decision. Yes, or no screen, exits 130. A live child is stopped and not published before the question. `TP-EXIT-01` through `TP-EXIT-07` are todo. The program was not changed |
 | 2026-10-02 | Active 1.1.1 | Sample code shows the exit line and the return 130. The program was not changed |
+| 2026-10-05 | Active 1.1.2 | The blocking FFmpeg child points at `requirement-python-time-consuming-process`. This file still names no timeout. The program was not changed |
+| 2026-10-05 | Active 1.1.3 | The peer wait is version 1.1.0: a half-second flash, and no kill timeout. This file still names no timeout and still does not ask `Exit?` from the ship unit. `TP-EXIT-01` through `TP-EXIT-07` stay todo |
 
 ---
 
-**Last Updated**: 2026-10-02  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

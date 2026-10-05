@@ -29,6 +29,7 @@
 | Class | `requirement-class-software-dev.md` | Python residual; no online shell package |
 | Domain | `requirement-domain-videospeed.md` | Four pillars; cut/speed/boomerang catalog |
 | FFmpeg pipeline | `requirement-video-ffmpeg-pipeline.md` | Order, temps, **`shutil.move`** publish, USB |
+| Time-consuming process | `requirement-python-time-consuming-process.md` | The FFmpeg child in `Encoder.run_ffmpeg`. One line flashes a bullet and `please wait for time consuming process` every half second. That interval does not stop the child. The long step is the speed encode when the length is not 100%. `TP-TIME-01` through `TP-TIME-05` have |
 | CLI interface | `requirement-python-cli-interface.md` | Entry points; product verbs `help`, `about`, `edit`, `list-mp4`; `hello` is not a verb; `main` order; `--help`/`--version` |
 | Modes | `requirement-python-interactive-vs-noninteractive.md` | Menu walk, verb prompts (folder then file), or one job. A selector with no verb must not open the menu |
 | JSON output | `requirement-python-json-output.md` | `--json` is one object on stdout. No text menu. Prompts, if any, are on stderr |
@@ -97,7 +98,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.12` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.13` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---
