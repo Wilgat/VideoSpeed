@@ -21,7 +21,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | `--version` / `--help` | **have** | `tests/test_cli.py` |
 | Empty argv without TTY | **have** | `TP-MODE-03`; fail-closed; job flags named |
 | Selector or lone modifier does not open the menu | **have** | `tests/test_cli.py` (`TP-MODE-01`, `TP-MODE-02`). No product verb on those rows |
-| Product verbs `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall`. `hello` is an unknown verb | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-SELF-01`, `TP-TUI-06`, `TP-MODE-05`..`TP-MODE-08`) |
+| Product verbs `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall`. `hello` is an unknown verb. No verb, and `--verbose` alone, open the menu. `version`, `about`, and `help` stay on the terminal | **have** | `tests/test_cli.py`, `tests/test_tui.py` (`TP-CLI-07`, `TP-SELF-01`, `TP-TUI-06`, `TP-MODE-05`..`TP-MODE-09`) |
 | Text menu frame and columns | **have** | `tests/test_tui.py` (`src/VideoSpeed/tui.py`, class `Tui`) |
 | Text menu top line keeps the path on the left and a local clock on the right | **have** | `TP-TUI-07`, `TP-TUI-08`, `TP-TUI-09`, `TP-TUI-10`. Front and self-management boards paint `Path:` and the absolute working directory. The clock `HH:MM:SS` sits on the right when the row has room and is drawn again each second |
 | FFmpeg preflight | **have** | `tests/test_prereq.py` (missing-binary path) |
@@ -70,10 +70,10 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-ID | Intent | Suite (planned) | Primary requirement(s) | Status |
 |-------|--------|-----------------|------------------------|--------|
 | TP-LOG-01 | One construct; read back `logName` / `baseDir` / `logDir` under a temp base | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
-| TP-LOG-02 | `DEBUG=1` on a non-TUI, non-JSON run shows the identity lines and `debug mode`; unset `DEBUG` does not. `--json` and the text screen keep that mirror off stdout | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
+| TP-LOG-02 | `DEBUG=1` without `--verbose` writes the identity lines and `debug mode` to the daily file and keeps them off the terminal. `DEBUG=1 --verbose` on a non-JSON, non-screen run shows them. Unset `DEBUG` does not log them. `--json` and the text screen keep that mirror off stdout even with `--verbose` | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
 | TP-LOG-03 | `INFO` / `WARNING` / `ERROR` / `FATAL` with keyword `component` | — | requirement-python-cli-logging | **todo** |
 | TP-LOG-04 | Text menu path calls `quiet(True)` before the frame | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
-| TP-LOG-05 | Each constructed class stores the one logger and logs `instantiated`. `--json` keeps that line off stdout | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
+| TP-LOG-05 | Each constructed class stores the one logger and logs `instantiated`. Those lines appear on stdout only with `--verbose` on a non-JSON, non-screen run. `--json` keeps that line off stdout | `tests/test_logging.py` | requirement-python-cli-logging | **have** |
 | TP-LOG-06 | A publish or a temp write logs the operation and the paths | — | requirement-python-cli-logging | **todo** |
 | TP-LOG-07 | A thread create, start, or wait writes the action, the thread name, and the wait target before the call that can block. The log call is not made while a work lock is held | — | requirement-python-cli-logging | **todo** |
 | TP-LOG-08 | `video-speed about --json` writes `ChronicleLogger(...)` inside `def main` with `is_quiet=True`. A new log folder does not print `Created directory:` on either stream. The about page on the error stream has `[CHECK SYSTEM]:` and no ChronicleLogger line. Standard output is only the JSON object | `tests/test_logging.py` | requirement-python-cli-logging · requirement-python-about | **have** |
@@ -115,6 +115,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-MODE-06 | `video-speed edit` with no terminal and without `--file`, `--start`, and `--end` exits 1 and does not prompt | `tests/test_cli.py` | requirement-python-interactive-vs-noninteractive | **have** |
 | TP-MODE-07 | `list-mp4` on a terminal asks for the folder when omitted, then lists, and does not encode. With no terminal it lists `--folder` or the current directory and does not prompt | `tests/test_cli.py` · `tests/test_tui.py` | requirement-python-interactive-vs-noninteractive · requirement-domain-videospeed | **have** |
 | TP-MODE-08 | `about` and `help` do not ask for a folder or a file, with or without a terminal | `tests/test_cli.py` | requirement-python-interactive-vs-noninteractive · requirement-python-about | **have** |
+| TP-MODE-09 | Empty argv and `--verbose` alone, with both streams terminals, open the menu. `version`, `about`, and `help` do not | `tests/test_cli.py` | requirement-python-interactive-vs-noninteractive | **have** |
 
 ### TP-BUILD (maintainer `build.sh` verbs)
 
@@ -136,6 +137,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-JSON-03 | `--json` with no terminal is one object and does not wait | `tests/test_json.py` | requirement-python-json-output | **have** |
 | TP-JSON-04 | Terminal plus `--json` asks on stderr and does not open the menu | `tests/test_json.py` | requirement-python-json-output · requirement-python-interactive-vs-noninteractive | **have** |
 | TP-JSON-05 | `--json --version` stays human text and exits 0 | `tests/test_json.py` | requirement-python-json-output | **have** |
+| TP-JSON-06 | Every product verb with `--json` writes one object and does not open the menu. `help --json` writes usage to stderr. Lifecycle verbs use a fake pip runner | `tests/test_json.py` | requirement-python-json-output | **have** |
 
 ### TP-TUI (text menu / default TUI style)
 
@@ -153,6 +155,7 @@ Status: **have** = automated today · **todo** = needed · **manual** = document
 | TP-TUI-10 | While the front board is showing, one second with no key draws the clock again and does not leave. A key that arrives is still delivered. A result page does not use that wait. The session does not start a thread | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-11 | Row **6** opens system-log. **61** lists a `.log` file and shows it. **62** asks `Clear <name>? (y/n)` and empties that file. **63** shows `logDir()`. The read and the empty log `component` `menu` | `tests/test_tui.py` | requirement-python-tui | **have** |
 | TP-TUI-12 | The view-log file list and the clear-log questions clear the one-second clock wait. A no-key from that wait does not return to the system-log board. The chosen file is still shown. Esc is still a real key | `tests/test_tui.py` | requirement-python-tui | **have** |
+| TP-TUI-13 | Display columns. Wide and Fullwidth are two. Ambiguous stays one. The colon’s column is the display column after the short on the Simplified Chinese, Traditional Chinese, Korean, and Japanese front boards. A path label `路径`, `路徑`, or `경로` keeps the clock on the same row. A joined string is not this proof | `tests/test_tui.py` | requirement-python-tui | **have** |
 
 ### TP-LANG (menu language)
 

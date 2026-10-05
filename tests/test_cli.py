@@ -180,12 +180,17 @@ class TestCli(unittest.TestCase):
         self.assertNotIn("hello", out)
         self.assertNotIn("hello", help_out)
 
-        # help stays human text even with --json.
+        # help --json writes usage to stderr and one object to stdout.
         coated = _run(["help", "--json"])
         coated_out = coated.stdout.decode("utf-8", "replace")
-        self.assertEqual(coated.returncode, 0, coated.stderr.decode())
-        self.assertIn("list-mp4", coated_out)
-        self.assertNotIn('"ok"', coated_out)
+        coated_err = coated.stderr.decode("utf-8", "replace")
+        self.assertEqual(coated.returncode, 0, coated_err)
+        doc = json_loads(coated_out)
+        self.assertTrue(doc["ok"])
+        self.assertEqual(doc["mode"], "noninteractive")
+        self.assertEqual(doc["jobs"], [])
+        self.assertIn("list-mp4", coated_err)
+        self.assertNotIn("list-mp4", coated_out)
 
         from VideoSpeed import cli
 
@@ -396,6 +401,40 @@ class TestCli(unittest.TestCase):
                 self.assertEqual(code, 0, argv)
                 self.assertNotIn("Folder (Enter", err.getvalue() + buf.getvalue(), argv)
             self.assertEqual(opened, [])
+        finally:
+            Tui.open_text_menu = saved_open
+            cli.Cli.stdin_is_tty = saved_in
+            cli.Cli.stdout_is_tty = saved_out
+
+    def test_tp_mode_09_major_entry_and_terminal_verbs(self):
+        """TP-MODE-09: no verb opens the menu; version, about, and help do not."""
+        from VideoSpeed import cli
+        from VideoSpeed.tui import Tui
+
+        opened = []
+        saved_open = Tui.open_text_menu
+        saved_in = staticmethod(cli.Cli.stdin_is_tty)
+        saved_out = staticmethod(cli.Cli.stdout_is_tty)
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        cli.Cli.stdin_is_tty = lambda *args: True
+        cli.Cli.stdout_is_tty = lambda *args: True
+        try:
+            for argv in ([], ["--verbose"]):
+                opened.clear()
+                buf = io.StringIO()
+                err = io.StringIO()
+                with redirect_stdout(buf), redirect_stderr(err):
+                    code = cli.main(argv)
+                self.assertEqual(code, 0, (argv, err.getvalue(), buf.getvalue()))
+                self.assertEqual(opened, ["open"], argv)
+            for argv in (["version"], ["about"], ["help"]):
+                opened.clear()
+                buf = io.StringIO()
+                err = io.StringIO()
+                with redirect_stdout(buf), redirect_stderr(err):
+                    code = cli.main(argv)
+                self.assertEqual(code, 0, (argv, err.getvalue(), buf.getvalue()))
+                self.assertEqual(opened, [], argv)
         finally:
             Tui.open_text_menu = saved_open
             cli.Cli.stdin_is_tty = saved_in

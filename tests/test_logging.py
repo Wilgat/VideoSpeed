@@ -90,7 +90,7 @@ class TestLogging(unittest.TestCase):
         self.assertEqual(logger.logName(), "video-speed")
         self.assertEqual(str(Path(logger.baseDir())), str(Path(base)))
         self.assertEqual(str(Path(logger.logDir())), str(Path(logd)))
-        self.assertFalse(seen["kwargs"].get("is_quiet"))
+        self.assertTrue(seen["kwargs"].get("is_quiet"))
         self.assertEqual(caught.exception.code, 0)
         self.assertTrue(list(Path(logd).glob("video-speed-*.log")))
 
@@ -118,7 +118,7 @@ class TestLogging(unittest.TestCase):
         self.assertNotIn("usage:", out.getvalue().lower())
 
     def test_tp_log_02_debug_identity_is_displayed(self):
-        """TP-LOG-02: DEBUG=1 displays the identity; an unset DEBUG does not."""
+        """TP-LOG-02: DEBUG=1 writes the file. The terminal shows it only with --verbose."""
         from VideoSpeed import cli
 
         base, logd = self._dirs()
@@ -129,21 +129,42 @@ class TestLogging(unittest.TestCase):
                 cli.main(["--version"], log_basedir=base, log_logdir=logd)
         self.assertEqual(caught.exception.code, 0)
         text = out.getvalue()
-        self.assertIn("video-speed v", text)
-        self.assertIn("ChronicleLogger v", text)
-        self.assertIn("Base ", text)
-        self.assertIn("debug mode", text)
+        self.assertNotIn("video-speed v", text)
+        self.assertNotIn("ChronicleLogger v", text)
+        self.assertNotIn("debug mode", text)
         logged = self._log_text(logd)
         self.assertIn("ChronicleLogger v", logged)
         self.assertIn("debug mode", logged)
         self.assertIn("@main", logged)
+
+        shown_base, shown_log = self._dirs()
+        shown = io.StringIO()
+        with redirect_stdout(shown):
+            with self.assertRaises(SystemExit) as shown_caught:
+                cli.main(
+                    ["--verbose", "--version"],
+                    log_basedir=shown_base,
+                    log_logdir=shown_log,
+                )
+        self.assertEqual(shown_caught.exception.code, 0)
+        shown_text = shown.getvalue()
+        self.assertIn("video-speed v", shown_text)
+        self.assertIn("ChronicleLogger v", shown_text)
+        self.assertIn("Base ", shown_text)
+        self.assertIn("debug mode", shown_text)
+        shown_logged = self._log_text(shown_log)
+        self.assertIn("debug mode", shown_logged)
 
         off_base, off_log = self._dirs()
         self._push_debug(None)
         off = io.StringIO()
         with redirect_stdout(off):
             with self.assertRaises(SystemExit):
-                cli.main(["--version"], log_basedir=off_base, log_logdir=off_log)
+                cli.main(
+                    ["--verbose", "--version"],
+                    log_basedir=off_base,
+                    log_logdir=off_log,
+                )
         self.assertNotIn("ChronicleLogger v", off.getvalue())
         self.assertNotIn("debug mode", off.getvalue())
         self.assertNotIn("ChronicleLogger v", self._log_text(off_log))
@@ -162,7 +183,7 @@ class TestLogging(unittest.TestCase):
         try:
             with redirect_stdout(out), redirect_stderr(err):
                 code = cli.main(
-                    ["--json"], log_basedir=base, log_logdir=logd
+                    ["--json", "--verbose"], log_basedir=base, log_logdir=logd
                 )
         finally:
             cli.Cli.stdin_is_tty = saved_tty
@@ -216,7 +237,9 @@ class TestLogging(unittest.TestCase):
         out = io.StringIO()
         try:
             with redirect_stdout(out):
-                code = cli.main([], log_basedir=base, log_logdir=logd)
+                code = cli.main(
+                    ["--verbose"], log_basedir=base, log_logdir=logd
+                )
         finally:
             Tui.open_text_menu = saved_open
             cli.Cli.stdin_is_tty = saved_in
@@ -257,9 +280,23 @@ class TestLogging(unittest.TestCase):
         ):
             line = "@{0} :] instantiated".format(name)
             self.assertIn(line, logged, name)
-            self.assertIn(line, text, name)
+            self.assertNotIn(line, text, name)
         self.assertNotIn("debug mode", text)
         self.assertNotIn("debug mode", logged)
+
+        verb_base, verb_log = self._dirs()
+        verb_out = io.StringIO()
+        with redirect_stdout(verb_out):
+            with self.assertRaises(SystemExit) as verb_caught:
+                cli.main(
+                    ["--verbose", "--version"],
+                    log_basedir=verb_base,
+                    log_logdir=verb_log,
+                )
+        self.assertEqual(verb_caught.exception.code, 0)
+        verb_text = verb_out.getvalue()
+        for name in ("Cli", "Encoder", "Tui", "LanguageMenu"):
+            self.assertIn("@{0} :] instantiated".format(name), verb_text)
 
         from ChronicleLogger import ChronicleLogger
 
@@ -356,6 +393,22 @@ class TestLogging(unittest.TestCase):
             with self.assertRaises(SystemExit) as caught:
                 cli.main(["--version"], log_basedir=ver_base, log_logdir=ver_log)
         self.assertEqual(caught.exception.code, 0)
+        self.assertTrue(seen["kwargs"].get("is_quiet"))
+        self.assertNotIn("Created directory:", ver_out.getvalue())
+        self.assertNotIn("debug mode", ver_out.getvalue())
+        self.assertIn("debug mode", self._log_text(ver_log))
+
+        loud_base, loud_log = self._fresh_log()
+        seen.clear()
+        loud_out = io.StringIO()
+        with redirect_stdout(loud_out):
+            with self.assertRaises(SystemExit) as loud_caught:
+                cli.main(
+                    ["--verbose", "--version"],
+                    log_basedir=loud_base,
+                    log_logdir=loud_log,
+                )
+        self.assertEqual(loud_caught.exception.code, 0)
         self.assertFalse(seen["kwargs"].get("is_quiet"))
-        self.assertIn("Created directory:", ver_out.getvalue())
-        self.assertIn("debug mode", ver_out.getvalue())
+        self.assertIn("Created directory:", loud_out.getvalue())
+        self.assertIn("debug mode", loud_out.getvalue())

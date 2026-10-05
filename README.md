@@ -1,6 +1,6 @@
 # VideoSpeed - Cut, speed, and boomerang MP4 clips from the CLI
 
-![Version](https://img.shields.io/badge/Version-1.0.11-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.12-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 [![CIAO](https://img.shields.io/badge/Philosophy-CIAO%20(Caution%20%E2%80%A2%20Intentional%20%E2%80%A2%20Anti--fragile%20%E2%80%A2%20Over--engineered)-purple.svg)](https://github.com/cloudgen/ciao)
 [![Stars](https://img.shields.io/github/stars/Wilgat/VideoSpeed?style=flat-square)](https://github.com/Wilgat/VideoSpeed)
@@ -13,7 +13,7 @@ VideoSpeed cuts a time range from an MP4, changes that clip’s length (percent)
 |-----|----------------|----------|
 | Editor at a terminal or a script | FFmpeg on `PATH` (does the encode) | A website, installer, or root/sudo tool |
 
-Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.11**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
+Package version SSOT: `src/VideoSpeed/__init__.py` (`MAJOR_VERSION`, `MINOR_VERSION`, `PATCH_VERSION` → **1.0.12**). `pyproject.toml` copies that string. Console entrypoint: `video-speed`.
 
 ## Features
 
@@ -111,9 +111,9 @@ The console script is installed on the pyenv 3.14 prefix. `./setup.sh` changes t
 
 ```bash
 # after: python -m build   (or ./build.sh build)
-pip install dist/VideoSpeed-1.0.11-py3-none-any.whl
+pip install dist/videospeed-1.0.12-py3-none-any.whl
 # or
-pip install dist/VideoSpeed-1.0.11.tar.gz
+pip install dist/videospeed-1.0.12.tar.gz
 ```
 
 ### Verify
@@ -184,147 +184,147 @@ Each heading is the file name. The paragraph is what that picture shows: the wor
 
 ### `language-menu.png`
 
-Row **4** has opened the language list. **41 English** is highlighted, with the note “use English for this menu.” The other rows are **42 简体中文**, **43 繁體中文**, **44 Español**, **45 العربية**, **46 Français**, **47 Português**, **48 Русский**, **49 Deutsch**, **50 日本語**, **51 한국어**, **52 Nederlands**, and **53 Ελληνικά**. Each note says to use that language for this menu. **0 Back** says “return to the main menu.” The path label is `Path`, the clock is on the right, and the status line says `language`. VideoSpeed 1.0.11.
+Row **4** has opened the language list. **41 English** is highlighted, with the note “use English for this menu.” The other rows are **42 简体中文**, **43 繁體中文**, **44 Español**, **45 العربية**, **46 Français**, **47 Português**, **48 Русский**, **49 Deutsch**, **50 日本語**, **51 한국어**, **52 Nederlands**, and **53 Ελληνικά**. Each note says to use that language for this menu. **0 Back** says “return to the main menu.” The path label is `Path`, the clock is on the right, and the status line says `language`. VideoSpeed 1.0.12.
 
-![Language list, 41 English highlighted](screenshots/language-menu.png)
+![Language list, 41 English highlighted](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/language-menu.png)
 
 ### `main-menu-en.png`
 
 English main menu. There is no saved-language line above the box. The path label is `Path`. The rows are **1 edit** “cut, speed, and optional boomerang”, **4 language** “display language for this menu”, **6 system-log** “view, clear, and the log folder”, **8 self-management** “version, about, and pip lifecycle”, and **9 Exit** “leave.” The status line says `main menu`.
 
-![English main menu](screenshots/main-menu-en.png)
+![English main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-en.png)
 
 ### `main-menu-zh-hans.png`
 
-Simplified Chinese main menu. The line above the box says `菜单语言是简体中文`. The path label is `路径`. The clock’s last digit wraps onto the next line. Row **1** stays `edit`. Row **4** is `语言`, row **6** is `系统日志`, row **8** is `自我管理`, and row **9** is `离开`. The status line says `主菜单`.
+Simplified Chinese main menu. The line above the box says `菜单语言是简体中文`. The path label is `路径`. The clock is on the right. Row **1** stays `edit`. Row **4** is `语言`, row **6** is `系统日志`, row **8** is `自我管理`, and row **9** is `离开`. The status line says `主菜单`.
 
-![Simplified Chinese main menu](screenshots/main-menu-zh-hans.png)
+![Simplified Chinese main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-zh-hans.png)
 
 ### `main-menu-zh-hant.png`
 
-Traditional Chinese main menu. The line above the box says `選單語言是繁體中文`. The path label is `路徑`. The clock’s last digit wraps onto the next line. Row **1** stays `edit`. Row **4** is `語言`, row **6** is `系統日誌`, row **8** is `自我管理`, and row **9** is `離開`. The status line says `主選單`.
+Traditional Chinese main menu. The line above the box says `選單語言是繁體中文`. The path label is `路徑`. The clock is on the right. Row **1** stays `edit`. Row **4** is `語言`, row **6** is `系統日誌`, row **8** is `自我管理`, and row **9** is `離開`. The status line says `主選單`.
 
-![Traditional Chinese main menu](screenshots/main-menu-zh-hant.png)
+![Traditional Chinese main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-zh-hant.png)
 
 ### `main-menu-es.png`
 
 Spanish main menu. The line above the box says `El idioma del menú es español`. The path label is `Ruta`. Row **1** stays `edit`. Row **4** is `idioma`, row **6** is `registro`, row **8** is `autogestión`, and row **9** is `Salir`. The status line says `menú principal`.
 
-![Spanish main menu](screenshots/main-menu-es.png)
+![Spanish main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-es.png)
 
 ### `main-menu-ar.png`
 
-Arabic main menu. The line above the box says `لغة القائمة هي العربية`. The path label is `المسار`. The row text runs right to left, so the columns do not sit like the English board. Row **1** stays `edit`. The status line says `القائمة الرئيسية`.
+Arabic main menu. The line above the box says `لغة القائمة هي العربية`. The path label is `المسار`. The clock is on the right. Row **1** stays `edit`. Row **4** is `لغة`, row **6** is `السجل`, row **8** is `إدارة-ذاتية`, and row **9** is `خروج`. The status line says `القائمة الرئيسية`.
 
-![Arabic main menu](screenshots/main-menu-ar.png)
+![Arabic main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-ar.png)
 
 ### `main-menu-fr.png`
 
 French main menu. The line above the box says `La langue du menu est le français`. The path label is `Chemin`. Row **1** stays `edit`. Row **4** is `langue`, row **6** is `journal`, row **8** is `autogestion`, and row **9** is `Quitter`. The status line says `menu principal`.
 
-![French main menu](screenshots/main-menu-fr.png)
+![French main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-fr.png)
 
 ### `main-menu-pt.png`
 
 Portuguese main menu. The line above the box says `O idioma do menu é português`. The path label is `Caminho`. Row **1** stays `edit`. Row **4** is `idioma`, row **6** is `registo`, row **8** is `autogestão`, and row **9** is `Sair`. The status line says `menu principal`.
 
-![Portuguese main menu](screenshots/main-menu-pt.png)
+![Portuguese main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-pt.png)
 
 ### `main-menu-ru.png`
 
 Russian main menu. The line above the box says `Язык меню — русский`. The path label is `Путь`. Row **1** stays `edit`. Row **4** is `язык`, row **6** is `журнал`, row **8** is `самоуправление`, and row **9** is `Выход`. The status line says `главное меню`.
 
-![Russian main menu](screenshots/main-menu-ru.png)
+![Russian main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-ru.png)
 
 ### `main-menu-de.png`
 
 German main menu. The line above the box says `Die Menüsprache ist Deutsch`. The path label is `Pfad`. Row **1** stays `edit`. Row **4** is `Sprache`, row **6** is `Systemprotokoll`, row **8** is `Selbstverwaltung`, and row **9** is `Beenden`. The status line says `Hauptmenü`.
 
-![German main menu](screenshots/main-menu-de.png)
+![German main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-de.png)
 
 ### `main-menu-ja.png`
 
-Japanese main menu. The line above the box says `メニューの言語は日本語`. The path label is `パス`. The clock’s last digit wraps onto the next line. Row **1** stays `edit`. Row **4** is `言語`, row **6** is `システムログ`, row **8** is `自己管理`, and row **9** is `終了`. The status line says `メインメニュー`.
+Japanese main menu. The line above the box says `メニューの言語は日本語`. The path label is `パス`. The clock is on the right. Row **1** stays `edit`. Row **4** is `言語`, row **6** is `システムログ`, row **8** is `自己管理`, and row **9** is `終了`. The status line says `メインメニュー`.
 
-![Japanese main menu](screenshots/main-menu-ja.png)
+![Japanese main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-ja.png)
 
 ### `main-menu-ko.png`
 
-Korean main menu. The line above the box says `메뉴 언어는 한국어`. The path label is `경로`. The clock’s last digit wraps onto the next line. Row **1** stays `edit`. Row **4** is `언어`, row **6** is `시스템-로그`, row **8** is `자기관리`, and row **9** is `종료`. The status line says `주 메뉴`.
+Korean main menu. The line above the box says `메뉴 언어는 한국어`. The path label is `경로`. The clock is on the right. Row **1** stays `edit`. Row **4** is `언어`, row **6** is `시스템-로그`, row **8** is `자기관리`, and row **9** is `종료`. The status line says `주 메뉴`.
 
-![Korean main menu](screenshots/main-menu-ko.png)
+![Korean main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-ko.png)
 
 ### `main-menu-nl.png`
 
 Dutch main menu. The line above the box says `De menutaal is Nederlands`. The path label is `Pad`. Row **1** stays `edit`. Row **4** is `taal`, row **6** is `systeemlog`, row **8** is `zelfbeheer`, and row **9** is `Afsluiten`. The status line says `hoofdmenu`.
 
-![Dutch main menu](screenshots/main-menu-nl.png)
+![Dutch main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-nl.png)
 
 ### `main-menu-el.png`
 
 Greek main menu. The line above the box says `Η γλώσσα του μενού είναι ελληνικά`. The path label is `Διαδρομή`. Row **1** stays `edit`. Row **4** is `γλώσσα`, row **6** is `αρχείο-καταγραφής`, row **8** is `αυτοδιαχείριση`, and row **9** is `Έξοδος`. The status line says `κύριο μενού`.
 
-![Greek main menu](screenshots/main-menu-el.png)
+![Greek main menu](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/main-menu-el.png)
 
 ### `folder-menu.png`
 
-Edit, first question. The title is `VideoSpeed (1.0.11) – edit`. The page says `Cut → Speed → Optional Boomerang` and `Esc returns to the menu.` The prompt is `Folder (Enter = current):`. The input box contains `sample-videos`. The status line says `edit`.
+Edit, first question. The title is `VideoSpeed (1.0.12) — edit`. The page says `Cut → Speed → Optional Boomerang` and `Esc returns to the menu.` The prompt is `Folder (Enter = current):`. The input box contains `sample-videos`. The status line says `edit`.
 
-![Folder prompt with sample-videos typed](screenshots/folder-menu.png)
+![Folder prompt with sample-videos typed](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/folder-menu.png)
 
 ### `file-menu.png`
 
-The folder listing inside edit. The page lists `1. video-1.mp4` and `2. video-2.mp4`, then `Choose video (1–2):`. The input box contains `1`.
+The folder listing inside edit. The page lists `1. video-1.mp4`, `2. video-1_cut0.0-2.0s_100pct_BOOMERANG.mp4`, `3. video-1_cut0.0-4.0s_140pct_BOOMERANG.mp4`, and `4. video-2.mp4`, then `Choose video (1–4):`. The input box contains `1`.
 
-![Choose video, 1 typed for video-1.mp4](screenshots/file-menu.png)
+![Choose video, 1 typed for video-1.mp4](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/file-menu.png)
 
 ### `tui-input-star.png`
 
 The file name is the start question (`star` for start). The page says `Selected: video-1.mp4` and `Duration: 00:18.042 (18.042s)`, then `Step 1/4 – Cut segment` and `Start seconds (default 0.0):`. The input box contains `0`.
 
-![Start seconds, 0 typed](screenshots/tui-input-star.png)
+![Start seconds, 0 typed](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-input-star.png)
 
 ### `tui-input-end.png`
 
 End of the cut. The page still shows `Selected: video-1.mp4` and `Duration: 00:18.042 (18.042s)`, then `Start: 0.000s` and `End seconds [18.042]:`. The input box contains `2`.
 
-![End seconds, 2 typed](screenshots/tui-input-end.png)
+![End seconds, 2 typed](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-input-end.png)
 
 ### `tui-length.png`
 
 Length question. The page says `Step 2/4 – Resize length (20–200%)` and `New length % [100%]:`. The input box is empty, so the bracketed default **100%** stands. The status line says `edit`.
 
-![Length prompt, default 100 percent, box empty](screenshots/tui-length.png)
+![Length prompt, default 100 percent, box empty](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-length.png)
 
 ### `tui-boomerang-choice.png`
 
 Boomerang question. The page says `Step 3/4 – Add boomerang effect?` and `Make it go forward + backward (y/n) [n]:`. The input box contains `y`.
 
-![Boomerang question, y typed](screenshots/tui-boomerang-choice.png)
+![Boomerang question, y typed](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-boomerang-choice.png)
 
 ### `tui-video-done.png`
 
-The encode has finished. The page says `Saved video-1_cut0.0-2.0s_100pct_BOOMERANG.mp4 – Again? (y/n):`. The input box is empty.
+The encode has finished. The page says `Saved video-1_cut0.0-2.0s_100pct_BOOMERANG.mp4 — Again? (y/n):`. The input box is empty.
 
-![Saved the 0-to-2 boomerang clip](screenshots/tui-video-done.png)
+![Saved the 0-to-2 boomerang clip](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-video-done.png)
 
 ### `self-management.png`
 
 Row **8** has opened self-management. **82 version** is highlighted: “show the installed version.” Then **83 about** “version, FFmpeg, and OpenCV”, **84 version-check** “compare this install with pip”, **85 self-update** “upgrade this package with pip”, **86 self-uninstall** “remove this package with pip”, **87 self-install** “install this package with pip”, and **0 Back** “return to the main menu.” The path label is `Path`, and the status line says `self-management`.
 
-![Self-management, 82 version highlighted](screenshots/self-management.png)
+![Self-management, 82 version highlighted](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/self-management.png)
 
 ### `tui-about.png`
 
-**about** (83) on the result page. The title is `VideoSpeed (1.0.11) – result`. The page prints `VideoSpeed 1.0.11`, `Domain: Cut → speed/length → optional boomerang for MP4`, `Runtime tools: FFmpeg (encode), OpenCV (duration probe)`, and `Entry points: video-speed, python -m VideoSpeed`. The host check is stamped `2026-10-04 15:05:39.108458` and headed `[CHECK SYSTEM]:`. Visible lines include Python 3.12.11, C Library GCC 13.3.0, Ubuntu 24.04.5 LTS, amd64, the current user, the shell, the Python executable, python2 location, python3 location, conda location, pyenv location, and `Inside docker container: False`. The footer says `Up/Down scrolls this page.` and `Press a key to return to the main menu.` The page stays in English.
+**about** (83) on the result page. The title is `VideoSpeed (1.0.12) — result`. The page prints `VideoSpeed 1.0.12`, `Domain: Cut → speed/length → optional boomerang for MP4`, `Runtime tools: FFmpeg (encode), OpenCV (duration probe)`, and `Entry points: video-speed, python -m VideoSpeed`. The host check is stamped `2026-10-05 10:59:40.993328` and headed `[CHECK SYSTEM]:`. Visible lines include Python 3.12.11, C Library GCC 13.3.0, Ubuntu 24.04.5 LTS, amd64, the current user, the shell, the Python executable, python2 location, python3 location, conda location, pyenv location, `Inside docker container: False`, the Cython string, the binary type, the location, the PID, the cache folders, and persistence storage. The footer says `Up/Down scrolls this page.` and `Press a key to return to the main menu.` The page stays in English.
 
-![About host check, English](screenshots/tui-about.png)
+![About host check, English](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/tui-about.png)
 
 ### `video.png`
 
 A still picture. A woman with long brown hair, in a grey shirt with a small blue mark, sits at a round wooden table and holds a white cup. An open book with a worn cover and a metal clasp lies on the table. Behind her are a beige sofa, a wide window onto trees, a potted plant, and a wooden floor in daylight.
 
-![Woman at a table with an open book and a cup](screenshots/video.png)
+![Woman at a table with an open book and a cup](https://raw.githubusercontent.com/Wilgat/VideoSpeed/main/screenshots/video.png)
 
 ## Examples
 
@@ -376,4 +376,4 @@ MIT License — see [`LICENSE.md`](LICENSE.md).
 
 ## Last Update
 
-2026-10-04 — **1.0.11**: front menu **4** is language. Front **6** is system-log. The first row keeps the path and a local clock. The about page prints PID, the cache chain, persistence, and TTY.
+2026-10-05 — **1.0.12**: status lines stay off the terminal unless `--verbose` is set. Every product verb accepts `--json`. Front menu **4** is language. Front **6** is system-log. The first row keeps the path and a local clock. The about page prints PID, the cache chain, persistence, and TTY.

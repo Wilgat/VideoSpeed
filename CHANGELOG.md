@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.12] - 2026-10-05
+
+### Changed
+- Status lines stay off the terminal unless `--verbose` is set. `--json` and the text menu stay quiet even with `--verbose`. The daily log still records the lines. There is no `--quiet` flag.
+- Every product verb accepts `--json` and writes one JSON object. `help --json` writes the usage text to the error stream and the object to standard output. The flags `--help` and `--version` stay human text.
+- Wheel and sdist examples use the lowercase names the build writes.
+- Menu columns use display width. Wide and Fullwidth characters count as two, so the wide shorts stay whole. The text-menu screenshots are retaken for 1.0.12, with the clock on the right of the path row.
+
 ## [1.0.11] - 2026-10-04
 
 ### Added

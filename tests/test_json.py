@@ -127,6 +127,108 @@ class TestJson(unittest.TestCase):
         self.assertIn(VideoSpeed.__version__, text)
         self.assertNotIn('"ok"', proc.stdout.decode("utf-8"))
 
+    def test_tp_json_06_every_verb_is_one_object(self):
+        """TP-JSON-06: every product verb with --json writes one object and skips the menu."""
+        from VideoSpeed import cli
+        from VideoSpeed.encoder import Encoder
+        from VideoSpeed.self_management import SelfManage
+        from VideoSpeed.tui import Tui
+
+        opened = []
+        encoded = []
+        calls = []
+
+        def fake_runner(self, argv):
+            calls.append(list(argv))
+            return 0, "pip-ok", ""
+
+        def fake_batch(self, *args):
+            encoded.append(args)
+            return 0
+
+        saved_open = Tui.open_text_menu
+        saved_direct = Tui._open_direct_screen
+        saved_batch = Encoder.batch_session
+        saved_runner = SelfManage._subprocess_runner
+        Tui.open_text_menu = lambda self: opened.append("open") or None
+        Tui._open_direct_screen = lambda self, *args: opened.append("direct") or 0
+        Encoder.batch_session = fake_batch
+        SelfManage._subprocess_runner = fake_runner
+        try:
+            help_out = io.StringIO()
+            help_err = io.StringIO()
+            with redirect_stdout(help_out), redirect_stderr(help_err):
+                help_code = cli.main(["help", "--json"])
+            help_raw = help_out.getvalue()
+            help_doc = _assert_one_object(self, help_raw)
+            self.assertEqual(help_code, 0, help_err.getvalue())
+            self.assertTrue(help_doc["ok"])
+            self.assertEqual(help_doc["mode"], "noninteractive")
+            self.assertIn("usage:", help_err.getvalue())
+            self.assertNotIn("usage:", help_raw)
+
+            for verb in ("version", "about", "list-mp4"):
+                out = io.StringIO()
+                err = io.StringIO()
+                with redirect_stdout(out), redirect_stderr(err):
+                    code = cli.main([verb, "--json"])
+                raw = out.getvalue()
+                doc = _assert_one_object(self, raw)
+                self.assertEqual(list(doc.keys())[0], "ok", verb)
+                self.assertTrue(raw.strip().startswith("{"), verb)
+                if verb == "list-mp4":
+                    self.assertNotIn("1. ", raw)
+                else:
+                    self.assertEqual(code, 0, err.getvalue())
+                    self.assertTrue(doc["ok"], verb)
+
+            edit_out = io.StringIO()
+            edit_err = io.StringIO()
+            with redirect_stdout(edit_out), redirect_stderr(edit_err):
+                edit_code = cli.main(["edit", "--json"])
+            edit_doc = _assert_one_object(self, edit_out.getvalue())
+            self.assertEqual(edit_code, 1)
+            self.assertFalse(edit_doc["ok"])
+            self.assertIn("--file", edit_doc["error"])
+            self.assertEqual(encoded, [])
+
+            for verb in ("self-install", "version-check", "self-update"):
+                before = len(calls)
+                out = io.StringIO()
+                err = io.StringIO()
+                with redirect_stdout(out), redirect_stderr(err):
+                    code = cli.main([verb, "--json"])
+                doc = _assert_one_object(self, out.getvalue())
+                self.assertEqual(code, 0, err.getvalue())
+                self.assertTrue(doc["ok"], verb)
+                self.assertIn("pip-ok", err.getvalue())
+                self.assertNotIn("pip-ok", out.getvalue())
+                self.assertEqual(len(calls), before + 1, verb)
+
+            bare_out = io.StringIO()
+            before = len(calls)
+            with redirect_stdout(bare_out), redirect_stderr(io.StringIO()):
+                bare_code = cli.main(["self-uninstall", "--json"])
+            bare_doc = _assert_one_object(self, bare_out.getvalue())
+            self.assertEqual(bare_code, 1)
+            self.assertFalse(bare_doc["ok"])
+            self.assertEqual(len(calls), before)
+
+            force_out = io.StringIO()
+            force_err = io.StringIO()
+            with redirect_stdout(force_out), redirect_stderr(force_err):
+                force_code = cli.main(["self-uninstall", "--json", "--force"])
+            force_doc = _assert_one_object(self, force_out.getvalue())
+            self.assertEqual(force_code, 0, force_err.getvalue())
+            self.assertTrue(force_doc["ok"])
+            self.assertIn("uninstall", " ".join(calls[-1]))
+        finally:
+            Tui.open_text_menu = saved_open
+            Tui._open_direct_screen = saved_direct
+            Encoder.batch_session = saved_batch
+            SelfManage._subprocess_runner = saved_runner
+        self.assertEqual(opened, [])
+
 
 if __name__ == "__main__":
     unittest.main()

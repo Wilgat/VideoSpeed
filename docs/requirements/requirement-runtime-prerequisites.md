@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-runtime-prerequisites.md  
-**Status**: Active (Version 1.1.9)  
+**Status**: Active (Version 1.1.10)  
 **Area**: runtime  
 **Key**: `requirement-runtime-prerequisites`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -71,7 +71,7 @@ Declare **host and Python runtime prerequisites** required to run VideoSpeed suc
 | **System binary** | `ffmpeg` on `PATH` |
 | **Auto install command** | **none** (not implemented) |
 | **Platform notes** | Linux primary. Duration probing uses the headless OpenCV wheel, which does not need `libGL.so.1`. Other OS OK when FFmpeg + OpenCV are available |
-| **Product version** | 1.0.11 |
+| **Product version** | 1.0.12 |
 
 ### 2.6 Why This Requirement Exists (CIAO)
 
@@ -160,9 +160,10 @@ This check does not install FFmpeg and does not use admin privilege. OpenCV and 
 | 2026-10-01 | Active 1.1.7 | Text menu session is class `Tui`. Frame is class `MenuPainter`. Still not a pip package |
 | 2026-10-02 | Active 1.1.8 | Sample code shows a missing `ffmpeg` failing closed. No install |
 | 2026-10-04 | Active 1.1.9 | Product version is package string `1.0.11` |
+| 2026-10-05 | Active 1.1.10 | Product version is package string `1.0.12` |
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

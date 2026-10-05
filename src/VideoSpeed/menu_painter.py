@@ -8,8 +8,52 @@ from __future__ import annotations
 import curses
 import os
 import time
+import unicodedata
 
 
+def display_width(text: str) -> int:
+    """Terminal columns. Wide and Fullwidth count as two. Ambiguous stays one.
+
+    requirement-python-tui. Box-drawing and the block caret are Ambiguous.
+    """
+    total = 0
+    for char in text:
+        if unicodedata.east_asian_width(char) in ("W", "F"):
+            total += 2
+        else:
+            total += 1
+    return total
+
+
+def clip_columns(text: str, columns: int) -> str:
+    """Left prefix that fits in columns. A wide character that does not fit is dropped whole."""
+    if columns <= 0:
+        return ""
+    kept = []
+    used = 0
+    for char in text:
+        width = 2 if unicodedata.east_asian_width(char) in ("W", "F") else 1
+        if used + width > columns:
+            break
+        kept.append(char)
+        used += width
+    return "".join(kept)
+
+
+def clip_columns_right(text: str, columns: int) -> str:
+    """Right suffix that fits in columns. A wide character that does not fit is dropped whole."""
+    if columns <= 0:
+        return ""
+    kept = []
+    used = 0
+    for char in reversed(text):
+        width = 2 if unicodedata.east_asian_width(char) in ("W", "F") else 1
+        if used + width > columns:
+            break
+        kept.append(char)
+        used += width
+    kept.reverse()
+    return "".join(kept)
 
 
 class MenuPainter:
@@ -124,23 +168,26 @@ class MenuPainter:
         """First menu row: path on the left, local clock on the right when it fits.
 
         A placeable width keeps the path label and shortens the directory from the left.
-        The clock is omitted when both fields do not fit. requirement-python-tui rule 13.
-        The path and the clock are not translated.
+        Width is display columns. The clock is omitted when both fields do not fit.
+        requirement-python-tui rule 13. The path and the clock are not translated.
         """
         prefix = self.path_label() + ": "
         current = os.path.abspath(os.getcwd())
         left = prefix + current
         right = self.clock_text()
         gap = 2
+        left_width = display_width(left)
+        right_width = display_width(right)
+        prefix_width = display_width(prefix)
         if placeable is None:
             return left + (" " * gap) + right
-        if placeable >= len(left) + gap + len(right):
-            return left + (" " * (placeable - len(left) - len(right))) + right
-        if placeable >= len(left):
+        if placeable >= left_width + gap + right_width:
+            return left + (" " * (placeable - left_width - right_width)) + right
+        if placeable >= left_width:
             return left
-        if placeable <= len(prefix):
-            return prefix[: max(0, placeable)]
-        return prefix + current[-(placeable - len(prefix)) :]
+        if placeable <= prefix_width:
+            return clip_columns(prefix, placeable)
+        return prefix + clip_columns_right(current, placeable - prefix_width)
 
     def board_title(self, model) -> str:
         """General Purpose: The title for this layer. A result page names itself."""
@@ -162,8 +209,9 @@ class MenuPainter:
         """One board's columns. requirement-python-tui.md
 
         Each row is number, verb, and explain. The number is padded on the left to
-        the widest number on this board. The verb is padded with spaces immediately
-        before the colon. The explain is drawn after one space.
+        the widest number on this board. The verb pad is display columns immediately
+        before the colon. Wide and Fullwidth count as two. Ambiguous stays one.
+        requirement-python-tui. The explain is drawn after one space.
         """
         number_width = 1
         verb_width = 0
@@ -173,12 +221,13 @@ class MenuPainter:
             materialized.append((text, short, explain))
             if len(text) > number_width:
                 number_width = len(text)
-            if len(short) > verb_width:
-                verb_width = len(short)
+            short_width = display_width(short)
+            if short_width > verb_width:
+                verb_width = short_width
         parts: list[tuple[str, str, str, str]] = []
         for text, short, explain in materialized:
             number_field = f"{text.rjust(number_width)}. "
-            verb_pad = " " * (verb_width - len(short))
+            verb_pad = " " * (verb_width - display_width(short))
             parts.append((number_field, short, verb_pad, explain))
         return parts
 
@@ -193,7 +242,7 @@ class MenuPainter:
         height, width = screen.getmaxyx()
         if y < 0 or y >= height or x >= width - 1:
             return
-        clipped = text[: max(0, width - x - 1)]
+        clipped = clip_columns(text, max(0, width - x - 1))
         if clipped:
             screen.addstr(y, x, clipped, attr)
 
@@ -332,11 +381,12 @@ class MenuPainter:
                 else:
                     attr = 0
                 self._put(screen, y, 0, number_field, attr)
-                verb_x = len(number_field)
+                verb_x = display_width(number_field)
                 self._put(screen, y, verb_x, short, curses.A_BOLD | attr)
-                colon_x = verb_x + len(short)
+                colon_x = verb_x + display_width(short)
                 self._put(screen, y, colon_x, f"{verb_pad}: ", attr)
-                self._put(screen, y, colon_x + len(verb_pad) + 2, explain, italic)
+                explain_x = colon_x + display_width(verb_pad) + 2
+                self._put(screen, y, explain_x, explain, italic)
                 y += 1
         if model.error and box_top >= 4:
             self._put(screen, box_top - 1, 0, model.error, curses.A_BOLD)

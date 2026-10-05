@@ -1,12 +1,12 @@
 **file**: docs/requirements/requirement-python-interactive-vs-noninteractive.md
-**Status**: Active (Version 1.3.3)
+**Status**: Active (Version 1.3.5)
 **Area**: python
 **Key**: `requirement-python-interactive-vs-noninteractive`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-This file is the mode contract for VideoSpeed. After `--version` has already exited, `main` chooses exactly one path: the text-menu walk, one product verb (`help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall`), one non-interactive job, or a fail-closed stop. The walk and an interactive verb ask one field at a time on the open screen. A verb that still needs a target asks for the folder first, then for the specific file when that verb needs one. The job path and the non-interactive verb path never wait for a person. The verb names are `requirement-python-cli-interface` §2.3a.
+This file is the mode contract for VideoSpeed. After `--version` has already exited, `main` chooses exactly one path: the text-menu walk, one product verb (`help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall`), one non-interactive job, or a fail-closed stop. The text menu is the major entry: no product verb. `--verbose` alone stays on that entry when both streams are terminals. The walk asks one field at a time on the open screen. `edit`, when a target is still missing, and `list-mp4` on a terminal, are the verbs this file names for that screen. Every other product verb stays on the terminal. A verb that still needs a target asks for the folder first, then for the specific file when that verb needs one. The job path and the non-interactive verb path never wait for a person. The verb names are `requirement-python-cli-interface` §2.3a.
 
 Which pixels the screen uses stay on `requirement-python-tui`. What cut, percent, and boomerang mean stays on `requirement-domain-videospeed`. How `main` starts (version, logger, parser) stays on `requirement-python-cli-interface`. This file owns which path runs.
 
@@ -58,6 +58,7 @@ Which pixels the screen uses stay on `requirement-python-tui`. What cut, percent
 13. **`about`.** It **MUST** show its page and exit. The page is `requirement-python-about`. It **MUST NOT** ask for a folder or a file, with or without a terminal. Job selectors and modifiers on this verb **MUST** be ignored. It **MUST NOT** encode.
 14. **Unknown verb.** A positional token outside `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall` **MUST** exit non-zero, **MUST** name those verbs, and **MUST NOT** open the menu or wait. `hello` is outside that list. It **MUST NOT** print `Hello.`. `./build.sh` tokens such as `setup` stay unknown here. `version` is a product verb. It is not the `./build.sh version` maintainer verb.
 15. **Control-C confirm.** When the text screen is already open, Control-C asks `Exit? (y/n)` under `requirement-python-graceful-exit`. That question consumes the open screen. It **MUST NOT** call `isatty`. It is not a new mode decision and it is not row 9. `--json`, the non-interactive job, and a run with no text screen **MUST NOT** ask and **MUST NOT** hang. Those exits stay on `requirement-python-graceful-exit`.
+16. **Major entry and the verb route.** The text menu is the major entry. No product verb, and `--verbose` with no product verb, **MUST** open that menu when stdin and stdout are terminals, no selector is set, no lone modifier is set, and `--json` is not set. `--json` with no product verb **MUST** stay JSON help and **MUST NOT** open the menu. A product verb **MUST** stay on the terminal unless this file names that verb for the screen. This file names `edit` when a folder or a file is still missing, and `list-mp4` on a terminal. `help`, `version`, `about`, `self-install`, `version-check`, `self-update`, and `self-uninstall` **MUST NOT** open the menu.
 
 ### 2.1 Field table (interactive edit)
 
@@ -110,6 +111,7 @@ On a terminal, ask only the rows this verb still needs. One question at a time, 
 | Verb `list-mp4` with no terminal | List `--folder` or the current directory. No MP4 exits 1 | Prompt; encode; pick a file |
 | Unknown positional verb | Exit 1. Name `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, `self-uninstall`. `hello` is this row | Open the menu; wait; print `Hello.` |
 | No verb, no selectors, no modifiers, stdin is a terminal, stdout is a terminal | Menu, then edit’s field table | `input()`; close the screen between questions |
+| No verb, `--verbose` only, stdin is a terminal, stdout is a terminal | Menu. `--verbose` is not a command token | Treat `--verbose` as a verb; skip the screen |
 | No verb, no selectors, no modifiers, stdin is not a terminal | Exit 1. Next step names `--file`, `--start`, `--end`, or a terminal | Open the menu; wait |
 | No verb, no selectors, no modifiers, stdin is a terminal, stdout is not | Exit 1. Next step names a terminal or the job flags | Draw a partial box; wait |
 | No verb, any selector, even on a terminal | Non-interactive checks, then at most one job | Open the menu; read stdin |
@@ -154,7 +156,7 @@ video-speed --json --file clip.mp4 --start 0 --end 5
 | **Range** | `0 <= start < end <= duration`, same as `valid_cut_range` |
 | **stdin gate** | `Cli.stdin_is_tty` from `main` only |
 | **stdout gate** | `Cli.stdout_is_tty` from `Tui.open_text_menu` only |
-| **Quiet / JSON** | No `--quiet`. `--json` is `requirement-python-json-output`. Durable log quiet-before-menu stays on `requirement-python-cli-logging` |
+| **Quiet / JSON** | No `--quiet`. `--verbose` is named on `requirement-python-cli-interface` and shows status lines on a run that is not `--json` and not a text screen. `--json` is `requirement-python-json-output`. Durable log quiet-before-menu stays on `requirement-python-cli-logging` |
 | **Privilege** | normal user privilege |
 
 ### 2.4 Why This Requirement Exists (Direct CIAO Alignment)
@@ -180,6 +182,7 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 **Future AI assistants or maintainers MUST NOT:**
 
 - Open the front menu when a selector is set and no product verb is asking for a missing target, or when a modifier is set with no selector and no product verb.
+- Open the text menu for `help`, `version`, `about`, `self-install`, `version-check`, `self-update`, or `self-uninstall`. Those verbs stay on the terminal. The major entry is no product verb. `--verbose` alone, on a terminal, stays on that entry.
 - Open the front menu for `video-speed edit` or `video-speed list-mp4` before the folder question.
 - Call `input()` for folder, video, cut, percent, boomerang, or again.
 - Wait on stdin when no selector and no askable verb is set and stdin is not a terminal.
@@ -205,11 +208,12 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | TP-MODE-06 | `tests/test_cli.py` | have |
 | TP-MODE-07 | `tests/test_cli.py` · `tests/test_tui.py` | have |
 | TP-MODE-08 | `tests/test_cli.py` | have |
+| TP-MODE-09 | `tests/test_cli.py` | have |
 | TP-CLI-03 | — | todo |
 | TP-CLI-06 | `tests/test_cli.py` | have |
 | TP-CLI-07 | `tests/test_cli.py` | have |
 
-TP-MODE-01 asserts rule 2 and rule 3 for a selector with no product verb: `--file`, `--start`, `--end`, or `--folder` does not call `open_text_menu` even when stdin is a terminal. TP-MODE-02 asserts a lone `--percent` or `--boomerang`, with no verb, exits 1, names `--file`, `--start`, and `--end`, and does not open the menu even when stdin is a terminal. TP-MODE-03 asserts empty argv with no verb and no terminal exits 1 and names a next step. TP-MODE-04 asserts edit asks the folder line inside the frame and does not call `input()` (`requirement-python-tui`, `TP-TUI-04`). TP-MODE-05 is `edit` on a terminal with no `--file`: the folder line, then the video line, inside the frame, and no `input()`. TP-MODE-06 is `edit` with no terminal and without `--file`, `--start`, and `--end`: exit 1, no prompt. TP-MODE-07 is `list-mp4`: on a terminal it asks for the folder when `--folder` is omitted, then lists, and does not encode; with no terminal it lists `--folder` or the current directory and does not prompt. TP-MODE-08 is `about` and `help`: no folder prompt and no file prompt, with or without a terminal. `hello` is an unknown verb. TP-CLI-03 remains the full terminal walk. TP-CLI-06 asserts an incomplete job and a missing file fail closed. TP-CLI-07 asserts `help` lists the nine product verbs, including `version`, `self-install`, `version-check`, `self-update`, and `self-uninstall`, and does not list `hello`. An unknown verb, including `hello`, exits 1.
+TP-MODE-01 asserts rule 2 and rule 3 for a selector with no product verb: `--file`, `--start`, `--end`, or `--folder` does not call `open_text_menu` even when stdin is a terminal. TP-MODE-02 asserts a lone `--percent` or `--boomerang`, with no verb, exits 1, names `--file`, `--start`, and `--end`, and does not open the menu even when stdin is a terminal. TP-MODE-03 asserts empty argv with no verb and no terminal exits 1 and names a next step. TP-MODE-04 asserts edit asks the folder line inside the frame and does not call `input()` (`requirement-python-tui`, `TP-TUI-04`). TP-MODE-05 is `edit` on a terminal with no `--file`: the folder line, then the video line, inside the frame, and no `input()`. TP-MODE-06 is `edit` with no terminal and without `--file`, `--start`, and `--end`: exit 1, no prompt. TP-MODE-07 is `list-mp4`: on a terminal it asks for the folder when `--folder` is omitted, then lists, and does not encode; with no terminal it lists `--folder` or the current directory and does not prompt. TP-MODE-08 is `about` and `help`: no folder prompt and no file prompt, with or without a terminal. TP-MODE-09 asserts rule 16: empty argv and `--verbose` alone, with both streams terminals, open the menu; `version`, `about`, and `help` do not. `hello` is an unknown verb. TP-CLI-03 remains the full terminal walk. TP-CLI-06 asserts an incomplete job and a missing file fail closed. TP-CLI-07 asserts `help` lists the nine product verbs, including `version`, `self-install`, `version-check`, `self-update`, and `self-uninstall`, and does not list `hello`. An unknown verb, including `hello`, exits 1.
 
 **Matrix:** `reviews/requirement-test-matrix.md`
 **Map:** `reviews/test-plan.md`.
@@ -243,7 +247,9 @@ TP-MODE-01 asserts rule 2 and rule 3 for a selector with no product verb: `--fil
 | 2026-10-02 | Active 1.3.1 | Control-C on an open text screen asks `Exit? (y/n)`. The question does not call `isatty`. No screen and `--json` do not ask. The decision stays on `requirement-python-graceful-exit` |
 | 2026-10-02 | Active 1.3.2 | Sample code shows the menu walk and the one-job commands |
 | 2026-10-04 | Active 1.3.3 | `hello` is not a product verb. That token is the unknown-verb row |
+| 2026-10-05 | Active 1.3.4 | `--verbose` shows status lines except on `--json` and a text screen. There is still no `--quiet` |
+| 2026-10-05 | Active 1.3.5 | The text menu is the major entry: no product verb. `--verbose` alone stays on that entry. `edit` and `list-mp4` stay the named screen verbs. Every other product verb stays on the terminal. `TP-MODE-09` has. `./tests/run.sh`: 98 tests, OK, skipped=1 |
 
-**Last Updated**: 2026-10-04
+**Last Updated**: 2026-10-05
 **Owner**: VideoSpeed project maintainers
 **Alignment**: Registry `docs/requirements/index.md`; CIAO (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-language.md
-**Status**: Active (Version 1.0.0)
+**Status**: Active (Version 1.0.1)
 **Area**: python
 **Key**: `requirement-python-cli-language`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -180,29 +180,29 @@ English front board, then the language board. Reserved **40** and **54**–**59*
 
 ```text
 41. English   : use English for this menu
-42. 简体中文      : use Simplified Chinese for this menu
-43. 繁體中文      : use Traditional Chinese for this menu
+42. 简体中文  : use Simplified Chinese for this menu
+43. 繁體中文  : use Traditional Chinese for this menu
 44. Español   : use Spanish for this menu
 45. العربية   : use Arabic for this menu
 46. Français  : use French for this menu
 47. Português : use Portuguese for this menu
 48. Русский   : use Russian for this menu
 49. Deutsch   : use German for this menu
-50. 日本語       : use Japanese for this menu
-51. 한국어       : use Korean for this menu
+50. 日本語    : use Japanese for this menu
+51. 한국어    : use Korean for this menu
 52. Nederlands: use Dutch for this menu
 53. Ελληνικά  : use Greek for this menu
  0. Back      : return to the main menu
 ```
 
-Traditional Chinese (`zh-Hant`) front board after **43**. Leaf shorts and leaf explains stay English. The path word is `路徑`. The column pad counts characters, so a four-character leaf short has no space before the colon.
+Traditional Chinese (`zh-Hant`) front board after **43**. Leaf shorts and leaf explains stay English. The path word is `路徑`. The column pad is display columns. Wide and Fullwidth count as two. Ambiguous stays one. `系統日誌` and `自我管理` are eight columns, the same width as the longest short on this board, so they have no space before the colon. `edit`, `語言`, and `離開` are four columns and take four spaces. The screen proof is `TP-TUI-13` on `requirement-python-tui`.
 
 ```text
-1. edit: cut, speed, and optional boomerang
-4. 語言  : 這個選單的顯示語言
+1. edit    : cut, speed, and optional boomerang
+4. 語言    : 這個選單的顯示語言
 6. 系統日誌: 檢視、清空，以及日誌資料夾
 8. 自我管理: 版本、關於，以及 pip 生命週期
-9. 離開  : 離開
+9. 離開    : 離開
 ```
 
 11. Actor / role / subject / approver: **considered**. No dest machine. No approver. The table stays on `requirement-class-software-dev.md`. This file does **not** add an actor requirement.
@@ -258,6 +258,7 @@ The language file lives under this login’s home. **This requirement:** saving 
 - Translate leaf shorts, human help, the about host-check page, JSON, argv `version`, encode output, the folder path, or the clock.
 - Detect the language inside `MenuPainter`. The caller passes the path word.
 - Construct `LanguageMenu` from a factory. `Tui` writes `LanguageMenu(...)`.
+- Treat a code-point count as the screen column of a wide short. The pad in the samples below is display columns. Wide and Fullwidth count as two. Ambiguous stays one. The screen proof is `TP-TUI-13` on `requirement-python-tui`.
 
 ## 5. Definition of done
 
@@ -267,7 +268,7 @@ The language file lives under this login’s home. **This requirement:** saving 
 4. A missing, empty, or unrecognized file is English and is not rewritten.
 5. `VIDEOSPEED_LANG` set to one of the thirteen codes shows that language even when the file says `en`, and does not write the file.
 6. A failed write keeps the previous language and shows that language’s failed-write sentence.
-7. `TP-LANG-01` asserts this file. `TP-TUI-11` asserts system-log on **6** / **61**–**63**.
+7. `TP-LANG-01` asserts the joined lines in this file. `TP-TUI-13` on `requirement-python-tui` asserts the screen columns. `TP-TUI-11` asserts system-log on **6** / **61**–**63**.
 
 ### Design-time verification
 
@@ -297,3 +298,4 @@ The language file lives under this login’s home. **This requirement:** saving 
 | Date | Status | Note |
 |------|--------|------|
 | 2026-10-04 | Active 1.0.0 | Front **4** is language. Block **40–59**, assigned **41–53**. System-log moves to **6** / **61**–**63**. `TP-LANG-01` has |
+| 2026-10-04 | Active 1.0.1 | The column pad in the samples is display columns. Wide and Fullwidth count as two. Ambiguous stays one. The screen proof stays `TP-TUI-13` |

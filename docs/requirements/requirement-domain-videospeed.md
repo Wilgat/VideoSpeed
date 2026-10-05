@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-domain-videospeed.md  
-**Status**: Active (Version 1.2.6)  
+**Status**: Active (Version 1.2.7)  
 **Area**: domain  
 **Key**: `requirement-domain-videospeed`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -120,7 +120,7 @@ Product identity / about **MUST** be able to report these domain lines. The page
 | **Product / package name** | `VideoSpeed` |
 | **Console script** | `video-speed` |
 | **Domain implementation module** | `src/VideoSpeed/cli.py` |
-| **VERSION** | `1.0.11` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 11) |
+| **VERSION** | `1.0.12` (`requirement-python-version`: `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 12) |
 | **Input formats (current)** | MP4 only (`*.mp4`, `*.MP4`), recursive under selected folder |
 | **Output location** | Same directory as source video |
 | **Output name pattern** | `{stem}_cut{start:.1f}-{end:.1f}s_{int(ratio)}pct[_BOOMERANG].mp4` |
@@ -235,9 +235,10 @@ Those commands are `clip_cut1.0-5.0s_100pct.mp4` and `clip_cut1.0-5.0s_50pct_BOO
 | 2026-10-04 | Active 1.2.4 | The text menu also lists language. The rows stay on `requirement-python-tui`. The codes stay on `requirement-python-cli-language` |
 | 2026-10-04 | Active 1.2.5 | User-document headings and pictures point at `requirement-python-readme`. Domain rows stay here |
 | 2026-10-04 | Active 1.2.6 | `hello` is not a domain verb and is not a product verb |
+| 2026-10-05 | Active 1.2.7 | VERSION is package string `1.0.12` |
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

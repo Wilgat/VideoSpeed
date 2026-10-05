@@ -326,6 +326,14 @@ class Cli:
             ),
         )
         parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help=(
+                "Show status lines on the terminal. "
+                "Stays quiet for --json and for the text menu."
+            ),
+        )
+        parser.add_argument(
             "--force",
             action="store_true",
             help="Confirm self-uninstall. Required on the command line.",
@@ -392,6 +400,20 @@ class Cli:
         if has_percent or has_boomerang:
             return False
         return True
+
+    @staticmethod
+    def _show_log_mirror(argv):
+        """
+        General Purpose: Whether this argv shows the ChronicleLogger console mirror.
+        Last updated: 2026-10-05
+        A predicate only. It does not construct a logger. The mirror stays off
+        unless --verbose is set on a run that is not --json and not a text screen.
+        """
+        if "--verbose" not in argv:
+            return False
+        if "--json" in argv:
+            return False
+        return not Cli._opens_text_screen(argv)
 
     def _dispatch(self, args, logger):
         """
@@ -521,11 +543,17 @@ class Cli:
 
         parser = self.build_parser()
         args = parser.parse_args(argv)
-        # help stays human usage text, including when --json is also set.
-        if args.verb == "help":
-            return self._verb_help(parser)
         if args.json:
             self.output.json_mode = True
+        # The help verb with --json writes usage to stderr and one object to stdout.
+        # Without --json, help stays human usage text on stdout.
+        if args.verb == "help":
+            if args.json:
+                parser.print_help(file=sys.stderr)
+                code = self.output._emit_json("noninteractive", 0)
+                self.output.json_mode = False
+                return code
+            return self._verb_help(parser)
 
         code = self._dispatch(args, logger)
         if not args.json:
@@ -543,13 +571,13 @@ def main(argv=None, log_basedir="", log_logdir=""):
     No arguments without a terminal → fail closed (ask for --file/--start/--end).
 
     requirement-python-cli-interface and requirement-python-cli-logging:
-    def main writes ChronicleLogger(...). is_quiet=True when --json or the
-    text screen is already known. The library stores that flag before it
-    creates the log folder. Then logName, baseDir, and logDir, then the
-    debug identity, then Cli(logger), then the argument parser. A non-TUI,
-    non-JSON run leaves the console mirror on. The text screen and --json
-    keep that mirror off. log_basedir and log_logdir stay empty in normal
-    use so ChronicleLogger chooses the folder. Tests pass a temporary folder.
+    def main writes ChronicleLogger(...). is_quiet=True unless --verbose is
+    set on a run that is not --json and will not open the text screen. The
+    library stores that flag before it creates the log folder. Then logName,
+    baseDir, and logDir, then the debug identity, then Cli(logger), then the
+    argument parser. --json and the text screen stay quiet even with
+    --verbose. log_basedir and log_logdir stay empty in normal use so
+    ChronicleLogger chooses the folder. Tests pass a temporary folder.
     """
     if argv is None:
         argv = sys.argv[1:]
@@ -562,12 +590,12 @@ def main(argv=None, log_basedir="", log_logdir=""):
         print("   Next: pip install 'ChronicleLogger>=1.3.1'", file=sys.stderr)
         return 1
 
-    json_or_screen = "--json" in argv or Cli._opens_text_screen(argv)
+    show_mirror = Cli._show_log_mirror(argv)
     logger = ChronicleLogger(
         logname="VideoSpeed",
         basedir=log_basedir or "",
         logdir=log_logdir or "",
-        is_quiet=json_or_screen,
+        is_quiet=not show_mirror,
     )
     appname = logger.logName()
     basedir = logger.baseDir()

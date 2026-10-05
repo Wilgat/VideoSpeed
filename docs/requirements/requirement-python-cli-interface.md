@@ -1,18 +1,18 @@
 **file**: docs/requirements/requirement-python-cli-interface.md  
-**Status**: Active (Version 1.9.5)  
+**Status**: Active (Version 1.9.7)  
 **Area**: python  
 **Key**: `requirement-python-cli-interface`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
 
 ## 1. Purpose
 
-Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `hello` is not a product verb. `help` stays off the numbered menu. The other verbs match a menu action. `help` and `version` are self-management verbs. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
+Define the official **command-line entry points**, the **product verbs**, and the order of `main` for the VideoSpeed Python package. The verbs are `help`, `version`, `about`, `edit`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall`. `hello` is not a product verb. `help` stays off the numbered menu. Each verb's default route is the terminal. The mode file names the screen verbs: `edit` when a target is still missing, and `list-mp4` on a terminal. `help` and `version` are self-management verbs. Which path runs after the parser — the menu walk, one verb, one job, or a fail-closed stop — is **`requirement-python-interactive-vs-noninteractive`**.
 
 Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops are owned by **`requirement-video-ffmpeg-pipeline`**.
 
 ### 1.1 Human-facing
 
-**In one sentence:** This file says how you start VideoSpeed (`video-speed` or `python -m VideoSpeed`), the order inside `main`, and the verbs that match the text menu; the menu walk versus one verb versus one job is the mode file.
+**In one sentence:** This file says how you start VideoSpeed (`video-speed` or `python -m VideoSpeed`), the order inside `main`, and the product verbs. A verb stays on the terminal unless the mode file names it for the text menu.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -54,7 +54,7 @@ Domain step catalog is owned by **`requirement-domain-videospeed`**. Encode ops 
 
 M1. **Step 1 — main’s own version.** **MUST** read `MAJOR_VERSION`, `MINOR_VERSION`, and `PATCH_VERSION` from the package. **MUST NOT** assign a second triple. The string **MUST** equal `__version__`.  
 M2. **Step 2 — logger.** **MUST** write `logger = ChronicleLogger(...)` inside `def main`, as `requirement-python-cli-logging` requires (`logname="VideoSpeed"`, then `logName()`, `baseDir()`, `logDir()`). That statement is the construct. A method is not the construct. `Cli.__new__` is not the construct. If that import fails, **MUST** print the install next step and return `1` before the parser runs.  
-M3. **Step 3 — debug.** If `logger.isDebug()` is true, **MUST** log the identity line with the three integers, `ChronicleLogger.class_version()`, and a line whose message is `debug mode`, `component="main"`. When `--json` is set or this run will open the text screen, step 2 **MUST** pass `is_quiet=True` into `ChronicleLogger(...)` (`requirement-python-cli-logging`). Calling `quiet(True)` only after that constructor returns does not hide a line the constructor already printed. A non-TUI run that is not `--json` **MUST** leave `is_quiet` false, so the operator sees `debug mode`. `DEBUG` must already be set before step 2. After this step, `main` **MUST** construct `Cli` with that logger. Each class stores it and logs `instantiated` (`requirement-python-cli-logging`).  
+M3. **Step 3 — debug.** If `logger.isDebug()` is true, **MUST** log the identity line with the three integers, `ChronicleLogger.class_version()`, and a line whose message is `debug mode`, `component="main"`. Step 2 **MUST** pass `is_quiet=True` into `ChronicleLogger(...)` unless `--verbose` is set on a run that is not `--json` and will not open the text screen (`requirement-python-cli-logging`). `--json` and a text screen **MUST** stay quiet even when `--verbose` is also set. Calling `quiet(True)` only after that constructor returns does not hide a line the constructor already printed. `DEBUG` must already be set before step 2. `DEBUG` without `--verbose` writes those lines to the daily file and does not show them on the terminal. After this step, `main` **MUST** construct `Cli` with that logger. Each class stores it and logs `instantiated` (`requirement-python-cli-logging`).  
 M4. **Step 4 — major import missing.** **MUST** use the AnimeDlp gate: `log_message` at `FATAL`, `component="main"`, then `return 1`. ChronicleLogger is that gate at step 2. OpenCV (`cv2`) stays lazy (`requirement-python-coding-style`). `main` **MUST** run that same FATAL gate immediately before a duration probe. The text menu stays in this package (`requirement-python-tui`). Its class home is `requirement-python-oop`. `def main` stays in `src/VideoSpeed/cli.py`. Class `Cli` in that file constructs the objects that requirement names, including class `Tui`. It is not a pip import. `--help` and `--version` **MUST** still succeed when `cv2` is absent.  
 M5. **Step 5 — argument parser.** **MUST** build the `ArgumentParser` and call `parse_args` only after steps 1–3, and after the ChronicleLogger gate. Flags stay the list in §2.4. `--version` **MUST** print the package string from step 1.
 
@@ -72,13 +72,14 @@ def main(argv=None):
 
     # 2. logger
     appname = "VideoSpeed"
-    logger = ChronicleLogger(logname=appname, is_quiet=json_or_text_screen)
+    show_mirror = verbose and not json_mode and not text_screen
+    logger = ChronicleLogger(logname=appname, is_quiet=not show_mirror)
     appname = logger.logName()
     basedir = logger.baseDir()
     logdir = logger.logDir()
 
-    # is_quiet is true when --json is set or the text screen is already known.
-    # A non-TUI, non-JSON run leaves it false, so "debug mode" is visible.
+    # is_quiet is true unless --verbose is set on a run that is not --json
+    # and will not open the text screen. --json and a text screen stay quiet.
 
     # 3. debug
     if logger.isDebug():
@@ -107,7 +108,7 @@ def main(argv=None):
 
 | Item | Value |
 |------|--------|
-| **Order today in `cli.py`** | `def main` writes `ChronicleLogger(...)` before the parser: version triple, `is_quiet=True` when `--json` or the text screen is already known, read-back, then the debug identity and `debug mode` when `isDebug()` is true, then `Cli(logger)`. Each `__init__` writes `instantiated`. A missing ChronicleLogger returns 1 before the parser. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
+| **Order today in `cli.py`** | `def main` writes `ChronicleLogger(...)` before the parser: version triple, `is_quiet=True` unless `--verbose` is set on a run that is not `--json` and will not open the text screen, read-back, then the debug identity and `debug mode` when `isDebug()` is true, then `Cli(logger)`. Each `__init__` writes `instantiated`. A missing ChronicleLogger returns 1 before the parser. `cv2` stays a lazy FATAL at the duration probe. `TP-MAIN-01` stays **todo** for that probe gate |
 | **Version binding today** | `cli.py` imports the package triple and `__version__`. It does not declare its own triple |
 
 ### 2.2 Mode (owned elsewhere)
@@ -146,6 +147,7 @@ These tokens are **not** `./build.sh` verbs. Maintainer verbs stay in §2.7.
 14. When a verb still needs a folder or a specific file, the order **MUST** be the folder first and the specific file second, as `requirement-python-interactive-vs-noninteractive` §2.1b. This file **MUST NOT** keep a second prompt matrix.  
 15. `help`, `version`, `about`, `self-install`, `version-check`, `self-update`, and `self-uninstall` **MUST NOT** ask for a folder or a file. `version` **MUST NOT** call pip. `version-check` and `self-update` **MUST** call pip as the table says. `self-install` and `self-uninstall` **MUST** call pip as the table says. Those commands **MUST NOT** use `sudo` and **MUST NOT** use `curl`. `self-uninstall` without `--force` **MUST** exit non-zero and name `--force`. `list-mp4` **MUST NOT** ask for a specific file and **MUST NOT** encode. `Exit` stays a menu control. It is not a positional verb.  
 16. Without a terminal, `help`, `version`, `about`, `list-mp4`, `self-install`, `version-check`, `self-update`, and `self-uninstall --force` **MUST** still run and **MUST NOT** wait. `edit` without a terminal **MUST** follow the one-job rule when `--file`, `--start`, and `--end` are present, and the fail-closed stop when they are not.
+16a. Each product verb's default route is the terminal. This file does not put a verb on the text screen. The mode file names the exceptions: `edit` when a target is still missing, and `list-mp4` on a terminal. No product verb is the menu. `--json` with no product verb is not the menu. `--verbose` with no product verb stays on that menu when both streams are terminals.
 
 ```text
 video-speed help
@@ -166,7 +168,7 @@ video-speed list-mp4 --folder ./clips
 
 17. **MUST** print human-readable progress for each pipeline stage.  
 18. **MUST** emit user-visible errors on the console. Durable system status **MUST** follow `requirement-python-cli-logging`.  
-19. **MUST** implement `--json` as `requirement-python-json-output`. **MUST NOT** add `--quiet`.
+19. **MUST** implement `--json` as `requirement-python-json-output` on every product verb, including `help`. The flags `--help` and `--version` stay human text. **MUST** implement `--verbose`. That flag shows the console mirror on a run that is not `--json` and will not open the text screen. **MUST NOT** add `--quiet`.
 
 ### 2.5 Implementation Notes (this project)
 
@@ -176,10 +178,10 @@ video-speed list-mp4 --folder ./clips
 | **Module entry** | `src/VideoSpeed/__main__.py` → `main()` |
 | **CLI module** | `src/VideoSpeed/cli.py` |
 | **Empty argv** | Mode matrix in `requirement-python-interactive-vs-noninteractive` |
-| **Argparse** | positional verb `help` \| `version` \| `about` \| `edit` \| `list-mp4` \| `self-install` \| `version-check` \| `self-update` \| `self-uninstall`; flags `--help`, `--version`, `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`, `--json`, `--force` |
+| **Argparse** | positional verb `help` \| `version` \| `about` \| `edit` \| `list-mp4` \| `self-install` \| `version-check` \| `self-update` \| `self-uninstall`; flags `--help`, `--version`, `--file`, `--folder`, `--start`, `--end`, `--percent`, `--boomerang`, `--json`, `--verbose`, `--force` |
 | **Product verbs** | §2.3a. Prompt order is the mode requirement |
 | **Empty argv, no TTY** | Fail closed; owned by the mode requirement |
-| **JSON** | `--json` owned by `requirement-python-json-output`. No `--quiet` |
+| **JSON** | `--json` on every product verb, owned by `requirement-python-json-output`. The flags `--help` and `--version` stay human. `--verbose` shows the console mirror except on `--json` and a text screen. No `--quiet` |
 | **Privilege** | user-level only |
 | **Root launcher** | `cli-new.py` thin re-export of package `main` (checkout convenience) |
 | **Bootstrap archive** | `src/VideoSpeed/cli.bootstrap-old.py` (pre-specialize body) |
@@ -276,11 +278,11 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | TP-CLI-06 | `tests/test_cli.py` | have | Batch flags |
 | TP-CLI-07 | `tests/test_cli.py` | have | `help` lists the product verbs; an unknown verb exits 1 and does not open the menu |
 | TP-SELF-01 | `tests/test_cli.py` | have | `version` is local. `version-check` and `self-update` call pip. `self-uninstall` needs `--force` |
-| TP-MODE-01..03 | `tests/test_cli.py` | have | Mode matrix; see the mode requirement |
+| TP-MODE-01..03, TP-MODE-09 | `tests/test_cli.py` | have | Mode matrix; see the mode requirement. `TP-MODE-09` is the no-verb menu and the terminal route for `version`, `about`, and `help` |
 | TP-TUI-* | `tests/test_tui.py` | have | Menu look owned by `requirement-python-tui` |
 | TP-MAIN-01 | — | todo | `main` order: version, logger, debug, missing lib, parser |
 | TP-BUILD-01..04, TP-BUILD-06 | `tests/test_build.py` | have | `./build.sh` verbs, including `test-install`; owned by the build requirement |
-| TP-JSON-01..05 | `tests/test_json.py` | have | `--json` object; owned by the JSON requirement |
+| TP-JSON-01..06 | `tests/test_json.py` | have | `--json` object on every product verb; owned by the JSON requirement |
 
 ## 7. Status history
 
@@ -309,9 +311,11 @@ On Termux, Git Bash, Windows cmd, or the same class, **admin privilege** and **d
 | 2026-10-02 | Active 1.9.3 | Step 2 is the statement `ChronicleLogger(...)` inside `def main`. A method does not instantiate the logger. `Cli.__new__` is not that step |
 | 2026-10-02 | Active 1.9.4 | Sample code shows `ChronicleLogger(...)` and then `Cli(logger)` before the parser |
 | 2026-10-04 | Active 1.9.5 | `hello` is not a product verb. `video-speed hello` exits non-zero and does not print `Hello.` |
+| 2026-10-05 | Active 1.9.6 | `--verbose` shows the console mirror unless the run is `--json` or a text screen. There is still no `--quiet`. Every product verb, including `help`, accepts `--json`. The flags `--help` and `--version` stay human |
+| 2026-10-05 | Active 1.9.7 | Each product verb's default route is the terminal. The mode file names the screen exceptions. No product verb is the menu |
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

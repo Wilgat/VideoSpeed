@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-version.md
-**Status**: Active (Version 1.0.5)
+**Status**: Active (Version 1.0.6)
 **Area**: python
 **Key**: `requirement-python-version`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -57,11 +57,11 @@ Sibling product **AnimeDlp** names the same three fields, `MAJOR_VERSION`, `MINO
 | **SSOT file** | `src/VideoSpeed/__init__.py` |
 | **MAJOR_VERSION** | `1` |
 | **MINOR_VERSION** | `0` |
-| **PATCH_VERSION** | `11` |
-| **`__version__`** | `1.0.11` |
-| **Manifest copy** | `pyproject.toml` `[project].version` = `1.0.11` |
+| **PATCH_VERSION** | `12` |
+| **`__version__`** | `1.0.12` |
+| **Manifest copy** | `pyproject.toml` `[project].version` = `1.0.12` |
 | **Who reads it** | `main` in `src/VideoSpeed/cli.py` (`requirement-python-cli-interface`) |
-| **Debug line shape** | `{appname} v1.0.11 ({file})` from the three integers |
+| **Debug line shape** | `{appname} v1.0.12 ({file})` from the three integers |
 
 ### Sample code
 
@@ -70,7 +70,7 @@ The package writes the triple once. The string is those three integers.
 ```python
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
-PATCH_VERSION = 11
+PATCH_VERSION = 12
 __version__ = "{0}.{1}.{2}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 ```
 
@@ -134,9 +134,10 @@ On Termux, Git Bash, Windows cmd, or the same class, the version is still the th
 | 2026-10-02 | Active 1.0.3 | Patch 10. Package string `1.0.10` |
 | 2026-10-02 | Active 1.0.4 | Sample code shows the package triple and the string `1.0.10` |
 | 2026-10-04 | Active 1.0.5 | Patch 11. Package string `1.0.11` |
+| 2026-10-05 | Active 1.0.6 | Patch 12. Package string `1.0.12` |
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

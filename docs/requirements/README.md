@@ -2,14 +2,14 @@
 
 Authoritative specialized product law for **VideoSpeed** lives here.
 
-**Current state (2026-10-04):** Specialized **software-development** product. Left genesis. Registry is populated (23 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
+**Current state (2026-10-05):** Specialized **software-development** product. Left genesis. Registry is populated (23 Active) — see `index.md`. Class residual records dest approver/fences as **considered — none**.
 
 ## Product identity (summary)
 
 | Field | Value |
 |-------|--------|
 | Product / package | `VideoSpeed` |
-| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 11 → `1.0.11` |
+| Version SSOT | `requirement-python-version` — `MAJOR_VERSION` 1, `MINOR_VERSION` 0, `PATCH_VERSION` 12 → `1.0.12` |
 | Text menu | `requirement-python-tui` — picture; first row is Path and the current directory; session is class `Tui`; frame is class `MenuPainter`. Front row **4** is language. Front row **6** is system-log |
 | User README | `requirement-python-readme` — root `README.md` sections, Advantages after Features, related projects, badges, install honesty, and the text-menu screenshots. The path-row sentence names the local clock |
 | Menu language | `requirement-python-cli-language` — thirteen codes on row **4**; one line under this login’s persistence directory; `VIDEOSPEED_LANG` wins at process start and does not write |
@@ -18,11 +18,11 @@ Authoritative specialized product law for **VideoSpeed** lives here.
 | Conda paths | `requirement-python-conda` — under conda, python2 and python3 stay inside the prefix, and conda location is `bin/conda`. `in_conda` does not replace that root test |
 | OOP grouping | `requirement-python-oop` — one class per file. `def main` stays in `cli.py` and writes `ChronicleLogger(...)`, then `Cli(logger)`. Each class `__init__` receives the logger and writes its own instantiation line. Class `Cli` owns its identity constants, verb lists, and length bounds. The site that needs an object writes `ClassName(...)`. A factory is not in the map. `TP-OOP-01` through `TP-OOP-04` have landed |
 | Pip floors | `requirement-python-dependency-management` — `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
-| System status log | `requirement-python-cli-logging` — `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)` in that function, with `is_quiet=True` when `--json` or the text screen is already known, passed into every class. Each `__init__` logs `instantiated`. `CheckSystem` reads in-venv, in-pyenv, and in-conda from that logger. The log folder is the one ChronicleLogger already returns from `logDir()`: conda, else pyenv, else venv, else `~/.app/video-speed/log`, or `/var/video-speed/log` when root and none of those are active. A major file operation logs the operation and the paths. Thread creation and thread operations log before the call that can block (`TP-LOG-07` todo; the ship unit creates no threads). A non-TUI, non-JSON run shows `debug mode`. `about --json` keeps the mirror off both streams, including `Created directory:`. `[CHECK SYSTEM]:` is the about page (`TP-LOG-08` have) |
+| System status log | `requirement-python-cli-logging` — `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)` in that function. The console mirror stays off unless `--verbose` is set on a run that is not `--json` and not a text screen. Each `__init__` logs `instantiated`. `CheckSystem` reads in-venv, in-pyenv, and in-conda from that logger. The log folder is the one ChronicleLogger already returns from `logDir()`: conda, else pyenv, else venv, else `~/.app/video-speed/log`, or `/var/video-speed/log` when root and none of those are active. A major file operation logs the operation and the paths. Thread creation and thread operations log before the call that can block (`TP-LOG-07` todo; the ship unit creates no threads). `DEBUG` without `--verbose` writes the daily file and does not show the terminal. `about --json` keeps the mirror off both streams, including `Created directory:`. `[CHECK SYSTEM]:` is the about page (`TP-LOG-08` have) |
 | Control-C | `requirement-python-graceful-exit` — on an open text screen, ask `Exit? (y/n)` and log the decision. Yes exits 130. A live child is stopped and not published first. Not in the ship unit yet (`TP-EXIT-01` through `TP-EXIT-07` todo) |
 | Modes | `requirement-python-interactive-vs-noninteractive` — menu walk, product verb (folder then file), or one job |
 | Maintainer build | `requirement-python-build-script` — `./build.sh` verbs |
-| JSON output | `requirement-python-json-output` — `--json` is one object; no text menu |
+| JSON output | `requirement-python-json-output` — `--json` on every product verb is one object; no text menu. The flags `--help` and `--version` stay human |
 | Ship surface | Python package; console script `video-speed` |
 | Install mode | **pip / local package** |
 | Domain surface | `requirement-domain-videospeed` — four pillars |

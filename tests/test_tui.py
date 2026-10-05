@@ -533,16 +533,16 @@ class TestTui(unittest.TestCase):
             painter.format_rows(MenuPainter.LANG_ROWS),
             [
                 "41. English   : use English for this menu",
-                "42. 简体中文      : use Simplified Chinese for this menu",
-                "43. 繁體中文      : use Traditional Chinese for this menu",
+                "42. 简体中文  : use Simplified Chinese for this menu",
+                "43. 繁體中文  : use Traditional Chinese for this menu",
                 "44. Español   : use Spanish for this menu",
                 "45. العربية   : use Arabic for this menu",
                 "46. Français  : use French for this menu",
                 "47. Português : use Portuguese for this menu",
                 "48. Русский   : use Russian for this menu",
                 "49. Deutsch   : use German for this menu",
-                "50. 日本語       : use Japanese for this menu",
-                "51. 한국어       : use Korean for this menu",
+                "50. 日本語    : use Japanese for this menu",
+                "51. 한국어    : use Korean for this menu",
                 "52. Nederlands: use Dutch for this menu",
                 "53. Ελληνικά  : use Greek for this menu",
                 " 0. Back      : return to the main menu",
@@ -681,13 +681,153 @@ class TestTui(unittest.TestCase):
         self.assertEqual(
             painter.format_rows(zh.boards()["front"]),
             [
-                "1. edit: cut, speed, and optional boomerang",
-                "4. 語言  : 這個選單的顯示語言",
+                "1. edit    : cut, speed, and optional boomerang",
+                "4. 語言    : 這個選單的顯示語言",
                 "6. 系統日誌: 檢視、清空，以及日誌資料夾",
                 "8. 自我管理: 版本、關於，以及 pip 生命週期",
-                "9. 離開  : 離開",
+                "9. 離開    : 離開",
             ],
         )
+
+    def test_tp_tui_13_wide_columns(self):
+        """TP-TUI-13: the colon starts after the display width of a wide short."""
+        import os
+        import unicodedata
+
+        from VideoSpeed import cli
+        from VideoSpeed.language_menu import LanguageMenu
+        from VideoSpeed.menu_model import MenuModel
+        from VideoSpeed.menu_painter import MenuPainter, display_width
+
+        class ColumnScreen(FakeScreen):
+            """Records each addstr with its column."""
+
+            def __init__(self, size=(24, 80)):
+                super().__init__([], size)
+                self.calls = []
+
+            def addstr(self, y, x, text, _attr=0):
+                self.calls.append((y, x, text))
+                self.drawn.append(text)
+
+        def occupy(calls):
+            rows = {}
+            for y, x, text in calls:
+                row = rows.setdefault(y, {})
+                col = x
+                for char in text:
+                    wide = unicodedata.east_asian_width(char) in ("W", "F")
+                    width = 2 if wide else 1
+                    for offset in range(width):
+                        pos = col + offset
+                        self.assertNotIn(
+                            pos,
+                            row,
+                            "row {0} column {1} already holds {2!r}".format(y, pos, row.get(pos)),
+                        )
+                        row[pos] = char if offset == 0 else ""
+                    col += width
+
+        def gap_before(line, clock):
+            head = line[: -len(clock)]
+            return len(head) - len(head.rstrip(" "))
+
+        clock = _freeze_clock(self, "14:05:09")
+        self.assertEqual(display_width("╭─╮"), 3)
+        self.assertEqual(display_width("█"), 1)
+        self.assertEqual(display_width("路径"), display_width("Path"))
+        self.assertEqual(display_width("路徑"), 4)
+        self.assertEqual(display_width("경로"), 4)
+
+        painter = MenuPainter()
+        wide = 79
+        english = painter.path_line(wide)
+        self.assertEqual(display_width(english), wide)
+        self.assertTrue(english.endswith(clock))
+        english_gap = gap_before(english, clock)
+        for label in ("路径", "路徑", "경로"):
+            painter.set_path_label(label)
+            line = painter.path_line(wide)
+            self.assertTrue(line.startswith(label + ": "), line)
+            self.assertTrue(line.endswith(clock), line)
+            self.assertEqual(display_width(line), wide)
+            self.assertEqual(gap_before(line, clock), english_gap)
+        painter.set_path_label("路径")
+        self.assertEqual(painter.path_line(1), "")
+        self.assertEqual(painter.path_line(2), "路")
+        self.assertEqual(painter.path_line(3), "路")
+        self.assertEqual(painter.path_line(5), "路径:")
+
+        expected = {
+            "zh-Hans": [
+                "1. edit    : cut, speed, and optional boomerang",
+                "4. 语言    : 这个菜单的显示语言",
+                "6. 系统日志: 查看、清空，以及日志文件夹",
+                "8. 自我管理: 版本、关于，以及 pip 生命周期",
+                "9. 离开    : 离开",
+            ],
+            "zh-Hant": [
+                "1. edit    : cut, speed, and optional boomerang",
+                "4. 語言    : 這個選單的顯示語言",
+                "6. 系統日誌: 檢視、清空，以及日誌資料夾",
+                "8. 自我管理: 版本、關於，以及 pip 生命週期",
+                "9. 離開    : 離開",
+            ],
+            "ko": [
+                "1. edit       : cut, speed, and optional boomerang",
+                "4. 언어       : 이 메뉴의 표시 언어",
+                "6. 시스템-로그: 보기, 비우기, 그리고 로그 폴더",
+                "8. 자기관리   : 버전, 정보, 그리고 pip 수명 주기",
+                "9. 종료       : 종료",
+            ],
+            "ja": [
+                "1. edit        : cut, speed, and optional boomerang",
+                "4. 言語        : このメニューの表示言語",
+                "6. システムログ: 表示、消去、およびログフォルダ",
+                "8. 自己管理    : バージョン、概要、および pip のライフサイクル",
+                "9. 終了        : 終了",
+            ],
+        }
+        shorts = {
+            "zh-Hans": ("语言", "系统日志", "自我管理", "离开"),
+            "zh-Hant": ("語言", "系統日誌", "自我管理", "離開"),
+            "ko": ("언어", "시스템-로그", "자기관리", "종료"),
+            "ja": ("言語", "システムログ", "自己管理", "終了"),
+        }
+        for code, words in shorts.items():
+            menu = LanguageMenu(home=os.path.join(self._home, "wide-" + code))
+            self.assertTrue(menu.save(code))
+            board = menu.boards()["front"]
+            self.assertEqual(painter.format_rows(board), expected[code])
+            painter.set_path_label(menu.path_label())
+            model = MenuModel(boards=menu.boards())
+            screen = ColumnScreen()
+            painter.paint(screen, model, cli.Cli.APP_NAME, cli.Cli._PKG_VERSION)
+            occupy(screen.calls)
+            placeable = screen.getmaxyx()[1] - 1
+            path_text = screen.calls[0][2]
+            self.assertEqual(screen.calls[0][0], 0)
+            self.assertEqual(screen.calls[0][1], 0)
+            self.assertTrue(path_text.startswith(menu.path_label() + ": "), path_text)
+            self.assertTrue(path_text.endswith(clock), path_text)
+            self.assertEqual(display_width(path_text), placeable)
+            framed = [text for _y, _x, text in screen.calls if text[:1] == "╭"]
+            self.assertEqual(len(framed), 1)
+            self.assertEqual(display_width(framed[0]), placeable)
+            for number_field, short, verb_pad, _explain in painter.row_parts(board):
+                if short not in words:
+                    continue
+                verb_x = display_width(number_field)
+                matches = [
+                    item for item in screen.calls if item[2] == short and item[1] == verb_x
+                ]
+                self.assertEqual(len(matches), 1, short)
+                y, x, text = matches[0]
+                self.assertEqual(text, short)
+                colon_x = x + display_width(short)
+                colon = [item for item in screen.calls if item[0] == y and item[1] == colon_x]
+                self.assertEqual(colon, [(y, colon_x, "{0}: ".format(verb_pad))], short)
+                self.assertNotEqual(colon_x, x + len(short), short)
 
     def test_tp_tui_12_view_log_stays_through_the_clock_wait(self):
         """TP-TUI-12: the one-second clock wait does not close the log-file question."""

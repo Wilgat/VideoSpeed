@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-cli-logging.md
-**Status**: Active (Version 1.0.16)
+**Status**: Active (Version 1.0.17)
 **Area**: python
 **Key**: `requirement-python-cli-logging`
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -14,7 +14,7 @@ VideoSpeed records **system status** through that one **ChronicleLogger** instan
 
 ### 1.1 Human-facing
 
-**In one sentence:** `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)`, VideoSpeed writes a dated status file through that object, and it does not paint those lines onto the text menu, onto the about page, or onto standard output when `--json` is set.
+**In one sentence:** `def main` instantiates ChronicleLogger by writing `ChronicleLogger(...)`, VideoSpeed writes a dated status file through that object, and the terminal stays quiet unless `--verbose` is set on a run that is not `--json` and not a text screen.
 
 | Box | Meaning | Example |
 |-----|---------|---------|
@@ -35,7 +35,7 @@ VideoSpeed records **system status** through that one **ChronicleLogger** instan
 | You do… | What it means | What you type |
 |---------|---------------|---------------|
 | Start the program | `def main` instantiates one logger by writing `ChronicleLogger(...)` with logname `VideoSpeed`, reads the resolved name and base folder back, and logs status with a component tag. | `video-speed --version` |
-| Ask for the debug lines | Set `DEBUG` before the process starts. On a non-TUI, non-JSON run, `main` displays the resolved name, the version triple, `ChronicleLogger.class_version()`, and a line that says `debug mode`, before the argument parser. `--json` and the text screen keep that mirror off the console. `video-speed about --json` keeps it off both streams. The about page on the error stream is not this mirror. When debug mode is off, those lines stay off. | `DEBUG=1 video-speed --version` |
+| Ask for the debug lines | Set `DEBUG` before the process starts, and pass `--verbose`. `main` then displays the resolved name, the version triple, `ChronicleLogger.class_version()`, and a line that says `debug mode`, before the argument parser. Without `--verbose` those lines stay in the daily file and off the terminal. `--json` and the text screen keep that mirror off the console even with `--verbose`. `video-speed about --json` keeps it off both streams. The about page on the error stream is not this mirror. When debug mode is off, those lines stay off. | `DEBUG=1 video-speed --verbose --version` |
 
 ## 2. Core Rules (Mandatory)
 
@@ -60,7 +60,7 @@ VideoSpeed records **system status** through that one **ChronicleLogger** instan
 9. **MUST** ask `logger.isDebug()` for whether debug status is on. **MUST NOT** read `DEBUG` again in product code.  
 10. `isDebug()` remembers the first answer. `DEBUG` or `debug` **MUST** already be `1`, `true`, or `show` (any letter case) **before** `ChronicleLogger(...)`.  
 11. The startup identity lines **MUST** run only inside `if logger.isDebug():`, and `main` **MUST** run that block before the argument parser. The block is the resolved app name, the version triple, this file’s path, `ChronicleLogger.class_version()`, the resolved base folder, and one line whose message is `debug mode`. When `isDebug()` is false, those lines **MUST NOT** be displayed.  
-11a. **Console mirror.** When `--json` is set, or this run will open the text screen, and that fact is known before construct, `main` **MUST** pass `is_quiet=True` into `ChronicleLogger(...)`. The library stores that flag before it resolves the name and the folders and before it creates the log directory. That constructor can call `prn`, including the line `Created directory:`. A call to `quiet(True)` after the constructor returns **MUST NOT** be the only quiet for those runs. It does not hide a line the constructor already printed. A non-TUI run that is not `--json` **MUST** leave `is_quiet` false, so the operator sees `debug mode` on the console. `--json` and the text screen **MUST** keep that mirror off the console. The same lines still go to the daily file. `logger.quiet(True)` remains the setter when a screen opens later and was not known at construct. It is not a substitute for `is_quiet=True` on a `--json` construct. `is_quiet=True` is not the JSON encoder.
+11a. **Console mirror.** The terminal **MUST** stay quiet unless `--verbose` is set. `main` **MUST** pass `is_quiet=True` into `ChronicleLogger(...)` by default. `is_quiet` **MUST** be false only when `--verbose` is set and this run is not `--json` and will not open the text screen. `--json` and the text screen **MUST** stay quiet even when `--verbose` is also set, because the library mirrors a line onto the same stream it would use when it is not quiet. The library stores that flag before it resolves the name and the folders and before it creates the log directory. That constructor can call `prn`, including the line `Created directory:`. A call to `quiet(True)` after the constructor returns **MUST NOT** be the only quiet. It does not hide a line the constructor already printed. `DEBUG` **MUST NOT**, by itself, put those lines on the terminal. With `DEBUG` set and no `--verbose`, the daily file still receives them and the terminal does not. There is no `--quiet` flag. `logger.quiet(True)` remains the setter when a screen opens later and was not known at construct. It is not a substitute for `is_quiet=True` on the constructor. `is_quiet=True` is not the JSON encoder.
 11b. **About page is not this mirror.** The host-check block that contains `[CHECK SYSTEM]:` is page text owned by `requirement-python-about`. `log_message` **MUST NOT** emit that block, and **MUST NOT** insert a status line into the page. `video-speed about --json` is a `--json` run, so rule 11a has already constructed the logger with `is_quiet=True`. The console mirror **MUST NOT** write a status line onto standard output, and **MUST NOT** write one onto the error stream beside that page. That includes `Created directory:`. The daily file still receives the status lines. `is_quiet=True` **MUST NOT** suppress the about page. A terminal that shows the page and then the JSON object is the two streams of one terminal. It is not a logger line joining the object. `TTY / Interactive` on that page is `requirement-python-about`. It is not `isDebug()`, and it is not JSON `mode`.
 
 ### 2.3 `log_message` level and component
@@ -87,7 +87,7 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 13d. A class that constructs another product class **MUST** write `OtherClass(...)` at that site and pass that same logger.  
 13e. **MUST NOT** construct a ChronicleLogger inside a class. **MUST NOT** construct it from a method of `Cli`.  
 13f. A caller that has no logger may omit it. `main` has the logger and **MUST** pass it.  
-13g. `--json` and the text screen **MUST** already be quiet, so these lines stay off that console. The daily file still receives them. A non-TUI, non-JSON run **MUST** leave quiet off, so the operator sees each `instantiated` line.
+13g. The console mirror **MUST** stay off unless `--verbose` is set on a run that is not `--json` and not a text screen. `--json` and the text screen **MUST** already be quiet, even with `--verbose`, so these lines stay off that console. The daily file still receives them. `--verbose` on a non-JSON, non-screen run **MUST** show each `instantiated` line.
 
 ### 2.3b Major file operations
 
@@ -112,8 +112,8 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 ### 2.4 Console, menu, and the file
 
 17. `log_message` still tries to append the daily file when the folder is writable. An unwritable folder **MUST NOT** crash the process.  
-18. While the text menu is on screen, **MUST** call `logger.quiet(True)` first so the console mirror does not write over the frame. The file write still happens. `requirement-python-tui` still draws the screen.  
-19. A batch job that never opens the menu **MUST** leave quiet off so the operator sees the mirrored status line.  
+18. While the text menu is on screen, **MUST** call `logger.quiet(True)` first so the console mirror does not write over the frame. `--verbose` **MUST NOT** leave that mirror on once the screen is up. The file write still happens. `requirement-python-tui` still draws the screen.  
+19. A batch job that never opens the menu **MUST** leave the console mirror off unless `--verbose` is set. `--verbose` on that job **MUST** show the mirrored status line. `--json` **MUST** stay quiet even when `--verbose` is also set.  
 20. A user-visible failure sentence remains owned by `requirement-python-error-handling`. The same fact **MUST** also be `log_message` at `ERROR` or `FATAL`. While quiet is on, the logger mirror is not a substitute for that console sentence.
 
 ### 2.5 Folder and line
@@ -142,9 +142,9 @@ The class-name components are `Cli`, `RunOutput`, `FileStage`, `MediaInfo`, `Enc
 | **Construct site** | `def main` in `src/VideoSpeed/cli.py` instantiates ChronicleLogger by writing `ChronicleLogger(...)` in that function. Rule 5. |
 | **logname** | `VideoSpeed` |
 | **Resolved name** | `video-speed` from `logName()` |
-| **Call order** | Inside `def main`, write `ChronicleLogger(...)` with `logname` and, when `--json` or the text screen is already known, `is_quiet=True`. Then read `logName()`, `baseDir()`, and `logDir()`. Then `isDebug()`, then `log_message`, including `debug mode`. Then `Cli(logger)`. `quiet(True)` after the constructor returns does not replace `is_quiet=True` |
-| **Quiet** | `is_quiet=True` on the constructor for `--json` and for a text screen already known from argv. That hides `Created directory:` and the later mirror. `video-speed about --json` uses that flag. The about page on the error stream is not a mirror line. `logger.quiet(True)` still runs before a frame that was not known at construct. A non-TUI, non-JSON run stays audible |
-| **Ship unit** | `def main` writes `ChronicleLogger(...)` with `is_quiet=True` when `--json` is set or the text screen is already known, then writes `Cli(logger)`. Each `__init__` calls `log_message("instantiated", ...)` itself. A non-TUI, non-JSON run shows those lines. `--json`, including `about --json`, keeps them off the console, including `Created directory:` when the log folder is new. The about page is still printed to the error stream by `requirement-python-about`. Edit, probe, and ffmpeg stage lines remain `TP-LOG-03`. A temp write, a publish, and a discard of an unfinished temp are not logged yet (`TP-LOG-06`). The ship unit creates no threads and takes no log lock (`TP-LOG-07`). `TP-LOG-08` and `TP-ABOUT-15` have (`./tests/run.sh` 2026-10-02: 86 tests, OK, skipped=1) |
+| **Call order** | Inside `def main`, write `ChronicleLogger(...)` with `logname` and `is_quiet=True` unless `--verbose` is set on a run that is not `--json` and not a text screen. Then read `logName()`, `baseDir()`, and `logDir()`. Then `isDebug()`, then `log_message`, including `debug mode`. Then `Cli(logger)`. `quiet(True)` after the constructor returns does not replace `is_quiet` on the constructor |
+| **Quiet** | The terminal stays quiet unless `--verbose`. `--json` and a text screen stay quiet even with `--verbose`. That hides `Created directory:` and the later mirror. `video-speed about --json` uses `is_quiet=True`. The about page on the error stream is not a mirror line. `logger.quiet(True)` still runs before a frame that was not known at construct. `DEBUG=1` without `--verbose` writes the file and does not show the terminal |
+| **Ship unit** | `def main` writes `ChronicleLogger(...)` with `is_quiet=True` unless `--verbose` is set on a run that is not `--json` and not a text screen, then writes `Cli(logger)`. Each `__init__` calls `log_message("instantiated", ...)` itself. Without `--verbose` those lines stay off the terminal. `--verbose` on a non-JSON, non-screen run shows them. `--json`, including `about --json`, keeps them off the console even with `--verbose`, including `Created directory:` when the log folder is new. The about page is still printed to the error stream by `requirement-python-about`. Edit, probe, and ffmpeg stage lines remain `TP-LOG-03`. A temp write, a publish, and a discard of an unfinished temp are not logged yet (`TP-LOG-06`). The ship unit creates no threads and takes no log lock (`TP-LOG-07`). `TP-LOG-08` and `TP-ABOUT-15` have |
 | **Debug switch** | Environment `DEBUG` only. There is no `--debug` flag |
 | **Environment checks** | `CheckSystem.in_venv`, `in_pyenv`, and `in_conda` return the stored logger’s `inVenv()`, `inPyenv()`, and `inConda()`. An absent logger is false. Those booleans do not select the location lines |
 | **Resolved log folder** | ChronicleLogger already returns it from `logDir()`. Order: conda, else pyenv (including pyenv-virtualenv), else venv (`VIRTUAL_ENV`), else `~/.app/video-speed` for a non-root login or `/var/video-speed` for root. The log folder is that base plus `/log`. Root with none of those environments is `/var/video-speed/log`, not `/var/log/video-speed/`. Miniconda and Anaconda are the one conda branch when the active environment lives under that prefix. The pyenv row’s `3.12` is an example of the active version directory. The program does not copy the ladder. No new proof is marked have. The program is unchanged |
@@ -160,7 +160,8 @@ def main(argv=None):
     from VideoSpeed import MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION
 
     appname = "VideoSpeed"
-    logger = ChronicleLogger(logname=appname, is_quiet=json_or_text_screen)
+    show_mirror = verbose and not json_mode and not text_screen
+    logger = ChronicleLogger(logname=appname, is_quiet=not show_mirror)
     appname = logger.logName()
     basedir = logger.baseDir()
     logdir = logger.logDir()
@@ -188,7 +189,7 @@ def main(argv=None):
     app = Cli(logger)
 ```
 
-That function is `def main`. The statement `ChronicleLogger(...)` instantiates the logger there. `json_or_text_screen` is true when `--json` is set or the text screen is already known. That flag is `is_quiet` on the constructor. A non-TUI, non-JSON run passes false. `quiet(True)` after this constructor returns does not hide `Created directory:`. Rule 5 keeps this statement in `def main`.
+That function is `def main`. The statement `ChronicleLogger(...)` instantiates the logger there. `show_mirror` is true only when `--verbose` is set and this run is not `--json` and will not open the text screen. `is_quiet` on the constructor is the opposite of that flag, so the default is quiet. `--json` and a text screen stay quiet even when `--verbose` is also set. `quiet(True)` after this constructor returns does not hide `Created directory:`. Rule 5 keeps this statement in `def main`.
 
 `log_message` levels. `component` is always a keyword:
 
@@ -269,7 +270,7 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 6. Import `FakeTimeProvider` or `_Suroot`.  
 7. Re-export `ChronicleLogger` from `VideoSpeed`.  
 8. Hard-code a resolved log folder in product code. That includes `~/.app/video-speed`, `/var/video-speed`, `/var/log/video-speed`, a venv prefix, a pyenv version directory, and a conda environment prefix.  
-9. Treat `quiet(True)` or `is_quiet=True` as a JSON encoder. `--json` is `requirement-python-json-output`. While that switch is set, the constructor **MUST** receive `is_quiet=True` so status lines, including `Created directory:`, do not join the one JSON object. Calling `quiet(True)` only after the constructor returns does not do that. `is_quiet=True` **MUST NOT** be used to drop the about page.  
+9. Treat `quiet(True)` or `is_quiet=True` as a JSON encoder, or show the console mirror when `--verbose` is absent. The default is quiet. `--json` is `requirement-python-json-output`. While that switch is set, and while this run will open the text screen, the constructor **MUST** receive `is_quiet=True` even when `--verbose` is also set, so status lines, including `Created directory:`, do not join the one JSON object and do not write over the frame. Calling `quiet(True)` only after the constructor returns does not do that. `is_quiet=True` **MUST NOT** be used to drop the about page. `DEBUG` **MUST NOT**, by itself, put the identity lines on the terminal.  
 10. Build the product objects before the logger exists, or drop the `instantiated` line, or keep a class from storing and passing that logger. Instantiate ChronicleLogger from a function or a method, or call `Cli.__new__` to reach that construct. Write the instantiation line from a module function instead of from `__init__`.  
 11. Write a temp, publish, or discard an unfinished temp without a `log_message` that names the operation and the paths.  
 12. Put the Control-C stop procedure in this file. That outcome is `requirement-python-graceful-exit`.  
@@ -285,10 +286,10 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | TP-ID | Case | Status | Map |
 |-------|------|--------|-----|
 | `TP-LOG-01` | One construct; read-back `logName` / `baseDir` / `logDir` under a temp base | have | `tests/test_logging.py` |
-| `TP-LOG-02` | `DEBUG=1` on a non-TUI, non-JSON run shows the identity lines and `debug mode`; unset `DEBUG` does not. `--json` and the text screen keep that mirror off stdout and still write the file | have | `tests/test_logging.py` |
+| `TP-LOG-02` | `DEBUG=1` without `--verbose` writes the identity lines and `debug mode` to the daily file and keeps them off the terminal. `DEBUG=1` with `--verbose` on a non-JSON, non-screen run shows those lines. Unset `DEBUG` does not log them. `--json` and the text screen keep that mirror off stdout even with `--verbose`, and still write the file | have | `tests/test_logging.py` |
 | `TP-LOG-03` | `INFO`, `WARNING`, `ERROR`, `FATAL` and keyword `component` | todo | `reviews/test-plan.md` |
 | `TP-LOG-04` | Text menu path calls `quiet(True)` before the frame is drawn | have | `tests/test_logging.py` |
-| `TP-LOG-05` | Each constructed class stores the one logger and logs `instantiated` under its class name. `--json` keeps that mirror off stdout | have | `tests/test_logging.py` |
+| `TP-LOG-05` | Each constructed class stores the one logger and logs `instantiated` under its class name. Those lines appear on stdout only when `--verbose` is set on a non-JSON, non-screen run. `--json` and the text screen keep that mirror off stdout even with `--verbose` | have | `tests/test_logging.py` |
 | `TP-LOG-06` | A publish or a temp write logs the operation and the paths on the one logger | todo | `reviews/test-plan.md` |
 | `TP-LOG-07` | A thread create, start, or wait writes the action, the thread name, and the wait target on the one logger before the call that can block. The log call is not made while a work lock is held | todo | `reviews/test-plan.md` |
 | `TP-LOG-08` | `video-speed about --json` writes `ChronicleLogger(...)` inside `def main` with `is_quiet=True`. A new log folder does not print `Created directory:` on either stream. The about page on the error stream contains `[CHECK SYSTEM]:` and contains no ChronicleLogger line. The daily file still records status. Standard output is only the JSON object | have | `tests/test_logging.py` |
@@ -335,9 +336,10 @@ On Termux, Git Bash, Windows cmd, or the same class, status files stay in the fo
 | 2026-10-02 | Active 1.0.14 | ChronicleLogger already resolves the log folder for no extra environment, venv, pyenv, pyenv-virtualenv, Miniconda, and Anaconda. This file records those `logDir()` results for `video-speed`. The program still calls `baseDir()` and `logDir()` and does not copy the ladder. Root with none of those environments is `/var/video-speed/log`, not `/var/log/video-speed/`. No new proof is marked have. The program was not changed |
 | 2026-10-02 | Active 1.0.15 | The Control-C exit line uses `menu` on a text screen and `main` otherwise. The interrupted-wait line stays `ffmpeg`. The question words stay on `requirement-python-graceful-exit`. No new proof is marked have. The program was not changed |
 | 2026-10-02 | Active 1.0.16 | Sample code shows `ChronicleLogger(...)` inside `def main`, then `Cli(logger)`. The program was not changed |
+| 2026-10-05 | Active 1.0.17 | The console mirror stays off unless `--verbose` is set on a run that is not `--json` and not a text screen. `DEBUG` without `--verbose` writes the daily file and does not show the terminal. `--json` and a text screen stay quiet even with `--verbose`. There is no `--quiet` flag |
 
 ---
 
-**Last Updated**: 2026-10-02  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).

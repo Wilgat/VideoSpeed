@@ -97,7 +97,7 @@
 | Check | Path |
 |-------|------|
 | README features / install honesty | `README.md` |
-| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.11` |
+| Changelog vs package version | root `CHANGELOG.md` (SSOT) vs `1.0.12` |
 | Design notes not replacing REQs | `docs/VideoClip-spec.md` |
 
 ---

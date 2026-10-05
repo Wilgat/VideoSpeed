@@ -1,5 +1,5 @@
 **file**: docs/requirements/requirement-python-packaging.md  
-**Status**: Active (Version 1.1.10)  
+**Status**: Active (Version 1.1.11)  
 **Area**: python  
 **Key**: `requirement-python-packaging`  
 **Philosophy**: CIAO **v2.10.2** / CIAO-Lite (Caution • Intentional • Anti-fragile • Over-engineered / Over-protect)
@@ -72,7 +72,7 @@ Define packaging SSOT for the VideoSpeed Python distribution: **`pyproject.toml`
 |------|--------|
 | **Manifest** | `pyproject.toml` |
 | **Project name** | `VideoSpeed` |
-| **Version** | `1.0.11` from `MAJOR_VERSION=1`, `MINOR_VERSION=0`, `PATCH_VERSION=11` (`requirement-python-version`) |
+| **Version** | `1.0.12` from `MAJOR_VERSION=1`, `MINOR_VERSION=0`, `PATCH_VERSION=12` (`requirement-python-version`) |
 | **requires-python** | `>=3.11` (`tomllib` in the suite; the text menu uses 3.11 typing) |
 | **Dependencies** | Version floors owned by `requirement-python-dependency-management`: `opencv-python-headless>=5.0.0.93`, `ChronicleLogger>=1.3.1` |
 | **Build backend** | `setuptools.build_meta` |
@@ -96,7 +96,7 @@ Define packaging SSOT for the VideoSpeed Python distribution: **`pyproject.toml`
 ```toml
 [project]
 name = "VideoSpeed"
-version = "1.0.11"
+version = "1.0.12"
 
 [project.scripts]
 video-speed = "VideoSpeed.cli:main"
@@ -179,9 +179,10 @@ The version string is the package `__version__` from `requirement-python-version
 | 2026-10-01 | Active 1.1.8 | `build.sh` verbs owned by `requirement-python-build-script` |
 | 2026-10-02 | Active 1.1.9 | Sample code shows the manifest name, version `1.0.10`, and `video-speed = VideoSpeed.cli:main` |
 | 2026-10-04 | Active 1.1.10 | Version row and sample are package string `1.0.11` |
+| 2026-10-05 | Active 1.1.11 | Version row and sample are package string `1.0.12` |
 
 ---
 
-**Last Updated**: 2026-10-04  
+**Last Updated**: 2026-10-05  
 **Owner**: project maintainers  
 **Alignment**: Registry `docs/requirements/index.md`; **CIAO** (https://github.com/cloudgen/ciao); CIAO-Lite (https://github.com/cloudgen/ciao-lite).
